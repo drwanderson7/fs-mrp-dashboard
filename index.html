@@ -603,6 +603,37 @@ td{line-height:1.4}
 .sd-toast{position:fixed;right:20px;bottom:20px;z-index:9000;max-width:420px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;box-shadow:0 10px 30px rgba(16,24,40,.18);padding:14px 16px}
 .sd-toast-msg{font-size:13px;line-height:1.5;color:var(--text)}
 .sd-toast-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+
+/* ── What Changed ── */
+.chg-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;border:1px solid #86efac;background:#f0fdf4;border-radius:10px;font-size:13px;color:var(--text)}
+.chg-strip.alert{border-color:#fed7aa;background:#fff7ed}
+#chg-head{margin-bottom:12px}
+.chg-cards{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.chg-card{text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;font-family:'Inter',sans-serif;display:flex;flex-direction:column;gap:3px;min-height:86px}
+.chg-card:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}
+.chg-card.active{box-shadow:0 0 0 2px var(--accent);border-color:var(--accent)}
+.chg-card-l{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted2)}
+.chg-card-n{font-size:24px;font-weight:700;line-height:1.1}
+.chg-card-s{font-size:11px;color:var(--muted2);line-height:1.3}
+.cc-red .chg-card-n{color:var(--critical)} .cc-orange .chg-card-n{color:#EA580C} .cc-blue .chg-card-n{color:#2563EB} .cc-green .chg-card-n{color:var(--low)} .cc-gray .chg-card-n{color:var(--text)}
+.cc-red.active{box-shadow:0 0 0 2px var(--critical);border-color:var(--critical)}
+.chg-tbl .neg,.chg-week .neg,.ov-small.neg{color:var(--critical)}
+.chg-tbl td{vertical-align:top}
+.chg-chips{line-height:1.9}
+.cchip{display:inline-block;font-size:11px;font-weight:600;border:1px solid;border-radius:4px;padding:0 6px;white-space:nowrap;line-height:1.6}
+.c-red{color:#DC2626;background:#FEF2F2;border-color:#FCA5A5}.c-orange{color:#EA580C;background:#FFF7ED;border-color:#FED7AA}.c-blue{color:#2563EB;background:#EFF6FF;border-color:#BFDBFE}.c-green{color:#16A34A;background:#F0FDF4;border-color:#86EFAC}
+.chg-det{white-space:normal;margin-top:4px;line-height:1.4}
+.tbl-wrap table.chg-tbl{min-width:1100px}
+.chg-tbl .status-select{min-width:0;width:100%}
+.chg-legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin:6px 0}
+.chg-legend i{display:inline-block;width:22px;margin-right:6px;vertical-align:middle}
+.chg-ul{margin:0 0 6px 18px;line-height:1.7;color:var(--muted);font-size:13px}
+.chg-week{width:100%;table-layout:auto;border-collapse:collapse;font-size:12px}
+.chg-week th{position:static;background:var(--surface2);font-size:10px;padding:6px 8px}
+.chg-week td{padding:5px 8px;border-bottom:1px solid var(--border)}
+.chg-week .num{text-align:right}
+.chg-was{text-decoration:line-through;color:var(--muted2);margin-right:4px}
+@media(max-width:1300px){.chg-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -759,6 +790,7 @@ td{line-height:1.4}
     <div class="tab" id="tab-actions" onclick="switchTab('actions')">
       Purchasing Queue <span class="tab-badge" id="actions-badge">0</span>
     </div>
+    <div class="tab" id="tab-changes" onclick="switchTab('changes')">What Changed <span class="tab-badge" id="changes-badge" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa">0</span></div>
     <div class="tab" id="tab-parts" onclick="switchTab('parts')">All Parts</div>
     <div class="tab" id="tab-schedule" onclick="switchTab('schedule')">
       🚛 Trailers at Risk <span class="tab-badge" id="schedule-badge" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa">0</span>
@@ -806,6 +838,7 @@ td{line-height:1.4}
 
     <!-- OVERVIEW TAB -->
     <div id="view-overview">
+      <div id="chg-strip" class="chg-strip" style="display:none"></div>
       <div class="ov-head">
         <div>
           <div class="ov-title">Production exposure</div>
@@ -1043,6 +1076,13 @@ td{line-height:1.4}
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- WHAT CHANGED TAB -->
+    <div id="view-changes" style="display:none">
+      <div class="ov-head" id="chg-head"></div>
+      <div id="chg-body"></div>
+      <input type="file" id="chg-file" accept=".xlsx,.xlsm" style="display:none" onchange="chgPickFile(event)">
     </div>
 
     <!-- LATE PO TAB -->
@@ -3154,7 +3194,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 function v2Escape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function v2Panel(title,html){document.getElementById('v2-modal')?.remove();const m=document.createElement('div');m.id='v2-modal';m.className='v2-modal';m.innerHTML='<section class="v2-panel" role="dialog" aria-modal="true" aria-label="'+v2Escape(title)+'"><button class="export-btn v2-close" onclick="document.getElementById(\'v2-modal\').remove()">Close</button><h2>'+v2Escape(title)+'</h2>'+html+'</section>';m.addEventListener('click',e=>{if(e.target===m)m.remove();});document.body.appendChild(m);m.querySelector('button').focus();}
 function v2Data(){v2Panel('Data & Settings','<h3>MRP report</h3><p>'+v2Escape(window.lastRawFileName||'No report loaded')+'</p><button class="export-btn primary" onclick="document.getElementById(\'file-input\').click()">Choose MRP</button><h3>Production schedule</h3><p>'+v2Escape(window.lastSchedFileName||'No schedule uploaded this session')+'</p><button class="export-btn" onclick="document.getElementById(\'schedule-input\').click()">Choose schedule</button><h3>Calculation settings</h3><p>Use the existing steel lead time and arrival buffer controls above the dashboard. Calculation rules are unchanged in this revision.</p><h3>Local work tracking</h3><p>Statuses belong to this browser, not a shared team workspace. Uploaded reports are not automatically shared with other viewers.</p>');}
-function v2Help(){v2Panel('Help','<h3>Start here</h3><p>Choose your MRP report, optionally add a production schedule, then select Analyze to open the dashboard.</p><h3>Choose a workspace</h3><p><b>Overview:</b> urgency totals, production line health and the parts blocking the most trailers (choose the time window at the top), then Vendor Priority and the order deadline timeline. Click a line to open its trailers, or a part for its details. On every other tab the urgency totals shrink to one slim row; click any of them to filter All Parts.<br><b>Purchasing Queue:</b> urgent unordered parts and expedite items.<br><b>All Parts:</b> search and filter flagged parts.<br><b>Trailers at Risk:</b> investigate affected trailers.<br><b>Expedite:</b> review late purchase orders.</p><h3>Investigate and follow up</h3><p>Click a part number for details. Click an Open PO badge for the delivery breakdown. Work statuses are saved in this browser only and do not change MRP urgency.</p><h3>Team shared folder (same files for everyone)</h3><p>Connect the dashboard to one folder the whole team syncs from SharePoint. Every time anyone opens the dashboard, it loads the <b>newest MRP (.xlsm)</b> and the <b>newest schedule (.xlsx with “Schedule” in the name)</b> in that folder. To update everyone, save the new file into the folder, or choose it in the dashboard and select <b>Save to team folder</b> when asked.</p><p><b>One-time setup for each person</b><br>1. In SharePoint, open the team folder that holds the MRP and schedule and select <b>Sync</b> (or <b>Add shortcut to My files</b>), so it appears in File Explorer.<br>2. In the dashboard, open <b>Data &amp; Settings</b> and select <b>Connect team folder…</b>.<br>3. Pick that folder and select <b>View files</b>, then <b>Allow</b>. If Chrome or Edge offers <b>Allow on every visit</b>, choose it so the team files open with no clicks.<br>Otherwise, when you open the dashboard, select <b>Open team files</b> in the notice in the bottom-right corner.</p><p>The line under the page title shows <b>👥 Team files</b> with when each file was last updated, and turns orange when the team MRP is 7 or more days old. If it shows <b>💾 My saved files</b>, you are looking at your own copy, not the team folder.</p><h3>My saved copy</h3><p>Your latest files are also kept in this browser, so the dashboard still opens when the team folder is not connected or not available. Choosing a new file replaces this copy. To remove it, open <b>Data &amp; Settings</b> and select <b>Forget my saved copy</b>.</p><h3>FAQ: team folder</h3><p><b>Someone else’s new MRP isn’t showing.</b> Their file must finish syncing through OneDrive first. Then open <b>Data &amp; Settings</b> and select <b>Open newest team files</b>.<br><b>No Sync button in SharePoint.</b> Your IT team may have turned off OneDrive syncing for SharePoint; ask them to allow it for this library.<br><b>Connect team folder does nothing.</b> Use Chrome or Edge. Firefox cannot connect to folders.<br><b>Old files in the folder.</b> Only the newest MRP and newest schedule are used, so old copies can stay, but clearing them out keeps things tidy.</p><h3>Line Reports (PDF)</h3><p>On <b>Trailers at Risk</b>, select <b>📄 Line Reports</b>. Pick the lines, a time window and the sections, then select <b>Generate PDF report</b>. A report window opens with the print dialog; choose <b>Save as PDF</b>. The summary page compares the lines and lists the parts blocking the most trailers across all selected lines. Each line then gets its own page: at-risk trailers with their blocking parts, the parts to chase (supplier, buyer, PO) and the trailers that look good. Line Reports need the production schedule loaded. If the report window does not open, allow pop-ups for this file.</p><h3>Exports and refresh</h3><p>All Parts and Purchasing Queue exports use the current filtered list, including an empty result. Reload Last File reuses the parsed MRP data in this session. Choose a file again to load changes made outside the dashboard.</p>');}
+function v2Help(){v2Panel('Help','<h3>Start here</h3><p>Choose your MRP report, optionally add a production schedule, then select Analyze to open the dashboard.</p><h3>Choose a workspace</h3><p><b>Overview:</b> urgency totals, production line health and the parts blocking the most trailers (choose the time window at the top), then Vendor Priority and the order deadline timeline. Click a line to open its trailers, or a part for its details. On every other tab the urgency totals shrink to one slim row; click any of them to filter All Parts.<br><b>Purchasing Queue:</b> urgent unordered parts and expedite items.<br><b>All Parts:</b> search and filter flagged parts.<br><b>Trailers at Risk:</b> investigate affected trailers.<br><b>Expedite:</b> review late purchase orders.</p><h3>Investigate and follow up</h3><p>Click a part number for details. Click an Open PO badge for the delivery breakdown. Work statuses are saved in this browser only and do not change MRP urgency.</p><h3>Team shared folder (same files for everyone)</h3><p>Connect the dashboard to one folder the whole team syncs from SharePoint. Every time anyone opens the dashboard, it loads the <b>newest MRP (.xlsm)</b> and the <b>newest schedule (.xlsx with “Schedule” in the name)</b> in that folder. To update everyone, save the new file into the folder, or choose it in the dashboard and select <b>Save to team folder</b> when asked.</p><p><b>One-time setup for each person</b><br>1. In SharePoint, open the team folder that holds the MRP and schedule and select <b>Sync</b> (or <b>Add shortcut to My files</b>), so it appears in File Explorer.<br>2. In the dashboard, open <b>Data &amp; Settings</b> and select <b>Connect team folder…</b>.<br>3. Pick that folder and select <b>View files</b>, then <b>Allow</b>. If Chrome or Edge offers <b>Allow on every visit</b>, choose it so the team files open with no clicks.<br>Otherwise, when you open the dashboard, select <b>Open team files</b> in the notice in the bottom-right corner.</p><p>The line under the page title shows <b>👥 Team files</b> with when each file was last updated, and turns orange when the team MRP is 7 or more days old. If it shows <b>💾 My saved files</b>, you are looking at your own copy, not the team folder.</p><h3>My saved copy</h3><p>Your latest files are also kept in this browser, so the dashboard still opens when the team folder is not connected or not available. Choosing a new file replaces this copy. To remove it, open <b>Data &amp; Settings</b> and select <b>Forget my saved copy</b>.</p><h3>FAQ: team folder</h3><p><b>Someone else’s new MRP isn’t showing.</b> Their file must finish syncing through OneDrive first. Then open <b>Data &amp; Settings</b> and select <b>Open newest team files</b>.<br><b>No Sync button in SharePoint.</b> Your IT team may have turned off OneDrive syncing for SharePoint; ask them to allow it for this library.<br><b>Connect team folder does nothing.</b> Use Chrome or Edge. Firefox cannot connect to folders.<br><b>Old files in the folder.</b> Only the newest MRP and newest schedule are used, so old copies can stay, but clearing them out keeps things tidy.</p><h3>What Changed (inside lead time)</h3><p>Compares today’s MRP with an earlier one, part by part, and shows what changed inside the steel lead time window. <b>Newly short</b>: the part was fine on the earlier MRP and now goes negative inside lead time. <b>Got worse</b>: the shortage is bigger or starts earlier. <b>On-hand change</b>: on hand moved by an amount that receipts and usage do not explain, usually a cycle count or inventory adjustment. <b>PO change</b>: a PO inside lead time moved, was cut, disappeared or is new. <b>More demand</b>: new trailers or BOM changes added demand inside lead time. <b>Main cause</b> shows which of these moved the balance most at the first short week. Click a row to see the before and now balance chart and the week-by-week numbers.</p><p><b>Which MRP is it compared with?</b> By default, the most recent earlier MRP: the dashboard keeps a copy of the last 8 MRPs opened in this browser, and also uses older MRPs in the team folder when it is connected. Use <b>Compared with</b> to pick another (for example a week ago), or <b>Choose an earlier MRP…</b> to use any file.</p><p><b>FAQ.</b> <i>It says there is nothing to compare with.</i> Open the dashboard with each new MRP (or connect the team folder); the next MRP is then compared automatically. <i>An on-hand change was really a receipt.</i> If a PO was received but stayed on the MRP, or was received early, the dashboard may count it as an on-hand change; check the PO lines in the row’s details.</p><h3>Line Reports (PDF)</h3><p>On <b>Trailers at Risk</b>, select <b>📄 Line Reports</b>. Pick the lines, a time window and the sections, then select <b>Generate PDF report</b>. A report window opens with the print dialog; choose <b>Save as PDF</b>. The summary page compares the lines and lists the parts blocking the most trailers across all selected lines. Each line then gets its own page: at-risk trailers with their blocking parts, the parts to chase (supplier, buyer, PO) and the trailers that look good. Line Reports need the production schedule loaded. If the report window does not open, allow pop-ups for this file.</p><h3>Exports and refresh</h3><p>All Parts and Purchasing Queue exports use the current filtered list, including an empty result. Reload Last File reuses the parsed MRP data in this session. Choose a file again to load changes made outside the dashboard.</p>');}
 function v2Part(code){const d=allData.find(x=>String(x.ItemCode)===String(code));if(!d)return;const fields=[['Supplier',d.VendorName],['Buyer',d.BuyerCode],['Urgency',d.urgency],['Work status',getStatus(code)],['Need by',d.need_by],['Order deadline',d.order_deadline],['First negative week',d.first_negative_week],['Minimum available',d.min_available],['Recommended quantity',Math.abs(d.min_available)],['Open PO quantity',d.open_po_qty]];v2Panel(d.ItemCode+' | Part details','<p>'+v2Escape(d.ItemCodeDesc)+'</p><div class="v2-kv">'+fields.map(([k,v])=>'<div><small>'+v2Escape(k)+'</small><b>'+v2Escape(v)+'</b></div>').join('')+'</div><h3>At-risk trailers</h3><p>'+v2Escape((d.at_risk_trailers||[]).join(', ')||'None listed')+'</p>');}
 const v2SwitchTab=switchTab;switchTab=function(t){v2SwitchTab(t);const labels={overview:['Overview','Purchasing priorities and production exposure'],actions:['Purchasing Queue','Order, expedite and track follow-up'],parts:['All Flagged Parts','Search, filter and investigate'],schedule:['Production Risk','Affected trailers and blocking parts'],'late-po':['Expedite','Existing purchase orders arriving late']};const x=labels[t]||labels.overview;document.getElementById('workspace-title').textContent=x[0];document.getElementById('workspace-sub').textContent=x[1];};
 const v2Setup=setupDashboard;setupDashboard=function(){v2Setup();['buyer-filter','late-po-buyer','vendor-filter','late-po-vendor'].forEach(id=>{const el=document.getElementById(id),key=id.includes('buyer')?'BuyerCode':'VendorName',saved=el.value;el.replaceChildren(new Option(key==='BuyerCode'?'All Buyers':'All Suppliers',''));[...new Set(allData.map(d=>d[key]).filter(Boolean))].sort().forEach(v=>el.add(new Option(v,v)));el.value=saved;});const pills=document.getElementById('buyer-pills');pills.replaceChildren();['all',...new Set(allData.map(d=>d.BuyerCode).filter(Boolean))].forEach(v=>{const b=document.createElement('button');b.className='fp buyer-pill'+(v==='all'?' active':'');b.dataset.buyer=v;b.textContent=v==='all'?'All buyers':v;b.onclick=()=>{pills.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));actPage=1;buildActionTable();};pills.appendChild(b);});buildActionTable();};
@@ -3892,6 +3932,407 @@ async function dashStartup(){
 }
 document.addEventListener('DOMContentLoaded',()=>{ renderSavedStatus(); dashStartup(); });
 
+
+
+// ═══════════════════════════════════════════════════════
+//  WHAT CHANGED (Revision 3): compare today's MRP with an earlier one
+//  MRP math (verified): Available = QOH + PriorPO − PriorSO + running Σ(Incoming − Allocated)
+//  so every change in a part's balance splits exactly into on-hand, PO and demand parts.
+// ═══════════════════════════════════════════════════════
+const CHG_IDX='chg_snap_index', CHG_KEEP=8, DAY_MS=86400000;
+
+function chgWeekMs(v){
+  try{
+    if(typeof v==='number') return Date.UTC(1899,11,30)+Math.round(v)*DAY_MS;
+    const d=new Date(v); if(isNaN(d)) return null;
+    return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());
+  }catch(e){ return null; }
+}
+function chgFmt(ms){ if(ms==null) return '—'; const d=new Date(ms); return d.toISOString().slice(0,10); }
+function chgFmtShort(ms){ if(ms==null) return '—'; return new Date(ms).toLocaleDateString([], {month:'short', day:'numeric', timeZone:'UTC'}); }
+function chgNameDate(name){
+  const m=/(\d{2})(\d{2})(20\d{2})/.exec(name||'');
+  if(m){ const mo=+m[1], d=+m[2], y=+m[3]; if(mo>=1&&mo<=12&&d>=1&&d<=31) return Date.UTC(y,mo-1,d); }
+  const m2=/(20\d{2})-(\d{2})-(\d{2})/.exec(name||''); if(m2) return Date.UTC(+m2[1],+m2[2]-1,+m2[3]);
+  return null;
+}
+
+// Compact per-part snapshot of an MRP (raw rows from sheet_to_json header:1)
+function chgBuildSnapshot(raw){
+  const keys=(raw[0]||[]).map(k=>String(k||'').trim());
+  const c={code:fk(keys,'ItemCode','itemcode'), desc:fk(keys,'ItemCodeDesc','description'), week:fk(keys,'WeekOf','week'),
+    qoh:fk(keys,'QuantityOnHand','qoh','onhand'), ppo:fk(keys,'PriorPO'), pso:fk(keys,'PriorSO'),
+    alloc:fk(keys,'Allocated','alloc'), avail:fk(keys,'Available','avail'), inc:fk(keys,'Incoming','incoming'),
+    po:fk(keys,'PurchaseOrders','purchaseorder'), vend:fk(keys,'VendorName','vendor'), buyer:fk(keys,'BuyerCode','buyer'),
+    pl:fk(keys,'ProductLine','productline'), so:fk(keys,'SalesOrders','salesorders')};
+  const items={}; const weekSet=new Set();
+  for(let i=1;i<raw.length;i++){
+    const r=raw[i]; const code=r[c.code]; if(!code) continue;
+    const w=chgWeekMs(r[c.week]); if(w==null) continue;
+    weekSet.add(w);
+    let it=items[code];
+    if(!it) it=items[code]={d:String(r[c.desc]||''), v:String(r[c.vend]||''), b:String(r[c.buyer]||''), pl:String(r[c.pl]||''),
+      f:Infinity, q:0, pp:0, ps:0, w:{}, po:[], so:{}};
+    if(w<it.f){ it.f=w; it.q=toNum(r[c.qoh]); it.pp=toNum(r[c.ppo]); it.ps=toNum(r[c.pso]); }   // only the first week's row counts
+    const inc=toNum(r[c.inc]), alloc=toNum(r[c.alloc]);
+    it.w[w]=[inc, alloc, toNum(r[c.avail])];
+    const po=r[c.po]?String(r[c.po]).trim():'';
+    if(po && inc>0) it.po.push([po, w, inc]);
+    const so=r[c.so]?String(r[c.so]).trim():'';
+    if(so) it.so[w]=so;
+  }
+  const weeks=[...weekSet].sort((a,b)=>a-b);
+  return {weeks, items, first:weeks[0]};
+}
+
+// ── Snapshot history (one per MRP this browser has opened) ──
+async function chgIndex(){ try{ return (await fsGet(CHG_IDX))||[]; }catch(e){ return []; } }
+async function chgSaveSnapshot(meta, snap){
+  try{
+    let idx=await chgIndex();
+    idx=idx.filter(x=>x.key!==meta.key); idx.push(meta);
+    idx.sort((a,b)=>b.date-a.date);
+    const drop=idx.slice(CHG_KEEP); idx=idx.slice(0,CHG_KEEP);
+    await fsPut('snap:'+meta.key, snap);
+    await fsPut(CHG_IDX, idx);
+    for(const d of drop) fsDel('snap:'+d.key).catch(()=>{});
+  }catch(e){ console.warn('Could not keep MRP history',e); }
+}
+function chgCurrentMeta(){
+  const name=window.lastRawFileName||window.lastRawFile||'MRP';
+  const size=window.lastRawBytes?window.lastRawBytes.byteLength:0;
+  const si=window.__sharedInfo;
+  const lm=si&&si.mrp&&si.mrp.n===name?si.mrp.t:null;
+  return {key:name+'|'+size, name, size, date:chgNameDate(name)??lm??Date.now(), lm};
+}
+
+// Options for "Compared with": this browser's history + older MRPs in the team folder
+async function chgBaselineOptions(cur){
+  const opts=[];
+  for(const m of await chgIndex()){ if(m.key!==cur.key) opts.push({...m, source:'history'}); }
+  try{
+    const h=await sdGetHandle();
+    if(h && (await sdPermission(h,'read',false))==='granted'){
+      for await (const [name,entry] of h.entries()){
+        if(entry.kind!=='file' || sdKind(name)!=='mrp') continue;
+        let f; try{ f=await entry.getFile(); }catch(e){ continue; }
+        const key=name+'|'+f.size; if(key===cur.key || opts.some(o=>o.key===key)) continue;
+        opts.push({key, name, size:f.size, date:chgNameDate(name)??f.lastModified, lm:f.lastModified, source:'team', file:f});
+      }
+    }
+  }catch(e){ console.warn(e); }
+  const x=chgState.extraOpt; if(x && x.key!==cur.key && !opts.some(o=>o.key===x.key)) opts.push(x);   // a file chosen by hand this session
+  opts.sort((a,b)=>b.date-a.date || (b.lm||0)-(a.lm||0));
+  return opts;
+}
+
+async function chgLoadBaseline(opt){
+  if(chgState.snapCache[opt.key]) return chgState.snapCache[opt.key];
+  try{ const s=await fsGet('snap:'+opt.key); if(s){ chgState.snapCache[opt.key]=s; return s; } }catch(e){}
+  const file=opt.file; if(!file) throw new Error('that earlier MRP is no longer available');
+  const ov=document.getElementById('loading-overlay');
+  ov.style.display='flex'; setDialPct(20,'Reading earlier MRP: '+opt.name+'…');
+  await new Promise(r=>setTimeout(r,60));
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const raw=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+    setDialPct(80,'Comparing…');
+    const snap=chgBuildSnapshot(raw);
+    if(!Object.keys(snap.items).length) throw new Error(opt.name+' has no readable parts');
+    await chgSaveSnapshot({key:opt.key,name:opt.name,size:opt.size,date:opt.date,lm:opt.lm}, snap);
+    chgState.snapCache[opt.key]=snap;
+    return snap;
+  }finally{ ov.style.display='none'; }
+}
+
+// ── The comparison ──
+function chgCompare(prev, cur, leadWks, excluded){
+  const start=cur.first, end=start+leadWks*7*DAY_MS;          // lead-time window (this MRP's first week + steel lead time)
+  const rows=[];
+  for(const code of Object.keys(cur.items)){
+    const C=cur.items[code], P=prev.items[code];
+    if(excluded.has(C.pl)) continue;
+    if(!P) continue;                                           // part not on the earlier MRP
+    const common=cur.weeks.filter(w=>C.w[w] && P.w[w]);
+    if(!common.length) continue;
+    // Earlier MRP's position at the start of today's first week (rolls passed weeks forward)
+    let passed=0; for(const w of prev.weeks){ if(w>=start) break; const x=P.w[w]; if(x) passed+=x[0]-x[1]; }
+    const prevBase=P.q+P.pp-P.ps+passed, curBase=C.q+C.pp-C.ps, dBase=curBase-prevBase;
+    let dIncAll=0, dAllocAll=0;
+    for(const w of common){ dIncAll+=C.w[w][0]-P.w[w][0]; dAllocAll+=C.w[w][1]-P.w[w][1]; }
+    // On-hand change not explained by early receipts or early issues = likely cycle count / adjustment
+    let R=0, I=0;
+    if(dBase>0) R=Math.min(dBase, Math.max(0,-dIncAll));
+    if(dBase<0) I=Math.min(-dBase, Math.max(0,-dAllocAll));
+    const U=Math.round(dBase-R+I);
+    // Window view
+    const win=common.filter(w=>w<end);
+    let pMin=Infinity, cMin=Infinity, pNeg=null, cNeg=null;
+    for(const w of win){ const pa=P.w[w][2], ca=C.w[w][2]; if(pa<pMin) pMin=pa; if(ca<cMin) cMin=ca; if(pNeg==null&&pa<0) pNeg=w; if(cNeg==null&&ca<0) cNeg=w; }
+    if(!win.length){ pMin=cMin=0; }
+    // Contributions to the change at the critical week (first short week now, else end of window)
+    const wStar=cNeg ?? win[win.length-1] ?? common[0];
+    let sInc=0, sAlloc=0; for(const w of common){ if(w>wStar) break; sInc+=C.w[w][0]-P.w[w][0]; sAlloc+=C.w[w][1]-P.w[w][1]; }
+    const partOnHand=U, partPO=Math.round(sInc+R), partDemand=Math.round(-(sAlloc)-I);
+    // PO-level changes for POs due inside the window (in either MRP), ignoring POs that already passed
+    const pp={}, cp={};
+    P.po.forEach(([po,w,q])=>{ if(w>=start){ (pp[po]=pp[po]||{w:w,q:0}); pp[po].w=Math.min(pp[po].w,w); pp[po].q+=q; } });
+    C.po.forEach(([po,w,q])=>{ (cp[po]=cp[po]||{w:w,q:0}); cp[po].w=Math.min(cp[po].w,w); cp[po].q+=q; });
+    const poCh=[];
+    for(const po of new Set([...Object.keys(pp),...Object.keys(cp)])){
+      const a=pp[po], b=cp[po];
+      if(a && b){
+        if(!(a.w<end || b.w<end)) continue;
+        if(b.w!==a.w) poCh.push({po, kind:b.w>a.w?'later':'earlier', from:a.w, to:b.w, q:b.q});
+        if(Math.round(b.q)<Math.round(a.q) && R<(a.q-b.q)*0.9) poCh.push({po, kind:'cut', fromQ:a.q, toQ:b.q});
+        else if(Math.round(b.q)>Math.round(a.q)) poCh.push({po, kind:'more', fromQ:a.q, toQ:b.q});
+      } else if(a && !b){
+        if(a.w>=end) continue;
+        poCh.push({po, kind:R>=a.q*0.9?'received':'gone', q:a.q, from:a.w});
+      } else if(b && !a){
+        if(b.w>=end) continue;
+        poCh.push({po, kind:'new', q:b.q, to:b.w});
+      }
+    }
+    // Demand added inside the window
+    let dAllocWin=0; for(const w of win) dAllocWin+=C.w[w][1]-P.w[w][1];
+    const prevTr=new Set(); Object.values(P.so).forEach(s=>s.split(',').forEach(t=>{t=t.trim(); if(t) prevTr.add(t);}));
+    const newTr=new Set(); for(const w of cur.weeks){ if(w>=end) break; const s=C.so[w]; if(s) s.split(',').forEach(t=>{t=t.trim(); if(t&&!prevTr.has(t)) newTr.add(t);}); }
+    // Categories
+    const cats=[];
+    const wasShort=pNeg!=null, isShort=cNeg!=null;
+    if(!wasShort && isShort) cats.push('new_short');
+    else if(wasShort && isShort && (cMin<pMin-0.5 || cNeg<pNeg)) cats.push('worse');
+    else if(wasShort && !isShort) cats.push('improved');
+    else if(wasShort && isShort && (cMin>pMin+0.5 || cNeg>pNeg)) cats.push('improved');
+    if(Math.abs(U)>=1) cats.push('onhand');
+    if(poCh.some(x=>x.kind!=='received')) cats.push('po');
+    if(dAllocWin>=1 || newTr.size) cats.push('demand');
+    if(!cats.length) continue;
+    const action=cats.includes('new_short')||cats.includes('worse');
+    const drivers=[['onhand',partOnHand],['po',partPO],['demand',partDemand]].sort((a,b)=>a[1]-b[1]);
+    const cause=action && drivers[0][1]<0 ? drivers[0][0] : null;
+    rows.push({code, d:C.d, v:C.v, b:C.b, pl:C.pl, cats, action, cause, U, dBase:Math.round(dBase),
+      qohP:P.q, qohC:C.q, pMin:Math.round(pMin), cMin:Math.round(cMin), pNeg, cNeg, poCh, dAllocWin:Math.round(dAllocWin), newTr:[...newTr],
+      parts:{onhand:partOnHand, po:partPO, demand:partDemand}, start, end});
+  }
+  const rank=r=>(r.cats.includes('new_short')?0:r.cats.includes('worse')?1:r.cats.includes('onhand')?2:r.cats.includes('po')?3:r.cats.includes('demand')?4:5);
+  rows.sort((a,b)=>rank(a)-rank(b) || (a.cNeg??9e15)-(b.cNeg??9e15) || a.cMin-b.cMin);
+  return rows;
+}
+
+// ── Running it ──
+let chgState={rows:[], filter:'action', search:'', buyer:'', page:1, base:null, cur:null, opts:[], busy:false, msg:'', snapCache:{}, extraOpt:null};
+async function chgRun(selectedKey){
+  if(chgState.busy) return; chgState.busy=true;
+  chgState.msg='Comparing with the earlier MRP…'; chgRender();
+  try{
+    if(!window.lastRawData || !window.lastRawData.length){ chgState.msg='Load an MRP to see what changed.'; return; }
+    const curMeta=chgCurrentMeta();
+    if(!window.__chgCur || window.__chgCur.key!==curMeta.key){
+      const snap=chgBuildSnapshot(window.lastRawData);
+      window.__chgCur={key:curMeta.key, meta:curMeta, snap};
+      chgSaveSnapshot(curMeta, snap);                         // tomorrow's MRP gets compared with this one
+    }
+    const opts=await chgBaselineOptions(curMeta); chgState.opts=opts;
+    if(!opts.length){ chgState.rows=[]; chgState.base=null; chgState.msg='none'; return; }
+    let opt=selectedKey?opts.find(o=>o.key===selectedKey):null;
+    if(!opt) opt=opts.find(o=>o.date<=curMeta.date)||opts[0];
+    const prevSnap=await chgLoadBaseline(opt);
+    chgState.base=opt; chgState.cur=curMeta; chgState.prevSnap=prevSnap;
+    chgState.rows=chgCompare(prevSnap, window.__chgCur.snap, leadWeeks, getExcludedPL());
+    chgState.page=1; chgState.msg='';
+  }catch(err){ console.error(err); chgState.msg='Could not compare: '+err.message; }
+  finally{ chgState.busy=false; chgRender(); chgRenderStrip(); }
+}
+
+function chgCount(cat){ return chgState.rows.filter(r=>cat==='action'?r.action:r.cats.includes(cat)).length; }
+const CHG_LABEL={new_short:'Newly short', worse:'Got worse', improved:'Improved', onhand:'On-hand change', po:'PO change', demand:'More demand'};
+const CHG_CAUSE={onhand:'On-hand change (likely cycle count)', po:'PO change', demand:'More demand'};
+
+function chgChips(r){
+  const out=[];
+  if(r.cats.includes('new_short')) out.push('<span class="cchip c-red">Newly short</span>');
+  if(r.cats.includes('worse')) out.push('<span class="cchip c-orange">Got worse</span>');
+  if(r.cats.includes('improved')) out.push('<span class="cchip c-green">Improved</span>');
+  if(r.cats.includes('onhand')) out.push(`<span class="cchip ${r.U<0?'c-red':'c-blue'}" title="On-hand changed by ${r.U} that receipts and usage don't explain">On hand ${r.U>0?'+':''}${r.U.toLocaleString()}</span>`);
+  const k={later:'PO later', earlier:'PO earlier', cut:'PO cut', gone:'PO gone', new:'New PO', more:'PO qty up'};
+  const seen=new Set();
+  r.poCh.forEach(p=>{ if(p.kind==='received'||seen.has(p.kind)) return; seen.add(p.kind); out.push(`<span class="cchip ${['later','cut','gone'].includes(p.kind)?'c-red':'c-blue'}">${k[p.kind]}</span>`); });
+  if(r.cats.includes('demand')) out.push(`<span class="cchip c-orange">${r.newTr.length?'+'+r.newTr.length+' trailer'+(r.newTr.length===1?'':'s'):'Demand +'+r.dAllocWin.toLocaleString()}</span>`);
+  return out.join(' ');
+}
+function chgPoText(p){
+  const q=n=>Math.round(n).toLocaleString();
+  if(p.kind==='later'||p.kind==='earlier') return `PO ${p.po} moved ${p.kind}: ${chgFmtShort(p.from)} → ${chgFmtShort(p.to)} (${q(p.q)})`;
+  if(p.kind==='cut') return `PO ${p.po} qty cut ${q(p.fromQ)} → ${q(p.toQ)}`;
+  if(p.kind==='more') return `PO ${p.po} qty up ${q(p.fromQ)} → ${q(p.toQ)}`;
+  if(p.kind==='gone') return `PO ${p.po} (${q(p.q)} due ${chgFmtShort(p.from)}) no longer on the MRP — cancelled, or received without on-hand going up`;
+  if(p.kind==='received') return `PO ${p.po} received (${q(p.q)})`;
+  if(p.kind==='new') return `New PO ${p.po}: ${q(p.q)} due ${chgFmtShort(p.to)}`;
+  return '';
+}
+
+function chgFiltered(){
+  const q=chgState.search.toLowerCase();
+  return chgState.rows.filter(r=>{
+    if(chgState.filter==='action' && !r.action) return false;
+    if(chgState.filter!=='action' && chgState.filter!=='all' && !r.cats.includes(chgState.filter)) return false;
+    if(chgState.buyer && r.b!==chgState.buyer) return false;
+    if(activeSupplier && r.v!==activeSupplier) return false;
+    if(q && ![r.code,r.d,r.v].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function chgRender(){
+  const el=document.getElementById('chg-body'); if(!el) return;
+  const badge=document.getElementById('changes-badge'); if(badge) badge.textContent=chgState.rows.filter(r=>r.action).length;
+  const head=document.getElementById('chg-head');
+  if(head){
+    const opts=chgState.opts||[];
+    const sel=opts.length?`<select id="chg-base" class="ctrl-sel" onchange="chgRun(this.value)">${opts.map(o=>`<option value="${lrEsc(o.key)}" ${chgState.base&&o.key===chgState.base.key?'selected':''}>${lrEsc(chgFmtShort(o.date))} · ${lrEsc(o.name)}${o.source==='team'?' (team folder)':''}</option>`).join('')}</select>`:'';
+    head.innerHTML=`<div class="chg-head-l"><div class="ov-title">What changed inside the ${leadWeeks}-week lead time</div>
+      <div class="ov-sub">${chgState.base?`Today's MRP <b>${lrEsc(chgState.cur.name)}</b> compared with <b>${lrEsc(chgState.base.name)}</b>. Window: ${chgFmtShort(chgState.rows[0]?.start??window.__chgCur?.snap.first)} to ${chgFmtShort((chgState.rows[0]?.start??window.__chgCur?.snap.first)+leadWeeks*7*DAY_MS)}.`:'Compares today’s MRP with an earlier one, part by part.'}</div></div>
+      <div class="ov-actions"><label class="ov-win">Compared with ${sel}</label>
+      <button class="export-btn" onclick="document.getElementById('chg-file').click()">Choose an earlier MRP…</button>
+      <button class="export-btn" onclick="chgExport()" ${chgState.rows.length?'':'disabled'}>⬇ Export Excel</button></div>`;
+  }
+  if(chgState.busy){ el.innerHTML=`<div class="ov-empty">${lrEsc(chgState.msg)}</div>`; return; }
+  if(chgState.msg==='none'){ el.innerHTML='<div class="ov-empty"><b>No earlier MRP to compare with yet.</b><br>The dashboard keeps a copy of each MRP you open, so tomorrow’s MRP will be compared with today’s automatically. If the team folder is connected, older MRPs in it are used too.<br><button class="export-btn primary" style="margin-top:10px" onclick="document.getElementById(\'chg-file\').click()">Choose an earlier MRP…</button></div>'; return; }
+  if(chgState.msg){ el.innerHTML=`<div class="ov-empty">${lrEsc(chgState.msg)}</div>`; return; }
+  const cards=[['action','Needs action','Newly short or worse inside lead time','red'],['new_short','Newly short','Not short before, short now','red'],['worse','Got worse','Bigger or earlier shortage','orange'],
+    ['onhand','On-hand changes','Not explained by receipts or usage — likely cycle counts','blue'],['po','PO changes','Moved, cut, cancelled or new','blue'],['demand','More demand','New trailers or BOM changes','orange'],['improved','Improved','Shortage resolved or smaller','green'],['all','All changes','','gray']];
+  const cardHtml=cards.map(([k,t,s,c])=>`<button class="chg-card cc-${c}${chgState.filter===k?' active':''}" onclick="chgState.filter='${k}';chgState.page=1;chgRender()"><span class="chg-card-l">${t}</span><span class="chg-card-n">${k==='all'?chgState.rows.length:chgCount(k)}</span>${s?`<span class="chg-card-s">${s}</span>`:''}</button>`).join('');
+  const rows=chgFiltered();
+  const PAGE=50, total=Math.max(1,Math.ceil(rows.length/PAGE)); if(chgState.page>total) chgState.page=total;
+  const page=rows.slice((chgState.page-1)*PAGE, chgState.page*PAGE);
+  const buyers=[...new Set(chgState.rows.map(r=>r.b).filter(Boolean))].sort();
+  const trs=page.map(r=>{
+    const st=getStatus(r.code);
+    const det=[...r.poCh.filter(p=>p.kind!=='received').map(chgPoText), ...(r.newTr.length?[`New trailers: ${r.newTr.slice(0,4).join(', ')}${r.newTr.length>4?' +'+(r.newTr.length-4):''}`]:[]), ...(r.dAllocWin&&!r.newTr.length?[`Demand in window +${r.dAllocWin.toLocaleString()}`]:[])];
+    const bal=(a,b)=>`<span class="${a<0?'neg':''}">${a.toLocaleString()}</span> → <b class="${b<0?'neg':''}">${b.toLocaleString()}</b>`;
+    return `<tr class="ov-row" onclick="if(!event.target.closest('select'))chgDetail('${lrEsc(r.code)}')">
+      <td><span class="ov-pn">${lrEsc(r.code)}</span></td>
+      <td><span class="item-desc" title="${lrEsc(r.d)}">${lrEsc(r.d)}</span><div class="ov-small">${lrEsc(r.v)} · ${lrEsc(r.b||'—')}</div></td>
+      <td><div class="chg-chips">${chgChips(r)}</div>${det.length?`<div class="ov-small chg-det">${lrEsc(det[0])}${det.length>1?` <b>+${det.length-1} more</b>`:''}</div>`:''}</td>
+      <td class="nw">${bal(r.pMin,r.cMin)}</td>
+      <td class="nw">${r.pNeg?chgFmtShort(r.pNeg):'—'} → <b class="${r.cNeg?'neg':''}">${r.cNeg?chgFmtShort(r.cNeg):'—'}</b></td>
+      <td class="nw">${r.qohP.toLocaleString()} → <b>${r.qohC.toLocaleString()}</b>${r.U?`<div class="ov-small ${r.U<0?'neg':''}">${r.U>0?'+':''}${r.U.toLocaleString()} unexplained</div>`:''}</td>
+      <td>${r.cause?`<b>${CHG_CAUSE[r.cause]}</b><div class="ov-small">${r.parts[r.cause].toLocaleString()} units</div>`:'<span class="ov-small">—</span>'}</td>
+      <td><select class="status-select st-${st}" onchange="onStatusChange('${lrEsc(r.code)}',this)">
+        <option value="none"${st==='none'?' selected':''}>— Not started</option><option value="contacted"${st==='contacted'?' selected':''}>📞 Contacted</option>
+        <option value="submitted"${st==='submitted'?' selected':''}>📋 PO Submitted</option><option value="confirmed"${st==='confirmed'?' selected':''}>✅ Confirmed</option></select></td></tr>`;
+  }).join('');
+  el.innerHTML=`<div class="chg-cards">${cardHtml}</div>
+    <div class="table-card">
+      <div class="controls-bar">
+        <input class="search-box" type="text" placeholder="Search part #, description, supplier…" value="${lrEsc(chgState.search)}" oninput="chgState.search=this.value;chgState.page=1;clearTimeout(window.__chgT);window.__chgT=setTimeout(chgRender,200)">
+        <select class="ctrl-sel" onchange="chgState.buyer=this.value;chgState.page=1;chgRender()"><option value="">All Buyers</option>${buyers.map(b=>`<option ${b===chgState.buyer?'selected':''}>${lrEsc(b)}</option>`).join('')}</select>
+        <span class="result-ct">${rows.length.toLocaleString()} part${rows.length===1?'':'s'}${activeSupplier?' · '+lrEsc(activeSupplier):''}</span>
+      </div>
+      <div class="tbl-wrap"><table class="chg-tbl"><colgroup><col style="width:8%"><col style="width:18%"><col style="width:23%"><col style="width:10%"><col style="width:10%"><col style="width:9%"><col style="width:11%"><col style="width:11%"></colgroup>
+        <thead><tr><th>Part #</th><th>Description · supplier · buyer</th><th>What changed</th><th>Lowest balance (before → now)</th><th>First short week (before → now)</th><th>On hand (before → now)</th><th>Main cause</th><th>Status</th></tr></thead>
+        <tbody>${trs}</tbody></table>
+        ${rows.length?'':'<div class="empty-state"><div style="font-size:28px">✅</div><p>No parts in this view.</p></div>'}
+      </div>
+      <div class="pagination" id="chg-pagination"></div>
+    </div>`;
+  renderPagination('chg-pagination', chgState.page, total, 'chgGoPage');
+}
+function chgGoPage(p){ chgState.page=p; chgRender(); }
+
+// Overview: short alert strip
+function chgRenderStrip(){
+  const el=document.getElementById('chg-strip'); if(!el) return;
+  if(!chgState.base || !chgState.rows.length){ el.style.display='none'; return; }
+  const n=chgCount('new_short'), w=chgCount('worse'), o=chgState.rows.filter(r=>r.cats.includes('onhand')&&r.U<0).length;
+  el.style.display='flex';
+  el.className='chg-strip'+((n+w)?' alert':'');
+  el.innerHTML=`<span>${(n+w)?'⚠':'✓'} Since <b>${lrEsc(chgFmtShort(chgState.base.date))}</b> (${lrEsc(chgState.base.name)}): <b>${n}</b> part${n===1?'':'s'} newly short inside lead time · <b>${w}</b> got worse · <b>${o}</b> on-hand drop${o===1?'':'s'} (likely cycle counts)</span>
+    <button class="export-btn primary" onclick="switchTab('changes')">Review changes →</button>`;
+}
+
+// Detail panel: before/after balance chart + week table
+function chgDetail(code){
+  const r=chgState.rows.find(x=>x.code===code); if(!r) return;
+  const C=window.__chgCur.snap.items[code];
+  Promise.resolve(chgState.prevSnap).then(prev=>{
+    const P=prev.items[code];
+    const weeks=window.__chgCur.snap.weeks.filter(w=>C.w[w]&&P.w[w]);
+    const pa=weeks.map(w=>P.w[w][2]), ca=weeks.map(w=>C.w[w][2]);
+    const W=600,H=220,pl=46,pr=12,pt=14,pb=28;
+    const lo=Math.min(0,...pa,...ca), hi=Math.max(0,...pa,...ca), span=(hi-lo)||1;
+    const x=i=>pl+(weeks.length<2?0:i*(W-pl-pr)/(weeks.length-1)), y=v=>pt+(hi-v)*(H-pt-pb)/span;
+    const path=a=>a.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+    const wEnd=weeks.findIndex(w=>w>=r.end); const xEnd=wEnd<0?x(weeks.length-1):x(Math.max(0,wEnd-0.5));
+    const ticks=weeks.map((w,i)=>i%3===0?`<text x="${x(i)}" y="${H-8}" font-size="10" fill="#6B7280" text-anchor="middle">${chgFmtShort(w)}</text>`:'').join('');
+    const svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Projected balance before and now">
+      <rect x="${pl}" y="${pt}" width="${Math.max(0,xEnd-pl)}" height="${H-pt-pb}" fill="#EFF6FF"/>
+      <text x="${pl+4}" y="${pt+12}" font-size="10" fill="#2563EB">${leadWeeks}-week lead time</text>
+      <line x1="${pl}" x2="${W-pr}" y1="${y(0)}" y2="${y(0)}" stroke="#DC2626" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="${pl-6}" y="${y(0)+3}" font-size="10" fill="#DC2626" text-anchor="end">0</text>
+      <text x="${pl-6}" y="${y(hi)+3}" font-size="10" fill="#6B7280" text-anchor="end">${Math.round(hi).toLocaleString()}</text>
+      <text x="${pl-6}" y="${y(lo)+3}" font-size="10" fill="#6B7280" text-anchor="end">${Math.round(lo).toLocaleString()}</text>
+      <path d="${path(pa)}" fill="none" stroke="#6B7280" stroke-width="2" stroke-dasharray="5 4"/>
+      <path d="${path(ca)}" fill="none" stroke="#2563EB" stroke-width="2.5"/>
+      ${ca.map((v,i)=>v<0?`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="#DC2626"/>`:'').join('')}
+      ${ticks}</svg>`;
+    const trs=weeks.filter(w=>w<r.end).map(w=>{ const p=P.w[w], c=C.w[w]; const ch=(a,b)=>a===b?`${b.toLocaleString()}`:`<span class="chg-was">${a.toLocaleString()}</span> ${b.toLocaleString()}`;
+      return `<tr><td>${chgFmtShort(w)}</td><td class="num">${ch(Math.round(p[1]),Math.round(c[1]))}</td><td class="num">${ch(Math.round(p[0]),Math.round(c[0]))}</td><td class="num ${c[2]<0?'neg':''}">${ch(Math.round(p[2]),Math.round(c[2]))}</td></tr>`; }).join('');
+    const parts=Object.entries(r.parts).filter(([k,v])=>Math.round(v)!==0).map(([k,v])=>`<li><b>${CHG_CAUSE[k]}:</b> ${v>0?'+':''}${Math.round(v).toLocaleString()}</li>`).join('');
+    v2Panel(r.code+' | What changed',`
+      <p>${lrEsc(r.d)}<br><small style="color:var(--muted2)">${lrEsc(r.v)} · Buyer ${lrEsc(r.b||'—')} · compared with ${lrEsc(chgState.base.name)}</small></p>
+      <div style="margin:8px 0">${chgChips(r)}</div>
+      <div class="chg-legend"><span><i style="border-top:2px dashed #6B7280"></i>Before (${lrEsc(chgFmtShort(chgState.base.date))})</span><span><i style="border-top:3px solid #2563EB"></i>Now</span><span><i style="border-top:1px dashed #DC2626"></i>Zero</span></div>
+      ${svg}
+      <div class="v2-kv"><div><small>Lowest balance in lead time</small><b>${r.pMin.toLocaleString()} → ${r.cMin.toLocaleString()}</b></div><div><small>First short week</small><b>${r.pNeg?chgFmtShort(r.pNeg):'—'} → ${r.cNeg?chgFmtShort(r.cNeg):'—'}</b></div>
+        <div><small>On hand</small><b>${r.qohP.toLocaleString()} → ${r.qohC.toLocaleString()}</b></div><div><small>On-hand change not explained by receipts or usage</small><b>${r.U>0?'+':''}${r.U.toLocaleString()}</b></div></div>
+      ${parts?`<h3>What moved the balance${r.cNeg?' at '+chgFmtShort(r.cNeg):''}</h3><ul class="chg-ul">${parts}</ul>`:''}
+      ${r.poCh.length?`<h3>Purchase orders</h3><ul class="chg-ul">${r.poCh.map(p=>`<li>${lrEsc(chgPoText(p))}</li>`).join('')}</ul>`:''}
+      ${r.newTr.length?`<h3>New trailers inside lead time</h3><p>${lrEsc(r.newTr.join(', '))}</p>`:''}
+      <h3>Week by week (inside lead time)</h3><p style="font-size:12px">Old values are struck through.</p>
+      <table class="chg-week"><thead><tr><th>Week</th><th class="num">Demand</th><th class="num">Incoming</th><th class="num">Balance</th></tr></thead><tbody>${trs}</tbody></table>`);
+  }).catch(e=>v2Panel('What changed','<p>Could not open the comparison: '+v2Escape(e.message)+'</p>'));
+}
+
+function chgExport(){
+  const hdr=['Part #','Description','Supplier','Buyer','What changed','Lowest balance before','Lowest balance now','First short week before','First short week now','On hand before','On hand now','Unexplained on-hand change','Main cause','PO changes','New trailers','Demand added in window','Work status'];
+  const rows=chgFiltered().map(r=>[r.code,r.d,r.v,r.b,r.cats.map(c=>CHG_LABEL[c]).join(', '),r.pMin,r.cMin,r.pNeg?chgFmt(r.pNeg):'',r.cNeg?chgFmt(r.cNeg):'',r.qohP,r.qohC,r.U,r.cause?CHG_CAUSE[r.cause]:'',
+    r.poCh.map(chgPoText).join(' | '),r.newTr.join(', '),r.dAllocWin,getStatus(r.code)]);
+  downloadXLSX([{name:'What Changed', rows:[hdr,...rows]}], 'What_Changed_vs_'+(chgState.base?chgFmt(chgState.base.date):'earlier')+'.xlsx');
+}
+
+// Manual "Choose an earlier MRP…"
+function chgPickFile(e){
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  const opt={key:f.name+'|'+f.size, name:f.name, size:f.size, date:chgNameDate(f.name)??f.lastModified, lm:f.lastModified, source:'file', file:f};
+  if(window.__chgCur && opt.key===window.__chgCur.key){ sdToast('That is the MRP already loaded. Choose an earlier one.'); return; }
+  chgState.extraOpt=opt;
+  (async()=>{ try{ await chgLoadBaseline(opt); await chgRun(opt.key); }catch(err){ chgState.extraOpt=null; sdToast('Could not read that MRP: '+err.message); } })();
+}
+
+// ── Hooks ──
+(function(){
+  const _setup=setupDashboard;
+  setupDashboard=function(){ _setup(); setTimeout(()=>chgRun(), 400); };
+  const _recalc=recalculate;
+  recalculate=function(){ _recalc(); setTimeout(()=>chgRun(chgState.base&&chgState.base.key), 300); };
+  const _st=switchTab;
+  switchTab=function(t){
+    _st(t);
+    const v=document.getElementById('view-changes'); if(v) v.style.display=t==='changes'?'block':'none';
+    document.getElementById('tab-changes')?.classList.toggle('active', t==='changes');
+    if(t==='changes'){
+      document.getElementById('workspace-title').textContent='What Changed';
+      document.getElementById('workspace-sub').textContent='Changes inside lead time since an earlier MRP';
+      chgRender();
+    }
+  };
+  const _setSup=setSupplier;
+  setSupplier=function(v){ _setSup(v); if(document.getElementById('view-changes')?.style.display==='block') chgRender(); };
+})();
 
 </script>
 </body>
