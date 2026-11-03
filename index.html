@@ -439,6 +439,170 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
 
 @media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(3, 1fr); } .panel-grid { grid-template-columns: 1fr; } }
 @media (max-width: 700px)  { .stats-row { grid-template-columns: repeat(2, 1fr); } .main { padding: 12px 14px; } }
+
+/* Revision 2: navigation and readable work surfaces */
+:root{--navy:#1e2a3a;--bg:#f5f6f8;--muted2:#667085}
+header{height:64px;padding:0 24px}.logo-text h1{font-size:17px}.logo-text p{color:#c6ced9}
+.hdr-meta{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d1d9e4}
+#supplier-bar{top:64px!important;margin-left:210px;padding:12px 24px!important;position:relative!important}
+#dashboard .tab-bar{position:fixed;left:0;top:64px;bottom:0;width:210px;padding:24px 12px;display:flex;flex-direction:column;gap:7px;border-right:1px solid var(--border);z-index:250}
+.tab{border:0;border-radius:7px;padding:12px;font-size:13px;white-space:normal}.tab.active{background:#eff6ff;border:0}.tab-badge{margin-left:auto}
+#dashboard .main{margin-left:210px;padding:24px}#view-schedule{margin-left:210px;padding:16px 24px}
+.stats-row{gap:12px}.stat-card{border-radius:10px;padding:18px}.stat-label{font-size:11px}.stat-sub{font-size:12px}.stat-number{font-size:30px}
+.controls-bar{gap:9px;padding:14px}.search-box,select.ctrl-sel{padding:9px 12px;font-size:13px}
+.filt-btn,.export-btn{padding:7px 11px}.filt-btn.active{outline:2px solid var(--accent);outline-offset:1px}
+.tbl-wrap table{min-width:1450px}thead th{font-size:10px;padding:12px 10px}td{padding:11px 10px}
+.tbl-wrap{max-height:65vh}tbody tr:nth-child(even){background:#fafbfd}
+#upload-section{padding:32px 24px;min-height:calc(100vh - 64px)}.upload-card{max-width:740px;padding:30px 36px;text-align:left;border:1px solid var(--border);cursor:default}.upload-card h2{font-size:24px}.upload-icon{display:none}.lead-row{justify-content:flex-start}
+#workspace-context{margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:12px}#workspace-context h2{font-size:23px}#workspace-context p{margin-top:5px;color:var(--muted2)}
+.v2-modal{position:fixed;inset:0;background:#10182866;z-index:10000;display:flex;justify-content:flex-end}.v2-panel{background:white;width:min(660px,100%);height:100%;overflow:auto;padding:28px;box-shadow:-8px 0 32px #10182822}.v2-panel h2{margin:0 0 16px}.v2-panel h3{margin:24px 0 10px}.v2-panel p{line-height:1.7;color:var(--muted)}.v2-panel button{margin:5px}.v2-close{float:right}.v2-kv{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.v2-kv div{background:var(--surface2);padding:14px;border-radius:8px}.v2-kv small{display:block;color:var(--muted2);margin-bottom:6px}
+button:focus-visible,.tab:focus-visible{outline:3px solid #60a5fa;outline-offset:2px}
+@media(max-width:1000px){#dashboard .tab-bar{position:sticky;top:64px;width:auto;flex-direction:row;overflow-x:auto;padding:8px}.tab{white-space:nowrap}#dashboard .main,#view-schedule,#supplier-bar{margin-left:0}header{height:auto;min-height:64px;flex-wrap:wrap}.hdr-right{flex-wrap:wrap}.hdr-meta{display:none}.stats-row{grid-template-columns:repeat(3,1fr)!important}}
+
+/* ═══ Revision 3: UI polish — readable rows, wrapping headers, consistent spacing ═══ */
+/* Table headers wrap onto two lines instead of being cut off */
+thead th{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;vertical-align:bottom;letter-spacing:.04em;word-break:normal;overflow-wrap:normal;hyphens:none}
+td{line-height:1.4}
+/* Tables sit flush inside their cards (no double borders) */
+.table-card .tbl-wrap,.action-panel .tbl-wrap,.sched-card .tbl-wrap{border:0;border-radius:0}
+
+/* Page rhythm: same 20px gap between context, stat cards and the working card on every tab */
+#workspace-context{margin-bottom:20px}
+.stats-row{margin-bottom:20px}
+#dashboard .main{padding:24px 24px 0}
+#view-overview,#view-actions,#view-parts,#view-late-po{padding-bottom:24px}
+#view-schedule{padding:0 24px 24px}
+.panel-grid{margin-bottom:0}
+
+/* One control height everywhere: buttons, selects, search boxes */
+.filt-btn,.export-btn{height:34px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px;border-radius:6px;white-space:nowrap}
+.search-box,select.ctrl-sel{height:34px;padding:0 12px;font-size:13px;border-radius:6px}
+.line-pill{height:30px;padding:0 14px;font-size:12px;border-radius:99px;display:inline-flex;align-items:center}
+
+/* Card sections: consistent padding and label style */
+.action-hdr{padding:14px 16px}
+.action-sub{font-size:12px}
+.filter-strip{padding:12px 16px;gap:8px}
+.filter-strip-label{font-size:10.5px}
+.fp{height:28px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center}
+.controls-bar{padding:12px 16px;gap:8px}
+.export-bar{padding:10px 16px;gap:8px}
+.export-bar-label{font-size:12px}
+.result-ct{font-size:12px;color:var(--muted)}
+.tbl-footer{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface2)}
+.tbl-footer .pg-info{font-size:12px;color:var(--muted)}
+.tbl-footer .pg-btns{margin-left:auto}
+.pagination{padding:10px 16px;gap:12px}
+.pg-info{font-size:12px}
+.pg-btn{height:28px;min-width:28px;font-size:12px}
+
+/* Trailers at Risk: card + labelled toolbar rows */
+.sched-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-sm);overflow:hidden}
+.sched-toolbar{padding:16px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
+.sched-desc{font-size:13px;font-weight:500;color:#c2410c}
+.tb-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.tb-label{width:48px;flex-shrink:0;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2)}
+.tb-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tb-right{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+/* urgency filter buttons: tinted text, filled when selected */
+.sf-btn.active{outline:none;font-weight:600}
+#sf-all.active{background:var(--accent-bg);color:var(--accent);border-color:var(--accent-border)}
+.sf-crit{color:var(--critical)} .sf-crit.active{background:var(--critical-bg);border-color:var(--critical)}
+.sf-exp{color:var(--expedite)}  .sf-exp.active{background:var(--expedite-bg);border-color:var(--expedite)}
+.sf-high{color:var(--high)}     .sf-high.active{background:var(--high-bg);border-color:var(--high)}
+.sf-clear{color:var(--low)}     .sf-clear.active{background:var(--low-bg);border-color:var(--low)}
+/* view switcher as a segmented control */
+.seg-group{display:inline-flex;border:1px solid var(--border2);border-radius:7px;overflow:hidden;background:var(--surface)}
+.seg-btn{height:32px;padding:0 14px;border:0;border-right:1px solid var(--border2);background:transparent;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.seg-btn:last-child{border-right:0}
+.seg-btn:hover{background:var(--surface2);color:var(--text)}
+.seg-btn.active{background:var(--accent-bg);color:var(--accent);font-weight:600}
+.sched-search-row{border-bottom:1px solid var(--border)}
+.sched-pane{padding:16px}
+.pane-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:12px}
+/* readable at-risk part chips */
+.part-chips{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.part-chip{display:inline-block;font-size:11.5px;font-weight:600;border:1px solid;border-radius:4px;padding:2px 7px;line-height:1.4;white-space:nowrap}
+.part-more{font-size:12px;font-weight:600;color:var(--accent);margin-left:2px;white-space:nowrap}
+.sched-tbl tbody td{padding-top:12px;padding-bottom:12px}
+
+@media(max-width:1100px){.ov-grid.ov-top{grid-template-columns:1fr}}
+@media(max-width:1000px){#view-schedule{padding:0 12px 16px}#dashboard .main{padding:16px 12px 0}.tb-right{margin-left:0}}
+
+/* Revision 3 (round 2) */
+/* Supplier bar sat 64px below its own slot (relative + top:64px), leaving a blank band and covering the page title */
+#supplier-bar{top:0!important}
+/* Urgency badges stay on one line */
+.urg-badge{white-space:nowrap}
+/* Long PO lists: max 2 lines in the table, full list on hover / in the PO popup */
+.po-list{font-size:11px;font-weight:600;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+/* Trailers at Risk table: fits wider screens, At-Risk Parts column absorbs remaining width */
+.sched-tbl table{min-width:1320px}
+/* Overview vendor names use the full column */
+.vendor-name{max-width:none}
+
+/* Line Reports options panel */
+.lr-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lr-opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:pointer;margin-bottom:8px}
+.lr-grid .lr-opt{margin-bottom:0}
+.lr-opt input{margin-top:3px;width:15px;height:15px;accent-color:var(--accent);flex-shrink:0}
+.lr-opt b{display:block;font-size:13px}
+.lr-opt small{display:block;font-size:12px;color:var(--muted2);margin-top:2px}
+
+/* ── Overview (Revision 3): production exposure ── */
+.ov-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.ov-title{font-size:15px;font-weight:700;color:var(--text)}
+.ov-sub{font-size:12px;color:var(--muted2);margin-top:2px}
+.ov-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ov-win{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2)}
+.ov-win select{text-transform:none;letter-spacing:0;font-weight:500}
+.ov-grid{margin-bottom:16px!important;align-items:start}
+.ov-grid.ov-top{grid-template-columns:1fr 1.25fr}
+.ov-ct{font-size:12px;color:var(--muted);font-weight:500}
+.ov-tbl{width:100%;min-width:0!important;table-layout:fixed;border-collapse:collapse;font-size:13px}
+.ov-tbl thead th{position:static;background:var(--surface2);font-size:10px;padding:8px 8px;cursor:default}
+.ov-tbl th:first-child,.ov-tbl td:first-child{padding-left:14px}
+.ov-tbl td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+.ov-tbl tbody tr:last-child td{border-bottom:0}
+.ov-row{cursor:pointer}
+.ov-row:hover td{background:var(--accent-bg)}
+.ov-tbl .num{text-align:right}
+.ov-tbl .nw{white-space:nowrap}
+.ov-track{display:flex;align-items:center;gap:8px}
+.ov-bar{flex:1;height:8px;border-radius:4px;background:#fecaca;overflow:hidden}
+.ov-bar span{display:block;height:100%;background:var(--low);border-radius:4px}
+.ov-track b{font-size:12px;min-width:34px;text-align:right}
+.ov-go{color:var(--muted2);font-size:18px;text-align:center}
+.ov-pn{font-weight:700;color:var(--accent);font-size:13px}
+.ov-small{font-size:11px;color:var(--muted2);margin-top:2px}
+.ov-desc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-big{font-size:17px;font-weight:700;color:var(--text);line-height:1.1}
+.ov-chips{display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end;margin-top:4px}
+.ov-lchip{font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:0 4px;white-space:nowrap;color:var(--muted)}
+.ov-po{font-size:12px;font-weight:600}
+.ov-foot{font-size:11px;color:var(--muted2);padding:10px 14px;border-top:1px solid var(--border);background:var(--surface2)}
+.ov-empty{padding:28px 20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
+
+/* ── Slim stat-card row on every tab except Overview ── */
+.stats-row.slim{margin-bottom:16px}
+.stats-row.slim .stat-card{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.stats-row.slim .stat-sub{display:none}
+.stats-row.slim .stat-label{margin:0;font-size:10.5px}
+.stats-row.slim .stat-number{font-size:20px;margin:0}
+.stats-row.slim .stat-card.sc-active{transform:none}
+
+/* Saved files status */
+.saved-status{font-size:11.5px;color:var(--muted2);cursor:pointer;max-width:520px;text-align:right;line-height:1.4}
+.saved-status:hover{color:var(--accent)}
+.saved-status.warn{color:#c2410c;font-weight:600}
+.restore-banner{max-width:740px;width:100%;margin:0 auto 14px;padding:12px 16px;border:1px solid var(--accent-border);background:var(--accent-bg);color:var(--accent);border-radius:8px;font-size:13px;font-weight:600}
+
+/* Team folder notice + status */
+.saved-status.team{color:var(--low);font-weight:600}
+.saved-status.team.warn{color:#c2410c}
+.sd-toast{position:fixed;right:20px;bottom:20px;z-index:9000;max-width:420px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;box-shadow:0 10px 30px rgba(16,24,40,.18);padding:14px 16px}
+.sd-toast-msg{font-size:13px;line-height:1.5;color:var(--text)}
+.sd-toast-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -466,7 +630,7 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
       <p>Fontaine Trailer · Purchasing Dashboard</p>
     </div>
   </div>
-  <div class="hdr-right">
+  <div class="hdr-right"><button class="hdr-btn" onclick="v2Data()">Data &amp; Settings</button><button class="hdr-btn" onclick="v2Help()">Help</button>
     <span class="hdr-meta" id="hdr-meta"></span>
     <span id="status-banner" style="display:none;font-size:10px;background:#f0fdf4;border:1px solid #86efac;color:#166534;padding:3px 10px;border-radius:12px;font-weight:600;cursor:pointer" onclick="showStatusSummary()" title="Click to see status breakdown"></span>
     <button class="hdr-btn" id="new-upload-btn" onclick="resetToUpload()" style="display:none">↑ New MRP</button>
@@ -505,6 +669,7 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
 
 <!-- UPLOAD -->
 <div id="upload-section">
+  <div id="restore-banner" class="restore-banner" style="display:none"></div>
   <div class="upload-card" id="drop-zone">
     <div class="upload-icon">📋</div>
     <h2>Upload MRP Report</h2>
@@ -592,7 +757,7 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
   <div class="tab-bar">
     <div class="tab active" id="tab-overview" onclick="switchTab('overview')">Overview</div>
     <div class="tab" id="tab-actions" onclick="switchTab('actions')">
-      This Week's Actions <span class="tab-badge" id="actions-badge">0</span>
+      Purchasing Queue <span class="tab-badge" id="actions-badge">0</span>
     </div>
     <div class="tab" id="tab-parts" onclick="switchTab('parts')">All Parts</div>
     <div class="tab" id="tab-schedule" onclick="switchTab('schedule')">
@@ -603,7 +768,7 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
     </div>
   </div>
 
-  <div class="main">
+  <div class="main"><div id="workspace-context"><div><h2 id="workspace-title">Overview</h2><p id="workspace-sub">Purchasing priorities and production exposure</p></div><span id="saved-status" class="saved-status" onclick="v2Data()"></span></div>
 
     <!-- STAT CARDS -->
     <div class="stats-row" style="grid-template-columns:1.3fr 1fr 1fr 1fr 1fr 1fr">
@@ -641,7 +806,65 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
 
     <!-- OVERVIEW TAB -->
     <div id="view-overview">
-      <div class="panel-grid">
+      <div class="ov-head">
+        <div>
+          <div class="ov-title">Production exposure</div>
+          <div class="ov-sub" id="ov-sub">Open trailers on each line and the parts blocking the most trailers</div>
+        </div>
+        <div class="ov-actions">
+          <label class="ov-win">Window
+            <select id="ov-window" class="ctrl-sel" onchange="renderOverviewProduction()">
+              <option value="2">Next 2 weeks + overdue</option>
+              <option value="4" selected>Next 4 weeks + overdue</option>
+              <option value="8">Next 8 weeks + overdue</option>
+              <option value="12">Next 12 weeks + overdue</option>
+              <option value="0">All open trailers</option>
+            </select>
+          </label>
+          <button class="export-btn" onclick="openLineReports()">📄 Line Reports</button>
+        </div>
+      </div>
+      <div class="panel-grid ov-grid ov-top">
+        <div class="panel">
+          <div class="panel-hdr">
+            <div>
+              <div class="panel-title">Production lines</div>
+              <div class="panel-sub">On track = open trailers with no part shortages · click a line to see its trailers</div>
+            </div>
+            <span class="ov-ct" id="ov-lines-ct"></span>
+          </div>
+          <div id="ov-lines"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-hdr">
+            <div>
+              <div class="panel-title">Most needed parts</div>
+              <div class="panel-sub">Ranked by at-risk trailers blocked across all lines · click a part for details</div>
+            </div>
+            <button class="export-btn" onclick="switchTab('schedule');setSchedSubView('parts')">View all →</button>
+          </div>
+          <div id="ov-parts"></div>
+        </div>
+      </div>
+      <div class="panel-grid ov-grid">
+        <!-- Vendor table -->
+        <div class="panel">
+          <div class="panel-hdr">
+            <div>
+              <div class="panel-title">Vendor Priority</div>
+              <div class="panel-sub" id="vendor-panel-sub">Click a vendor to view their parts →</div>
+            </div>
+            <span style="font-size:10px;color:var(--muted2)" id="vendor-ct-lbl"></span>
+          </div>
+          <div class="panel-body" style="padding:0 16px">
+            <div style="max-height:310px;overflow-y:auto">
+              <div class="vendor-hdr">
+                <span>Vendor</span><span>Earliest</span><span>Crit</span><span>High</span><span>No PO</span><span>Total</span>
+              </div>
+              <div id="vendor-list"></div>
+            </div>
+          </div>
+        </div>
         <!-- Timeline chart -->
         <div class="panel">
           <div class="panel-hdr">
@@ -664,24 +887,6 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
           </div>
         </div>
 
-        <!-- Vendor table -->
-        <div class="panel">
-          <div class="panel-hdr">
-            <div>
-              <div class="panel-title">Vendor Priority</div>
-              <div class="panel-sub" id="vendor-panel-sub">Click a vendor to view their parts →</div>
-            </div>
-            <span style="font-size:10px;color:var(--muted2)" id="vendor-ct-lbl"></span>
-          </div>
-          <div class="panel-body" style="padding:0 16px">
-            <div style="max-height:310px;overflow-y:auto">
-              <div class="vendor-hdr">
-                <span>Vendor</span><span>Earliest</span><span>Crit</span><span>High</span><span>No PO</span><span>Total</span>
-              </div>
-              <div id="vendor-list"></div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -708,7 +913,7 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
           <span class="filter-right" id="action-showing"></span>
         </div>
         <!-- Search + urgency filter bar -->
-        <div class="controls-bar" style="border-top:1px solid var(--border);padding-top:8px">
+        <div class="controls-bar">
           <input class="search-box" type="text" id="act-search" placeholder="Search part #, description, supplier…" oninput="actSearch=this.value;actPage=1;buildActionTable()">
           <button class="filt-btn fa-all active" id="act-btn-all"      onclick="setActUrgFilter('all')">All</button>
           <button class="filt-btn"               id="act-btn-fire"     onclick="setActUrgFilter('fire')">🔥 No PO+Critical</button>
@@ -727,20 +932,7 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
         <!-- Table -->
         <div class="tbl-wrap">
           <table>
-            <colgroup>
-              <col style="width:90px">
-              <col style="width:180px">
-              <col style="width:82px">
-              <col style="width:90px">
-              <col style="width:90px">
-              <col style="width:90px">
-              <col style="width:95px">
-              <col style="width:80px">
-              <col style="width:160px">
-              <col style="width:150px">
-              <col style="width:40px">
-              <col style="width:130px">
-            </colgroup>
+            <colgroup><col style="width:100px"><col style="width:210px"><col style="width:125px"><col style="width:110px"><col style="width:120px"><col style="width:100px"><col style="width:90px"><col style="width:95px"><col style="width:170px"><col style="width:150px"><col style="width:180px"><col style="width:65px"><col style="width:140px"></colgroup>
             <thead>
               <tr>
                 <th onclick="sortAct('ItemCode')">Part #</th>
@@ -762,8 +954,8 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
           </table>
           <div id="action-empty" class="empty-state" style="display:none"><div style="font-size:28px">✅</div><p>No urgent unordered parts</p></div>
         </div>
-        <div style="padding:10px 16px;border-top:1px solid var(--border);background:var(--surface2);display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:10px;color:var(--muted2)" id="action-footer"></span>
+        <div class="tbl-footer">
+          <span class="pg-info" id="action-footer"></span><div id="action-pagination" class="pg-btns"></div>
           <button class="export-btn" onclick="switchTab('parts');setUrgFilter('fire')">View all fire items →</button>
         </div>
       </div>
@@ -798,7 +990,7 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
           <button class="filt-btn fa-all" id="btn-all"      onclick="setUrgFilter('all')">All</button>
           <button class="filt-btn"         id="btn-fire"     onclick="setUrgFilter('fire')">🔥 No PO+Critical</button>
           <button class="filt-btn"         id="btn-CRITICAL" onclick="setUrgFilter('CRITICAL')">Critical</button>
-          <button class="filt-btn" id="btn-EXPEDITE-act" onclick="setUrgFilter('EXPEDITE')" style="color:var(--expedite);border-color:var(--expedite-border);background:var(--expedite-bg)">▲ Expedite</button>
+          
           <button class="filt-btn"         id="btn-HIGH"     onclick="setUrgFilter('HIGH')">High</button>
           <button class="filt-btn"         id="btn-MEDIUM"   onclick="setUrgFilter('MEDIUM')">Medium</button>
           <button class="filt-btn"         id="btn-LOW"      onclick="setUrgFilter('LOW')">Low</button>
@@ -810,17 +1002,17 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
           <table>
             <colgroup>
               <col style="width:90px">
-              <col style="width:170px">
-              <col style="width:82px">
-              <col style="width:90px">
-              <col style="width:90px">
-              <col style="width:72px">
+              <col style="width:200px">
+              <col style="width:125px">
+              <col style="width:100px">
+              <col style="width:100px">
+              <col style="width:110px">
               <col style="width:90px">
               <col style="width:75px">
-              <col style="width:50px">
+              <col style="width:62px">
               <col style="width:140px">
               <col style="width:145px">
-              <col style="width:38px">
+              <col style="width:62px">
               <col style="width:80px">
               <col style="width:110px">
             </colgroup>
@@ -871,16 +1063,16 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
             <colgroup>
               <col style="width:90px">   <!-- Part # -->
               <col style="width:180px">  <!-- Description -->
-              <col style="width:80px">   <!-- Urgency -->
+              <col style="width:125px">  <!-- Urgency -->
               <col style="width:90px">   <!-- Goes Negative -->
               <col style="width:90px">   <!-- PO Arrives -->
               <col style="width:80px">   <!-- Days Late -->
               <col style="width:110px">  <!-- Shortage -->
               <col style="width:80px">   <!-- Rec Qty -->
               <col style="width:150px">  <!-- Trailers at Risk -->
-              <col style="width:80px">   <!-- Open PO -->
+              <col style="width:140px">  <!-- Open PO -->
               <col style="width:160px">  <!-- Supplier -->
-              <col style="width:45px">   <!-- Buyer -->
+              <col style="width:62px">   <!-- Buyer -->
               <col style="width:120px">  <!-- Status -->
             </colgroup>
             <thead>
@@ -918,72 +1110,81 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
 </div><!-- /dashboard -->
 <!-- SCHEDULE VIEW -->
 <div id="view-schedule" style="display:none">
-  <div style="padding:10px 28px 6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border)">
-    <span class="export-bar-label" style="color:#c2410c">Trailers scheduled to build with parts that have shortages — sorted by due date</div</span>
-    <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="filt-btn active" id="sf-all" onclick="setSchedFilter('all')">All</button>
-      <button class="filt-btn" id="sf-CRITICAL" onclick="setSchedFilter('CRITICAL')" style="color:var(--critical);border-color:var(--critical-border);background:var(--critical-bg)">Critical</button>
-      <button class="filt-btn" id="sf-EXPEDITE" onclick="setSchedFilter('EXPEDITE')" style="color:var(--expedite);border-color:var(--expedite-border);background:var(--expedite-bg)">▲ Expedite</button>
-      <button class="filt-btn" id="sf-HIGH" onclick="setSchedFilter('HIGH')" style="color:var(--high);border-color:var(--high-border);background:var(--high-bg)">High</button>
-      <button class="filt-btn" id="sf-clear" onclick="setSchedFilter('clear')" style="color:var(--low);border-color:var(--low-border);background:var(--low-bg)">✓ Clear</button>
-      <button class="export-btn" onclick="exportScheduleCSV()">⬇ Export Excel</button>
-      <button class="export-btn" onclick="printTrailersAtRisk()" style="background:#f5f3ff;color:var(--expedite);border-color:var(--expedite-border)">🖨 Print / PDF</button>
+ <div class="sched-card">
+  <div class="sched-toolbar">
+    <p class="sched-desc">Trailers scheduled to build with parts that have shortages — sorted by due date</p>
+    <div class="tb-row">
+      <span class="tb-label">Show</span>
+      <div class="tb-group">
+        <button class="filt-btn sf-btn active" id="sf-all" onclick="setSchedFilter('all')">All</button>
+        <button class="filt-btn sf-btn sf-crit" id="sf-CRITICAL" onclick="setSchedFilter('CRITICAL')">Critical</button>
+        <button class="filt-btn sf-btn sf-exp" id="sf-EXPEDITE" onclick="setSchedFilter('EXPEDITE')">▲ Expedite</button>
+        <button class="filt-btn sf-btn sf-high" id="sf-HIGH" onclick="setSchedFilter('HIGH')">High</button>
+        <button class="filt-btn sf-btn sf-clear" id="sf-clear" onclick="setSchedFilter('clear')">✓ Clear</button>
+      </div>
+      <div class="tb-right">
+        <button class="export-btn" onclick="exportScheduleCSV()">⬇ Export Excel</button>
+        <button class="export-btn" onclick="printTrailersAtRisk()">🖨 Print / PDF</button>
+        <button class="export-btn primary" onclick="openLineReports()" title="Printable overview for each production line">📄 Line Reports</button>
+      </div>
     </div>
-    <!-- Line filter pills -->
-    <div style="padding:4px 28px 8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-      <span style="font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Line:</span>
-      <button id="lf-all" onclick="setLineFilter('')" class="line-pill active-pill">All Lines</button>
-      <button id="lf-Line 1" onclick="setLineFilter('Line 1')" class="line-pill">Line 1</button>
-      <button id="lf-Line 2" onclick="setLineFilter('Line 2')" class="line-pill">Line 2</button>
-      <button id="lf-Line 3" onclick="setLineFilter('Line 3')" class="line-pill">Line 3</button>
-      <button id="lf-Line 4" onclick="setLineFilter('Line 4')" class="line-pill">Line 4</button>
-      <button id="lf-Line 5" onclick="setLineFilter('Line 5')" class="line-pill">Line 5</button>
-      <button id="lf-Line 6" onclick="setLineFilter('Line 6')" class="line-pill">Line 6</button>
-      <button id="lf-Line 7" onclick="setLineFilter('Line 7')" class="line-pill">Line 7</button>
+    <div class="tb-row">
+      <span class="tb-label">Line</span>
+      <div class="tb-group">
+        <button id="lf-all" onclick="setLineFilter('')" class="line-pill active-pill">All Lines</button>
+        <button id="lf-Line 1" onclick="setLineFilter('Line 1')" class="line-pill">Line 1</button>
+        <button id="lf-Line 2" onclick="setLineFilter('Line 2')" class="line-pill">Line 2</button>
+        <button id="lf-Line 3" onclick="setLineFilter('Line 3')" class="line-pill">Line 3</button>
+        <button id="lf-Line 4" onclick="setLineFilter('Line 4')" class="line-pill">Line 4</button>
+        <button id="lf-Line 5" onclick="setLineFilter('Line 5')" class="line-pill">Line 5</button>
+        <button id="lf-Line 6" onclick="setLineFilter('Line 6')" class="line-pill">Line 6</button>
+        <button id="lf-Line 7" onclick="setLineFilter('Line 7')" class="line-pill">Line 7</button>
+      </div>
     </div>
-  </div>
-  <!-- SUB-VIEW TOGGLE -->
-  <div style="padding:8px 28px 4px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
-    <button class="filt-btn active" id="sv-list" onclick="setSchedSubView('list')" style="font-size:11px">🚛 Trailer List</button>
-    <button class="filt-btn" id="sv-week" onclick="setSchedSubView('week')" style="font-size:11px">📅 By Week</button>
-    <button class="filt-btn" id="sv-parts" onclick="setSchedSubView('parts')" style="font-size:11px">⚠️ Top Parts</button>
+    <div class="tb-row">
+      <span class="tb-label">View</span>
+      <div class="seg-group">
+        <button class="seg-btn active" id="sv-list" onclick="setSchedSubView('list')">🚛 Trailer List</button>
+        <button class="seg-btn" id="sv-week" onclick="setSchedSubView('week')">📅 By Week</button>
+        <button class="seg-btn" id="sv-parts" onclick="setSchedSubView('parts')">⚠️ Top Parts</button>
+      </div>
+    </div>
   </div>
 
   <!-- TOP AT-RISK PARTS PANEL -->
-  <div id="sched-top-parts" style="display:none;padding:12px 28px 8px">
-    <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Parts blocking the most trailers — click to filter action list</div>
-    <div id="top-parts-list" style="display:flex;flex-direction:column;gap:4px"></div>
+  <div id="sched-top-parts" class="sched-pane" style="display:none">
+    <div class="pane-title">Parts blocking the most trailers</div>
+    <div id="top-parts-list" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
 
   <!-- BY WEEK PANEL -->
-  <div id="sched-by-week" style="display:none;padding:12px 28px">
-    <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Build schedule — trailers at risk by week</div>
-    <div id="week-grid" style="display:flex;flex-direction:column;gap:6px"></div>
+  <div id="sched-by-week" class="sched-pane" style="display:none">
+    <div class="pane-title">Build schedule — trailers at risk by week</div>
+    <div id="week-grid" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
   <!-- TRAILER LIST (default) -->
   <div id="sched-list-view">
-  <div style="padding:8px 28px 6px;display:flex;align-items:center;gap:10px">
-    <button id="week-back-btn" onclick="clearWeekDrill()" style="display:none;padding:4px 10px;font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;cursor:pointer;color:var(--text);font-family:'Inter',sans-serif">← All Weeks</button>
-    <input type="text" id="sched-search" placeholder="Search trailer, customer, model..." 
-      style="flex:1;max-width:360px;padding:6px 10px;border:1px solid var(--border);border-radius:5px;font-size:12px;background:var(--surface)"
+  <div class="controls-bar sched-search-row">
+    <button id="week-back-btn" class="export-btn" onclick="clearWeekDrill()" style="display:none">← All Weeks</button>
+    <input type="text" id="sched-search" class="search-box" placeholder="Search trailer, customer, model..." style="max-width:420px"
       oninput="scheduleSearch=this.value;schedulePage=1;filterSchedule()">
-    <span id="sched-result-ct" style="font-size:11px;color:var(--muted)"></span>
+    <span id="sched-result-ct" class="result-ct"></span>
   </div>
-  <div class="tbl-wrap">
+  <div class="tbl-wrap sched-tbl">
     <table>
       <colgroup>
-        <col style="width:85px">   <!-- Trailer -->
-        <col style="width:90px">   <!-- Due Date -->
-        <col style="width:70px">   <!-- Week -->
-        <col style="width:55px">   <!-- WIP -->
-        <col style="width:160px">  <!-- Customer -->
+        <col style="width:140px">   <!-- Trailer -->
+        <col style="width:100px">   <!-- Due Date -->
+        <col style="width:64px">   <!-- Week -->
+        <col style="width:92px">   <!-- WIP -->
+        <col style="width:170px">  <!-- Customer -->
         <col style="width:180px">  <!-- Model -->
-        <col style="width:70px">   <!-- Worst -->
-        <col style="width:50px">   <!-- # Parts -->
-        <col style="width:50px">   <!-- Critical -->
-        <col style="width:50px">   <!-- Expedite -->
-        <col style="width:380px">  <!-- At-Risk Parts -->
+        <col style="width:90px">   <!-- Worst -->
+        <col style="width:68px">   <!-- # Parts -->
+        <col style="width:54px">   <!-- Critical -->
+        <col style="width:54px">   <!-- Expedite -->
+        <col>  <!-- At-Risk Parts: fills remaining width -->
       </colgroup>
       <thead>
         <tr>
@@ -1003,8 +1204,9 @@ select.ctrl-sel:focus { border-color: var(--accent2); }
       <tbody id="sched-body"></tbody>
     </table>
   </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 28px" id="sched-pagination"></div>
+  <div class="pagination" id="sched-pagination"></div>
   </div><!-- end sched-list-view -->
+ </div><!-- /sched-card -->
 </div>
 
 
@@ -1146,7 +1348,7 @@ function poCoverageLabel(d){
   return d.PurchaseOrders.trim()+' - '+qty.toLocaleString()+' units ('+tag+')';
 }
 function poCell(d){
-  if(!hasPO(d)) return '<span style="font-size:10px;color:var(--critical);font-weight:600">No PO</span>';
+  if(!hasPO(d)) return '<span style="font-size:12px;color:var(--critical);font-weight:600">No PO</span>';
   const qty=d.open_po_qty||0;
   const status=d.po_coverage_status||'NONE';
   const cfg={
@@ -1157,8 +1359,8 @@ function poCell(d){
   }[status]||{bg:'var(--surface2)',col:'var(--muted)',bdr:'var(--border)',label:'Open'};
   const codeEsc=String(d.ItemCode).replace(/'/g,"\\'");
   return '<div style="cursor:pointer" onclick="showPOCoverage(\'' + codeEsc + '\')" title="Click to see PO delivery schedule">'
-    + '<div style="font-size:10px;font-weight:600;color:var(--text)">' + d.PurchaseOrders.trim() + '</div>'
-    + '<span style="font-size:9px;font-weight:600;background:' + cfg.bg + ';color:' + cfg.col + ';border:1px solid ' + cfg.bdr + ';border-radius:3px;padding:1px 5px;white-space:nowrap;display:inline-block;margin-top:2px">' + qty.toLocaleString() + ' units - ' + cfg.label + '</span>'
+    + '<div class="po-list" title="' + d.PurchaseOrders.trim().replace(/"/g,'&quot;') + '">' + d.PurchaseOrders.trim() + '</div>'
+    + '<span style="font-size:10.5px;font-weight:600;background:' + cfg.bg + ';color:' + cfg.col + ';border:1px solid ' + cfg.bdr + ';border-radius:3px;padding:1px 5px;white-space:nowrap;display:inline-block;margin-top:2px">' + qty.toLocaleString() + ' units - ' + cfg.label + '</span>'
     + '</div>';
 }
 function showPOCoverage(itemCode){
@@ -1428,7 +1630,10 @@ function handleFile(e){
   const file=e.target.files[0]; if(!file) return;
   leadWeeks=parseInt(document.getElementById('lead-weeks-input').value)||8;
   arrivalBuffer=parseInt(document.getElementById('arrival-buffer-input').value)||2;
+  document.getElementById('loading-overlay').style.display='flex';
+  setDialPct(5,'Reading workbook...');
   const reader=new FileReader();
+  reader.onerror=()=>{document.getElementById('loading-overlay').style.display='none'; const el=document.getElementById('error-box'); el.style.display='block'; el.textContent='Unable to read file.';};
   reader.onload=evt=>{
     try{
       const wb=XLSX.read(evt.target.result,{type:'array'});
@@ -1436,15 +1641,7 @@ function handleFile(e){
       const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       document.getElementById('loading-overlay').style.display='flex';
       setDialPct(5,'Reading '+raw.length.toLocaleString()+' rows…');
-      // Use requestIdleCallback / chunked processing to avoid freezing browser
-      const CHUNK=2000;
-      let i=1;
       function processChunk(){
-        const end=Math.min(i+CHUNK, raw.length);
-        const pct=Math.round(5 + (i/raw.length)*80);
-        setDialPct(pct, 'Processing rows… '+i.toLocaleString()+' / '+raw.length.toLocaleString());
-        i=end;
-        if(i<raw.length){ setTimeout(processChunk,0); return; }
         // All rows scanned — now run processRaw
         setDialPct(90,'Calculating urgency & shortages…');
         setTimeout(()=>{
@@ -1452,6 +1649,7 @@ function handleFile(e){
           window.lastRawBytes=evt.target.result; window.lastRawFileName=file.name;
           updateReloadBtn();
           allData=processRaw(raw,file.name);
+          if(allData && allData.length && typeof saveStoredFile==='function') saveStoredFile('mrp', evt.target.result, file.name);
           setDialPct(100,'Done!');
           setTimeout(()=>{
             document.getElementById('loading-overlay').style.display='none';
@@ -1474,7 +1672,10 @@ function handleScheduleUpload(e){
   const rn=document.getElementById('ready-sched-name'); if(rn) rn.textContent='✓ '+file.name;
   window.lastSchedFileName=file.name;
   updateSchedReloadBtn();
-  readScheduleViaZip(file, function(raw){ parseScheduleRaw(raw, file.name); });
+  readScheduleViaZip(file, function(raw){
+    parseScheduleRaw(raw, file.name);
+    if((window.scheduleBase||[]).length && typeof saveStoredFile==='function') saveStoredFile('sched', window.lastSchedBytes, file.name);
+  });
 }
 
 function readScheduleViaZip(file, callback){
@@ -1497,7 +1698,7 @@ function readScheduleViaZip(file, callback){
           }
           const colIdx={'A':0,'B':1,'C':2,'D':3,'E':4,'F':5,'G':6,'H':7,'I':8,'J':9};
           const raw=[];
-          for(const rowM of sheetXml.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)){
+          for(const rowM of sheetXml.matchAll(/<row\b[^>]*>([\s\S]*?)<\/row>/g)){
             const cells={};
             for(const cm of rowM[1].matchAll(/<c r="([A-Z]+)\d+"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)){
               const col=colIdx[cm[1]]; if(col===undefined) continue; // exact column letters only (AW must not map to A)
@@ -1508,7 +1709,7 @@ function readScheduleViaZip(file, callback){
               if(/t="s"/.test(attrs)&&vMatch){ val=ss[parseInt(vMatch[1])]||''; }
               else if(/t="inlineStr"/.test(attrs)&&tMatch){ val=tMatch[1]; }
               else if(vMatch){ val=vMatch[1]; }
-              cells[col]=val;
+              cells[col]=String(val).replace(/&(amp|lt|gt|quot|apos);/g,function(m,e){return {amp:'&',lt:'<',gt:'>',quot:'"',apos:"'"}[e];});
             }
             const max=Object.keys(cells).reduce(function(a,b){return Math.max(a,+b);},-1);
             if(max>=0){ const arr=[]; for(let c=0;c<=max;c++) arr.push(cells[c]||''); raw.push(arr); }
@@ -1533,10 +1734,14 @@ function parseScheduleRaw(raw, fileName){
       iCust=row.indexOf('Customer'); iModel=row.indexOf('Model'); iWip=row.indexOf('WIP Progress');
       continue;
     }
+    // "Line 1" sits above the first header row, so catch line headers before the header check
+    if(/^Line\s+\d+$/i.test(cell0) && row.slice(1).every(v=>!String(v||'').trim())){currentLine=cell0;continue;}
     if(iName===-1) continue;
     const name=String(row[iName]||'').trim(); if(!name) continue;
     if(/^Line\s+\d+$/i.test(name)){currentLine=name;continue;}
     if(name.startsWith('WEEK')){currentWeek=name;continue;}
+    // Any other single-cell row is a section header (e.g. "Completions", "Military") — don't let it inherit the previous line
+    if(!/^[A-Z]\d+$/.test(name) && row.slice(1).every(v=>!String(v||'').trim())){currentLine=name;continue;}
     if(/^[A-Z]\d+$/.test(name) && !seenTrailers.has(name)){
       seenTrailers.add(name);
       const dueRaw=String(row[iDue]||'').trim(); let dueDate=null;
@@ -1853,6 +2058,9 @@ function buildActionTable(){
   document.getElementById('action-ct').textContent=filtered.length.toLocaleString()+' parts ready to export';
   const rct=document.getElementById('act-result-ct'); if(rct) rct.textContent=filtered.length.toLocaleString()+' parts';
   lastActFiltered = filtered;  // store for export
+  actPage=Math.min(actPage,Math.max(1,Math.ceil(filtered.length/ACT_PAGE_SIZE)));
+  document.getElementById('action-empty').style.display=filtered.length?'none':'block';
+  renderPagination('action-pagination',actPage,Math.ceil(filtered.length/ACT_PAGE_SIZE),'goActPage');
   const start=(actPage-1)*ACT_PAGE_SIZE;
   const page=filtered.slice(start,start+ACT_PAGE_SIZE);
   const tbody=document.getElementById('action-body');
@@ -1896,14 +2104,14 @@ function setActUrgFilter(u){
   });
   actPage=1; buildActionTable();
 }
-function goActPage(p){ const total=Math.ceil(thisWeekData.length/ACT_PAGE_SIZE); if(p<1||p>total) return; actPage=p; buildActionTable(); }
+function goActPage(p){ const total=Math.ceil(lastActFiltered.length/ACT_PAGE_SIZE); if(p<1||p>total) return; actPage=p; buildActionTable(); }
 
 // ═══════════════════════════════════════════════════════
 //  ALL PARTS TABLE
 // ═══════════════════════════════════════════════════════
 function setUrgFilter(u){
   urgFilter=u;
-  document.querySelectorAll('.filt-btn').forEach(btn=>{ const id=btn.id.replace('btn-','').toLowerCase(); btn.classList.toggle('active',id===u.toLowerCase()||(u==='all'&&id==='all')); });
+  document.querySelectorAll('#view-parts .filt-btn').forEach(btn=>{ const id=btn.id.replace('btn-','').toLowerCase(); btn.classList.toggle('active',id===u.toLowerCase()||(u==='all'&&id==='all')); });
   // Highlight active stat card
   document.querySelectorAll('.stat-card').forEach(card=>card.classList.remove('sc-active'));
   const cardMap={'fire':'.stat-card.fire','CRITICAL':'.stat-card.s-critical','HIGH':'.stat-card.s-high','MEDIUM':'.stat-card.s-medium','LOW':'.stat-card.s-low','EXPEDITE':'.stat-card.sc-expedite'};
@@ -1911,16 +2119,23 @@ function setUrgFilter(u){
   currentPage=1; applyFilters();
 }
 function applyFilters(){
+  searchVal=document.getElementById('search').value;
   let src=activeSupplier?allData.filter(d=>d.VendorName===activeSupplier):allData;
   if(urgFilter!=='all') src=src.filter(d=>urgFilter==='fire'?(d.urgency==='CRITICAL'&&!hasPO(d)):(d.urgency===urgFilter));
   if(searchVal) src=src.filter(d=>[d.ItemCode,d.ItemCodeDesc,d.VendorName].join(' ').toLowerCase().includes(searchVal.toLowerCase()));
   // filter by selected buyer
-  const activeBuyer=document.querySelector('#view-parts .buyer-pill.active')?.dataset?.buyer||'all';
+  const activeBuyer=document.getElementById('buyer-filter').value||'all';
   if(activeBuyer!=='all') src=src.filter(d=>d.BuyerCode===activeBuyer);
   // filter by hasPO
   const poFilter=document.getElementById('po-filter')?.value||'';
-  if(poFilter==='no') src=src.filter(d=>!hasPO(d));
-  if(poFilter==='yes') src=src.filter(d=>hasPO(d));
+  if(poFilter==='no-po') src=src.filter(d=>!hasPO(d));
+  if(poFilter==='has-po') src=src.filter(d=>hasPO(d));
+  const vendor=document.getElementById('vendor-filter').value;
+  const status=document.getElementById('status-filter').value;
+  if(vendor) src=src.filter(d=>d.VendorName===vendor);
+  if(status) src=src.filter(d=>getStatus(d.ItemCode)===status);
+  currentPage=Math.min(currentPage,Math.max(1,Math.ceil(src.length/PAGE_SIZE)));
+  document.getElementById('empty-state').style.display=src.length?'none':'block';
   src.sort((a,b)=>{
     let av=a[sortCol]??'',bv=b[sortCol]??'';
     if(typeof av==='number'||!isNaN(Number(av))){av=Number(av);bv=Number(bv);}
@@ -1983,7 +2198,7 @@ function clearAllFilters(){
   urgFilter='all';
   searchVal='';
   activeSupplier='';
-  const si=document.getElementById('search-input'); if(si) si.value='';
+  const si=document.getElementById('search'); if(si) si.value='';
   const bf=document.getElementById('buyer-filter'); if(bf) bf.value='';
   const vf=document.getElementById('vendor-filter'); if(vf) vf.value='';
   const pf=document.getElementById('po-filter'); if(pf) pf.value='';
@@ -1999,8 +2214,12 @@ function clearAllFilters(){
 //  EXPEDITE (LATE PO) TABLE
 // ═══════════════════════════════════════════════════════
 function filterLatePO(){
+  latePOSearch=document.getElementById('late-po-search').value;
+  latePOBuyer=document.getElementById('late-po-buyer').value;
+  latePOVendor=document.getElementById('late-po-vendor').value;
   latePOFiltered=latePOData.filter(d=>{
     if(latePOSearch&&![d.ItemCode,d.ItemCodeDesc,d.VendorName].join(' ').toLowerCase().includes(latePOSearch.toLowerCase())) return false;
+    if(activeSupplier&&d.VendorName!==activeSupplier) return false;
     if(latePOBuyer&&d.BuyerCode!==latePOBuyer) return false;
     if(latePOVendor&&d.VendorName!==latePOVendor) return false;
     return true;
@@ -2010,9 +2229,13 @@ function filterLatePO(){
     if(typeof av==='number'||!isNaN(Number(av))){av=Number(av);bv=Number(bv);}
     return latePOSortDir==='asc'?(av>bv?1:av<bv?-1:0):(av<bv?1:av>bv?-1:0);
   });
+  latePOPage=Math.min(latePOPage,Math.max(1,Math.ceil(latePOFiltered.length/LATE_PO_PAGE)));
+  document.getElementById('late-po-count').textContent=latePOFiltered.length+' parts';
+  document.getElementById('late-po-empty').style.display=latePOFiltered.length?'none':'block';
+  document.getElementById('late-po-pagination').style.display=latePOFiltered.length>LATE_PO_PAGE?'flex':'none';
   renderLatePO();
 }
-function sortLatePO(col){ if(latePOSortCol===col) latePOSortDir=latePOSortDir==='asc'?'desc':'asc'; else{latePOSortCol=col;latePOSortDir='asc';} renderLatePO(); }
+function sortLatePO(col){ if(latePOSortCol===col) latePOSortDir=latePOSortDir==='asc'?'desc':'asc'; else{latePOSortCol=col;latePOSortDir='asc';} latePOPage=1; filterLatePO(); }
 function renderLatePO(){
   const start=(latePOPage-1)*LATE_PO_PAGE;
   const page=latePOFiltered.slice(start,start+LATE_PO_PAGE);
@@ -2177,13 +2400,13 @@ function buildTopParts(){
     const uc = p.urgency==='CRITICAL'?'var(--critical)':p.urgency==='EXPEDITE'?'var(--expedite)':p.urgency==='HIGH'?'var(--high)':'var(--medium)';
     const ubg = p.urgency==='CRITICAL'?'var(--critical-bg)':p.urgency==='EXPEDITE'?'var(--expedite-bg)':p.urgency==='HIGH'?'var(--high-bg)':'var(--medium-bg)';
     const po = p.PurchaseOrders?.trim();
-    const poTag = po ? `<span style="font-size:9px;background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:3px;padding:1px 5px;white-space:nowrap">${po.split(',')[0].trim()}</span>` : `<span style="font-size:9px;color:var(--critical);font-weight:600">NO PO</span>`;
-    return `<div style="display:grid;grid-template-columns:24px 110px 1fr 120px 80px 90px;align-items:center;gap:8px;padding:5px 10px;border-radius:5px;background:var(--surface);border:1px solid var(--border);font-size:11px">
-      <span style="font-size:12px;font-weight:700;color:var(--muted2)">${i+1}</span>
-      <span style="font-weight:600;color:var(--accent);font-size:11px">${p.ItemCode}</span>
+    const poTag = po ? `<span style="font-size:11px;background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:4px;padding:2px 7px;white-space:nowrap;justify-self:start">${po.split(',')[0].trim()}</span>` : `<span style="font-size:11px;color:var(--critical);font-weight:700">NO PO</span>`;
+    return `<div style="display:grid;grid-template-columns:28px 120px 1fr 120px 96px 110px;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:var(--surface);border:1px solid var(--border);font-size:13px">
+      <span style="font-size:13px;font-weight:700;color:var(--muted2)">${i+1}</span>
+      <span style="font-weight:700;color:var(--accent);font-size:13px">${p.ItemCode}</span>
       <div style="overflow:hidden">
-        <div style="font-size:10px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.ItemCodeDesc}</div>
-        <div style="margin-top:2px;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.ItemCodeDesc}</div>
+        <div style="margin-top:5px;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
           <div style="height:100%;width:${pct}%;background:${uc};border-radius:3px;transition:width .3s"></div>
         </div>
       </div>
@@ -2191,7 +2414,7 @@ function buildTopParts(){
         <span style="font-weight:700;color:${uc}">${p.trailerCount}</span>
         <span style="color:var(--muted2)"> trailers</span>
       </div>
-      <span style="background:${ubg};color:${uc};border:1px solid ${uc};border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600;text-align:center">${p.urgency}</span>
+      <span style="background:${ubg};color:${uc};border:1px solid ${uc};border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;text-align:center">${p.urgency}</span>
       ${poTag}
     </div>`;
   }).join('');
@@ -2246,7 +2469,7 @@ function buildWeekGrid(){
       const uc=p.urgency==='CRITICAL'?'var(--critical)':p.urgency==='EXPEDITE'?'var(--expedite)':'var(--high)';
       const bg=p.urgency==='CRITICAL'?'var(--critical-bg)':p.urgency==='EXPEDITE'?'var(--expedite-bg)':'var(--high-bg)';
       const bdr=p.urgency==='CRITICAL'?'var(--critical-border)':p.urgency==='EXPEDITE'?'var(--expedite-border)':'var(--high-border)';
-      return `<span style="font-size:9px;background:${bg};color:${uc};border:1px solid ${bdr};border-radius:3px;padding:1px 6px;white-space:nowrap" title="${p.ItemCodeDesc||''}">${code} <b>(${count} trailers)</b></span>`;
+      return `<span class="part-chip" style="background:${bg};color:${uc};border-color:${bdr}" title="${p.ItemCodeDesc||''}">${code} <b>(${count} trailers)</b></span>`;
     }).join('');
 
     const weekLabel = w.week.replace('WEEK ','Wk ');
@@ -2254,27 +2477,27 @@ function buildWeekGrid(){
 
     return `<div onclick="drillWeek('${encodedWeek}')" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:box-shadow .15s" onmouseover="this.style.boxShadow='0 2px 12px rgba(0,0,0,.12)'" onmouseout="this.style.boxShadow=''">
       <!-- Header row -->
-      <div style="display:grid;grid-template-columns:100px 1fr 70px 70px 70px 70px;align-items:center;gap:10px;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border)">
+      <div style="display:grid;grid-template-columns:120px 1fr 70px 70px 70px 70px;align-items:center;gap:16px;padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border)">
         <div>
-          <div style="font-weight:700;font-size:14px;color:var(--text)">${weekLabel}</div>
-          <div style="font-size:10px;color:var(--muted)">Due ${w.earliest_due||'—'}</div>
+          <div style="font-weight:700;font-size:16px;color:var(--text)">${weekLabel}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Due ${w.earliest_due||'—'}</div>
         </div>
         <div>
-          <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:3px">
+          <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:5px">
             <div style="height:100%;width:${atRiskPct}%;background:${worstColor};border-radius:3px"></div>
           </div>
-          <div style="font-size:9px;color:var(--muted2)">${trailers.length} of ${total} trailers at risk (${atRiskPct}%)</div>
+          <div style="font-size:12px;color:var(--muted)">${trailers.length} of ${total} trailers at risk (${atRiskPct}%)</div>
         </div>
-        <div style="text-align:center"><div style="font-size:17px;font-weight:700;color:var(--critical)">${crit||'—'}</div><div style="font-size:9px;color:var(--muted2)">CRIT</div></div>
-        <div style="text-align:center"><div style="font-size:17px;font-weight:700;color:var(--expedite)">${exp||'—'}</div><div style="font-size:9px;color:var(--muted2)">EXP</div></div>
-        <div style="text-align:center"><div style="font-size:17px;font-weight:700;color:var(--high)">${high||'—'}</div><div style="font-size:9px;color:var(--muted2)">HIGH</div></div>
-        <div style="text-align:center"><div style="font-size:17px;font-weight:700;color:var(--low)">${clear}</div><div style="font-size:9px;color:var(--muted2)">CLEAR</div></div>
+        <div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--critical)">${crit||'—'}</div><div style="font-size:11px;font-weight:600;color:var(--muted2)">CRIT</div></div>
+        <div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--expedite)">${exp||'—'}</div><div style="font-size:11px;font-weight:600;color:var(--muted2)">EXP</div></div>
+        <div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--high)">${high||'—'}</div><div style="font-size:11px;font-weight:600;color:var(--muted2)">HIGH</div></div>
+        <div style="text-align:center"><div style="font-size:20px;font-weight:700;color:var(--low)">${clear}</div><div style="font-size:11px;font-weight:600;color:var(--muted2)">CLEAR</div></div>
       </div>
       <!-- Parts row -->
-      <div style="padding:7px 16px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
-        <span style="font-size:10px;color:var(--muted2);margin-right:2px;white-space:nowrap">Top blocking parts:</span>
-        ${partTags||'<span style="font-size:10px;color:var(--muted2)">—</span>'}
-        <span style="margin-left:auto;font-size:10px;color:var(--accent);font-weight:600;white-space:nowrap">View all trailers →</span>
+      <div style="padding:12px 18px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+        <span style="font-size:12px;color:var(--muted);margin-right:4px;white-space:nowrap">Top blocking parts:</span>
+        ${partTags||'<span style="font-size:12px;color:var(--muted2)">—</span>'}
+        <span style="margin-left:auto;font-size:12px;color:var(--accent);font-weight:600;white-space:nowrap">View all trailers →</span>
       </div>
     </div>`;
   }).join('');
@@ -2384,12 +2607,12 @@ function renderSchedule(){
       const col=p.urgency==='CRITICAL'?'var(--critical)':p.urgency==='EXPEDITE'?'var(--expedite)':p.urgency==='HIGH'?'var(--high)':'var(--medium)';
       const bg=p.urgency==='CRITICAL'?'var(--critical-bg)':p.urgency==='EXPEDITE'?'var(--expedite-bg)':p.urgency==='HIGH'?'var(--high-bg)':'var(--medium-bg)';
       const bdr=p.urgency==='CRITICAL'?'var(--critical-border)':p.urgency==='EXPEDITE'?'var(--expedite-border)':p.urgency==='HIGH'?'var(--high-border)':'var(--medium-border)';
-      return `<span title="${p.ItemCodeDesc} — ${p.VendorName}" style="font-size:9px;font-weight:500;background:${bg};color:${col};border:1px solid ${bdr};border-radius:3px;padding:1px 5px;white-space:nowrap;cursor:default">${p.ItemCode}</span>`;
+      return `<span title="${p.ItemCodeDesc} — ${p.VendorName}" class="part-chip" style="background:${bg};color:${col};border-color:${bdr}">${p.ItemCode}</span>`;
     }).join(' ');
     const moreCount=parts.length-6;
-    const moreLbl=moreCount>0?`<span style="font-size:9px;color:var(--accent);cursor:pointer;font-weight:600">+${moreCount} more</span>`:'';
+    const moreLbl=moreCount>0?`<span class="part-more">+${moreCount} more</span>`:'';
     const wip=parseInt(t.wip)||0;
-    const wipBar=`<div style="display:flex;align-items:center;gap:4px"><div style="width:36px;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:${wip}%;height:100%;background:${wip>=80?'var(--low)':wip>=40?'var(--high)':'var(--critical)'};border-radius:3px"></div></div><span style="font-size:10px;color:var(--muted)">${t.wip}</span></div>`;
+    const wipBar=`<div style="display:flex;align-items:center;gap:6px"><div style="width:40px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0"><div style="width:${wip}%;height:100%;background:${wip>=80?'var(--low)':wip>=40?'var(--high)':'var(--critical)'};border-radius:3px"></div></div><span style="font-size:12px;color:var(--muted)">${t.wip||'—'}</span></div>`;
 
     // Build full parts detail panel (hidden by default)
     const detailRows = parts.map(p=>{
@@ -2399,34 +2622,34 @@ function renderSchedule(){
       const poTxt=p.PurchaseOrders?p.PurchaseOrders.trim():'No PO';
       const poColor=p.PurchaseOrders?'var(--low)':'var(--critical)';
       return `<tr style="background:var(--surface2);border-bottom:1px solid var(--border)">
-        <td style="padding:5px 10px;font-size:10px;font-weight:600;color:var(--accent);white-space:nowrap">${p.ItemCode}</td>
-        <td style="padding:5px 10px;font-size:10px;color:var(--text);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.ItemCodeDesc}">${p.ItemCodeDesc||'—'}</td>
-        <td style="padding:5px 10px"><span style="font-size:9px;font-weight:700;background:${ubg};color:${uc};border:1px solid ${ubdr};border-radius:3px;padding:2px 6px">${p.urgency}</span></td>
-        <td style="padding:5px 10px;font-size:10px;color:var(--muted)">${p.VendorName||'—'}</td>
-        <td style="padding:5px 10px;font-size:10px;color:var(--muted)">${p.BuyerCode||'—'}</td>
-        <td style="padding:5px 10px;font-size:10px;color:var(--muted)">Neg. ${p.first_negative_week||'—'}</td>
-        <td style="padding:5px 10px;font-size:10px;font-weight:600;color:var(--critical)">${p.min_available??'—'}</td>
-        <td style="padding:5px 10px;font-size:10px;color:${poColor};font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${poTxt}">${poTxt}</td>
+        <td style="padding:7px 10px;font-size:12px;font-weight:600;color:var(--accent);white-space:nowrap">${p.ItemCode}</td>
+        <td style="padding:7px 10px;font-size:12px;color:var(--text);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.ItemCodeDesc}">${p.ItemCodeDesc||'—'}</td>
+        <td style="padding:5px 10px"><span style="font-size:11px;font-weight:700;background:${ubg};color:${uc};border:1px solid ${ubdr};border-radius:3px;padding:2px 6px">${p.urgency}</span></td>
+        <td style="padding:7px 10px;font-size:12px;color:var(--muted)">${p.VendorName||'—'}</td>
+        <td style="padding:7px 10px;font-size:12px;color:var(--muted)">${p.BuyerCode||'—'}</td>
+        <td style="padding:7px 10px;font-size:12px;color:var(--muted)">Neg. ${p.first_negative_week||'—'}</td>
+        <td style="padding:7px 10px;font-size:12px;font-weight:600;color:var(--critical)">${p.min_available??'—'}</td>
+        <td style="padding:7px 10px;font-size:12px;color:${poColor};font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${poTxt}">${poTxt}</td>
       </tr>`;
     }).join('');
 
     const detailPanel = `<tr id="detail-${tid}" style="display:none">
       <td colspan="11" style="padding:0;background:var(--surface2)">
-        <div style="padding:8px 16px 12px 40px">
-          <div style="font-size:10px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
+        <div style="padding:12px 20px 16px 40px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">
             ${parts.length} At-Risk Parts for ${t.trailer} — ${t.customer||''} ${t.model||''}
           </div>
-          <table style="width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">
+          <table style="width:100%;min-width:0;table-layout:auto;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">
             <thead>
               <tr style="background:var(--surface2);border-bottom:2px solid var(--border)">
-                <th style="padding:5px 10px;font-size:9px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Part #</th>
-                <th style="padding:5px 10px;font-size:9px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Description</th>
-                <th style="padding:5px 10px;font-size:9px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Status</th>
-                <th style="padding:5px 10px;font-size:9px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Vendor</th>
-                <th style="padding:5px 10px;font-size:9px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Buyer</th>
-                <th style="padding:5px 10px;font-size:9px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Goes Neg.</th>
-                <th style="padding:5px 10px;font-size:9px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Min Avail</th>
-                <th style="padding:5px 10px;font-size:9px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Open PO</th>
+                <th style="padding:7px 10px;font-size:10.5px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Part #</th>
+                <th style="padding:7px 10px;font-size:10.5px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Description</th>
+                <th style="padding:7px 10px;font-size:10.5px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Status</th>
+                <th style="padding:7px 10px;font-size:10.5px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Vendor</th>
+                <th style="padding:7px 10px;font-size:10.5px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Buyer</th>
+                <th style="padding:7px 10px;font-size:10.5px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Goes Neg.</th>
+                <th style="padding:7px 10px;font-size:10.5px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Min Avail</th>
+                <th style="padding:7px 10px;font-size:10.5px;font-weight:700;text-align:left;color:var(--muted2);text-transform:uppercase">Open PO</th>
               </tr>
             </thead>
             <tbody>${detailRows}</tbody>
@@ -2436,17 +2659,17 @@ function renderSchedule(){
     </tr>`;
 
     return `<tr onclick="toggleTrailerDetail('${tid}', this)" style="cursor:pointer" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-      <td><span style="font-size:11px;font-weight:600;color:var(--accent)">${t.trailer}</span> <span id="chevron-${tid}" style="font-size:9px;color:var(--muted2)">▼</span></td>
-      <td style="font-size:11px;font-weight:500">${t.due_date||'—'}</td>
-      <td style="font-size:10px;color:var(--muted)">${(t.week||'').replace('WEEK ','Wk ')}</td>
+      <td style="white-space:nowrap"><span style="font-size:13px;font-weight:700;color:var(--accent)">${t.trailer}</span> <span id="chevron-${tid}" style="font-size:10px;color:var(--muted2);margin-left:2px">▼</span></td>
+      <td style="font-size:13px;font-weight:500;white-space:nowrap">${t.due_date||'—'}</td>
+      <td style="font-size:12px;color:var(--muted);white-space:nowrap">${(t.week||'').replace('WEEK ','Wk ')||'—'}</td>
       <td>${wipBar}</td>
-      <td style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.customer}">${t.customer}</td>
-      <td style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.model}">${t.model}</td>
-      <td><span style="font-size:10px;font-weight:700;color:${wColor}">${t.worst_urgency}</span></td>
-      <td style="font-size:12px;font-weight:600;text-align:center;color:${wColor}">${t.at_risk_count}</td>
-      <td style="font-size:12px;font-weight:600;text-align:center;color:var(--critical)">${t.critical_count||'—'}</td>
-      <td style="font-size:12px;font-weight:600;text-align:center;color:var(--expedite)">${t.expedite_count||'—'}</td>
-      <td><div style="display:flex;flex-wrap:wrap;gap:2px">${partTags}${moreLbl}</div></td>
+      <td style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.customer||''}">${t.customer||'—'}</td>
+      <td style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.model||''}">${t.model||'—'}</td>
+      <td><span style="font-size:12px;font-weight:700;color:${wColor}">${t.worst_urgency}</span></td>
+      <td style="font-size:14px;font-weight:700;text-align:center;color:${wColor}">${t.at_risk_count}</td>
+      <td style="font-size:14px;font-weight:700;text-align:center;color:var(--critical)">${t.critical_count||'—'}</td>
+      <td style="font-size:14px;font-weight:700;text-align:center;color:var(--expedite)">${t.expedite_count||'—'}</td>
+      <td><div class="part-chips">${partTags}${moreLbl}</div></td>
     </tr>${detailPanel}`;
   }).join('');
   const total=Math.ceil(scheduleFiltered.length/SCHEDULE_PAGE);
@@ -2477,7 +2700,9 @@ function renderPagination(containerId, page, total, gofn){
 // ═══════════════════════════════════════════════════════
 function onStatusChange(code, sel){
   statusStore[code]=sel.value;
+  sel.className='status-select st-'+sel.value;
   saveStatusStore();
+  updateStatusBanner();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2485,14 +2710,14 @@ function onStatusChange(code, sel){
 // ═══════════════════════════════════════════════════════
 function exportActionCSV(){
   const hdr=['Part #','Description','Urgency','Need By','Order By','Days Left','Goes Negative','Shortage (Min Avail)','Rec. Order Qty','QOH','Trailers at Risk','Supplier','Buyer','Open PO','Open PO Qty','Work Status'];
-  const src = lastActFiltered.length ? lastActFiltered : thisWeekData;
+  const src = lastActFiltered;
   const rows = src.map(d=>[d.ItemCode,d.ItemCodeDesc,d.urgency,d.need_by||'',d.order_deadline,d.days_to_order,d.first_negative_week,d.min_available,Math.abs(d.min_available),d.QuantityOnHand,(d.at_risk_trailers||[]).join(' | '),d.VendorName,d.BuyerCode,hasPO(d)?d.PurchaseOrders.trim():'None',d.open_po_qty||0,getStatus(d.ItemCode)]);
   downloadXLSX([{name:"This Week's Actions", rows:[hdr,...rows]}], "This_Weeks_Actions.xlsx");
 }
 
 function exportPartsCSV(){
   const hdr=['Part #','Description','Urgency','Need By','Order By','Days Left','Goes Negative','Shortage (Min Avail)','Rec. Order Qty','QOH','Trailers at Risk','Supplier','Buyer','Open PO','Open PO Qty','Work Status'];
-  const src = lastPartsFiltered.length ? lastPartsFiltered : allData;
+  const src = lastPartsFiltered;
   const rows = src.map(d=>[d.ItemCode,d.ItemCodeDesc,d.urgency,d.need_by||'',d.order_deadline,d.days_to_order,d.first_negative_week,d.min_available,Math.abs(d.min_available),d.QuantityOnHand,(d.at_risk_trailers||[]).join(' | '),d.VendorName,d.BuyerCode,hasPO(d)?d.PurchaseOrders.trim():'None',d.open_po_qty||0,getStatus(d.ItemCode)]);
   downloadXLSX([{name:'All Parts', rows:[hdr,...rows]}], 'All_Parts_Export.xlsx');
 }
@@ -2876,9 +3101,8 @@ function quickReload(){
     document.getElementById('loading-overlay').style.display='flex';
     setDialPct(10,'Re-processing '+window.lastRawFileName+'\u2026');
     setTimeout(function(){
-      const wb=XLSX.read(window.lastRawBytes,{type:'array'});
-      const ws=wb.Sheets[wb.SheetNames[0]];
-      const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      const raw=window.lastRawData;
+      if(!raw) throw new Error('Choose the MRP file again.');
       window.lastRawData=raw;
       setDialPct(60,'Calculating urgency\u2026');
       setTimeout(function(){
@@ -2922,8 +3146,752 @@ document.addEventListener('DOMContentLoaded',()=>{
     dz.addEventListener('dragleave',()=>{dz.style.borderColor='';});
     dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';const f=e.dataTransfer.files[0];if(f){const fi=document.getElementById('file-input');const dt=new DataTransfer();dt.items.add(f);fi.files=dt.files;handleFile({target:fi});}});
   }
-  document.getElementById('file-input')?.addEventListener('change',handleFile);
+
 });
+
+</script>
+<script>
+function v2Escape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function v2Panel(title,html){document.getElementById('v2-modal')?.remove();const m=document.createElement('div');m.id='v2-modal';m.className='v2-modal';m.innerHTML='<section class="v2-panel" role="dialog" aria-modal="true" aria-label="'+v2Escape(title)+'"><button class="export-btn v2-close" onclick="document.getElementById(\'v2-modal\').remove()">Close</button><h2>'+v2Escape(title)+'</h2>'+html+'</section>';m.addEventListener('click',e=>{if(e.target===m)m.remove();});document.body.appendChild(m);m.querySelector('button').focus();}
+function v2Data(){v2Panel('Data & Settings','<h3>MRP report</h3><p>'+v2Escape(window.lastRawFileName||'No report loaded')+'</p><button class="export-btn primary" onclick="document.getElementById(\'file-input\').click()">Choose MRP</button><h3>Production schedule</h3><p>'+v2Escape(window.lastSchedFileName||'No schedule uploaded this session')+'</p><button class="export-btn" onclick="document.getElementById(\'schedule-input\').click()">Choose schedule</button><h3>Calculation settings</h3><p>Use the existing steel lead time and arrival buffer controls above the dashboard. Calculation rules are unchanged in this revision.</p><h3>Local work tracking</h3><p>Statuses belong to this browser, not a shared team workspace. Uploaded reports are not automatically shared with other viewers.</p>');}
+function v2Help(){v2Panel('Help','<h3>Start here</h3><p>Choose your MRP report, optionally add a production schedule, then select Analyze to open the dashboard.</p><h3>Choose a workspace</h3><p><b>Overview:</b> urgency totals, production line health and the parts blocking the most trailers (choose the time window at the top), then Vendor Priority and the order deadline timeline. Click a line to open its trailers, or a part for its details. On every other tab the urgency totals shrink to one slim row; click any of them to filter All Parts.<br><b>Purchasing Queue:</b> urgent unordered parts and expedite items.<br><b>All Parts:</b> search and filter flagged parts.<br><b>Trailers at Risk:</b> investigate affected trailers.<br><b>Expedite:</b> review late purchase orders.</p><h3>Investigate and follow up</h3><p>Click a part number for details. Click an Open PO badge for the delivery breakdown. Work statuses are saved in this browser only and do not change MRP urgency.</p><h3>Team shared folder (same files for everyone)</h3><p>Connect the dashboard to one folder the whole team syncs from SharePoint. Every time anyone opens the dashboard, it loads the <b>newest MRP (.xlsm)</b> and the <b>newest schedule (.xlsx with “Schedule” in the name)</b> in that folder. To update everyone, save the new file into the folder, or choose it in the dashboard and select <b>Save to team folder</b> when asked.</p><p><b>One-time setup for each person</b><br>1. In SharePoint, open the team folder that holds the MRP and schedule and select <b>Sync</b> (or <b>Add shortcut to My files</b>), so it appears in File Explorer.<br>2. In the dashboard, open <b>Data &amp; Settings</b> and select <b>Connect team folder…</b>.<br>3. Pick that folder and select <b>View files</b>, then <b>Allow</b>. If Chrome or Edge offers <b>Allow on every visit</b>, choose it so the team files open with no clicks.<br>Otherwise, when you open the dashboard, select <b>Open team files</b> in the notice in the bottom-right corner.</p><p>The line under the page title shows <b>👥 Team files</b> with when each file was last updated, and turns orange when the team MRP is 7 or more days old. If it shows <b>💾 My saved files</b>, you are looking at your own copy, not the team folder.</p><h3>My saved copy</h3><p>Your latest files are also kept in this browser, so the dashboard still opens when the team folder is not connected or not available. Choosing a new file replaces this copy. To remove it, open <b>Data &amp; Settings</b> and select <b>Forget my saved copy</b>.</p><h3>FAQ: team folder</h3><p><b>Someone else’s new MRP isn’t showing.</b> Their file must finish syncing through OneDrive first. Then open <b>Data &amp; Settings</b> and select <b>Open newest team files</b>.<br><b>No Sync button in SharePoint.</b> Your IT team may have turned off OneDrive syncing for SharePoint; ask them to allow it for this library.<br><b>Connect team folder does nothing.</b> Use Chrome or Edge. Firefox cannot connect to folders.<br><b>Old files in the folder.</b> Only the newest MRP and newest schedule are used, so old copies can stay, but clearing them out keeps things tidy.</p><h3>Line Reports (PDF)</h3><p>On <b>Trailers at Risk</b>, select <b>📄 Line Reports</b>. Pick the lines, a time window and the sections, then select <b>Generate PDF report</b>. A report window opens with the print dialog; choose <b>Save as PDF</b>. The summary page compares the lines and lists the parts blocking the most trailers across all selected lines. Each line then gets its own page: at-risk trailers with their blocking parts, the parts to chase (supplier, buyer, PO) and the trailers that look good. Line Reports need the production schedule loaded. If the report window does not open, allow pop-ups for this file.</p><h3>Exports and refresh</h3><p>All Parts and Purchasing Queue exports use the current filtered list, including an empty result. Reload Last File reuses the parsed MRP data in this session. Choose a file again to load changes made outside the dashboard.</p>');}
+function v2Part(code){const d=allData.find(x=>String(x.ItemCode)===String(code));if(!d)return;const fields=[['Supplier',d.VendorName],['Buyer',d.BuyerCode],['Urgency',d.urgency],['Work status',getStatus(code)],['Need by',d.need_by],['Order deadline',d.order_deadline],['First negative week',d.first_negative_week],['Minimum available',d.min_available],['Recommended quantity',Math.abs(d.min_available)],['Open PO quantity',d.open_po_qty]];v2Panel(d.ItemCode+' | Part details','<p>'+v2Escape(d.ItemCodeDesc)+'</p><div class="v2-kv">'+fields.map(([k,v])=>'<div><small>'+v2Escape(k)+'</small><b>'+v2Escape(v)+'</b></div>').join('')+'</div><h3>At-risk trailers</h3><p>'+v2Escape((d.at_risk_trailers||[]).join(', ')||'None listed')+'</p>');}
+const v2SwitchTab=switchTab;switchTab=function(t){v2SwitchTab(t);const labels={overview:['Overview','Purchasing priorities and production exposure'],actions:['Purchasing Queue','Order, expedite and track follow-up'],parts:['All Flagged Parts','Search, filter and investigate'],schedule:['Production Risk','Affected trailers and blocking parts'],'late-po':['Expedite','Existing purchase orders arriving late']};const x=labels[t]||labels.overview;document.getElementById('workspace-title').textContent=x[0];document.getElementById('workspace-sub').textContent=x[1];};
+const v2Setup=setupDashboard;setupDashboard=function(){v2Setup();['buyer-filter','late-po-buyer','vendor-filter','late-po-vendor'].forEach(id=>{const el=document.getElementById(id),key=id.includes('buyer')?'BuyerCode':'VendorName',saved=el.value;el.replaceChildren(new Option(key==='BuyerCode'?'All Buyers':'All Suppliers',''));[...new Set(allData.map(d=>d[key]).filter(Boolean))].sort().forEach(v=>el.add(new Option(v,v)));el.value=saved;});const pills=document.getElementById('buyer-pills');pills.replaceChildren();['all',...new Set(allData.map(d=>d.BuyerCode).filter(Boolean))].forEach(v=>{const b=document.createElement('button');b.className='fp buyer-pill'+(v==='all'?' active':'');b.dataset.buyer=v;b.textContent=v==='all'?'All buyers':v;b.onclick=()=>{pills.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));actPage=1;buildActionTable();};pills.appendChild(b);});buildActionTable();};
+document.addEventListener('click',e=>{const a=e.target.closest('a');if(a&&a.closest('#action-body,#table-body,#late-po-body')){e.preventDefault();v2Part(a.textContent.trim());}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('v2-modal')?.remove();});
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.tab').forEach(t=>{t.tabIndex=0;t.setAttribute('role','button');t.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();t.click();}});});['search','act-search','late-po-search'].forEach(id=>{const el=document.getElementById(id);el.removeAttribute('oninput');let timer;el.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(()=>{if(id==='search'){currentPage=1;applyFilters();}else if(id==='act-search'){actSearch=el.value;actPage=1;buildActionTable();}else{latePOPage=1;filterLatePO();}},180);});});});
+
+// ═══════════════════════════════════════════════════════
+//  LINE REPORTS (Revision 3) — printable per-line PDF overview
+// ═══════════════════════════════════════════════════════
+const LR_URG_COLOR={CRITICAL:'#DC2626',EXPEDITE:'#7C3AED',HIGH:'#EA580C',MEDIUM:'#CA8A04',LOW:'#16A34A',NONE:'#6B7280'};
+const LR_URG_BG={CRITICAL:'#FEF2F2',EXPEDITE:'#F5F3FF',HIGH:'#FFF7ED',MEDIUM:'#FEFCE8',LOW:'#F0FDF4',NONE:'#F0F1F3'};
+function lrEsc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function lrLineSort(a,b){
+  const na=/^Line\s+(\d+)$/i.exec(a), nb=/^Line\s+(\d+)$/i.exec(b);
+  if(na&&nb) return +na[1]-+nb[1];
+  if(na) return -1; if(nb) return 1;
+  if(a==='') return 1; if(b==='') return -1;
+  return a.localeCompare(b);
+}
+function lrLineLabel(l){ return l||'Not on schedule'; }
+
+// All open trailers (schedule + MRP), at-risk and clear, with line + parts
+function lrAllTrailers(){
+  const all=buildScheduleFromMRP(allData||[], window.scheduleBase||[]);
+  return all.filter(t=>String(t.wip||'').trim()!=='100%');
+}
+
+
+// Shared by Line Reports (PDF) and the Overview panels so both show the same numbers
+function lrWindow(horizonWeeks){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const todayStr=today.toISOString().slice(0,10);
+  const cutoff=horizonWeeks?new Date(today.getTime()+horizonWeeks*7*86400000).toISOString().slice(0,10):null;
+  return {today,todayStr,cutoff};
+}
+function lrComputeStats(lines,horizonWeeks){
+  const {todayStr,cutoff}=lrWindow(horizonWeeks);
+  const all=lrAllTrailers().filter(t=>!cutoff || (t.due_date && t.due_date<=cutoff)); // overdue + due within horizon
+  const stats=lines.map(l=>{
+    const ts=all.filter(t=>(t.line||'')===l).sort((a,b)=>(a.due_date||'9999').localeCompare(b.due_date||'9999')||a.trailer.localeCompare(b.trailer));
+    const risk=ts.filter(t=>t.at_risk_count>0);
+    const good=ts.filter(t=>t.at_risk_count===0);
+    const pm={};
+    risk.forEach(t=>(t.at_risk_parts||[]).forEach(p=>{
+      if(!pm[p.ItemCode]) pm[p.ItemCode]={...p, trailers:[], earliestDue:t.due_date||''};
+      pm[p.ItemCode].trailers.push(t.trailer);
+      if(t.due_date && (!pm[p.ItemCode].earliestDue || t.due_date<pm[p.ItemCode].earliestDue)) pm[p.ItemCode].earliestDue=t.due_date;
+    }));
+    const parts=Object.values(pm).sort((a,b)=>(URG_ORDER[a.urgency]??9)-(URG_ORDER[b.urgency]??9)||b.trailers.length-a.trailers.length||a.ItemCode.localeCompare(b.ItemCode));
+    const nextRisk=risk.find(t=>t.due_date)?.due_date||'';
+    return {line:l, ts, risk, good, parts,
+      crit:risk.filter(t=>t.worst_urgency==='CRITICAL').length,
+      exp:risk.filter(t=>t.worst_urgency==='EXPEDITE').length,
+      overdueRisk:risk.filter(t=>t.due_date && t.due_date<todayStr).length,
+      pctGood:ts.length?Math.round(good.length/ts.length*100):0, nextRisk,
+      noPO:parts.filter(p=>!(p.PurchaseOrders||'').trim()).length};
+  });
+  return {stats,todayStr,cutoff,all};
+}
+function lrCrossParts(stats){
+  const xm={};
+  stats.forEach(s=>s.parts.forEach(p=>{
+    if(!xm[p.ItemCode]) xm[p.ItemCode]={p, total:0, byLine:[], earliestDue:p.earliestDue||''};
+    const x=xm[p.ItemCode]; x.total+=p.trailers.length; x.byLine.push([s.line,p.trailers.length]);
+    if(p.earliestDue && (!x.earliestDue || p.earliestDue<x.earliestDue)) x.earliestDue=p.earliestDue;
+  }));
+  return Object.values(xm).sort((a,b)=>b.total-a.total||b.byLine.length-a.byLine.length||(URG_ORDER[a.p.urgency]??9)-(URG_ORDER[b.p.urgency]??9)||a.p.ItemCode.localeCompare(b.p.ItemCode));
+}
+function lrShortLine(l){const m=/^Line\s+(\d+)$/i.exec(l);return m?'L'+m[1]:lrLineLabel(l);}
+
+function openLineReports(){
+  if(!allData || !allData.length){ v2Panel('Line Reports','<p>Load an MRP report first, then open Line Reports again.</p>'); return; }
+  if(!window.scheduleBase || !window.scheduleBase.length){
+    v2Panel('Line Reports','<p>Line Reports need the production schedule, so the report can list every trailer on each line — including the ones that look good.</p><button class="export-btn primary" onclick="document.getElementById(\'v2-modal\').remove();document.getElementById(\'schedule-input\').click()">Choose schedule</button>');
+    return;
+  }
+  const trailers=lrAllTrailers();
+  const counts={};
+  trailers.forEach(t=>{ const l=t.line||''; counts[l]=counts[l]||{open:0,risk:0}; counts[l].open++; if(t.at_risk_count>0) counts[l].risk++; });
+  const lines=Object.keys(counts).sort(lrLineSort);
+  const lineBoxes=lines.map(l=>{
+    const isLine=/^Line\s+\d+$/i.test(l);
+    return `<label class="lr-opt"><input type="checkbox" class="lr-line" value="${lrEsc(l)}" ${isLine?'checked':''}>
+      <span><b>${lrEsc(lrLineLabel(l))}</b><small>${counts[l].open} open · ${counts[l].risk} at risk</small></span></label>`;
+  }).join('');
+  v2Panel('Line Reports',`
+    <p>Build a printable overview for each production line: which trailers are at risk, which parts are blocking them, and which trailers look good. One line per page; save it as a PDF from the print dialog.</p>
+    <h3>Lines</h3>
+    <div style="margin-bottom:8px"><button class="export-btn" onclick="document.querySelectorAll('.lr-line').forEach(c=>c.checked=true)">Select all</button><button class="export-btn" onclick="document.querySelectorAll('.lr-line').forEach(c=>c.checked=false)">Clear</button></div>
+    <div class="lr-grid">${lineBoxes}</div>
+    <h3>Trailers to include</h3>
+    <select id="lr-horizon" class="ctrl-sel" style="width:100%">
+      <option value="0">All open trailers (WIP below 100%)</option>
+      <option value="2">Due in the next 2 weeks (plus overdue)</option>
+      <option value="4" selected>Due in the next 4 weeks (plus overdue)</option>
+      <option value="8">Due in the next 8 weeks (plus overdue)</option>
+      <option value="12">Due in the next 12 weeks (plus overdue)</option>
+    </select>
+    <h3>Sections</h3>
+    <label class="lr-opt"><input type="checkbox" id="lr-sec-summary" checked><span><b>All-lines summary page</b><small>Side-by-side comparison of the selected lines, plus the parts blocking the most trailers across all of them</small>
+      <select id="lr-top-cap" class="ctrl-sel" style="margin-top:6px" onclick="event.stopPropagation()"><option value="10">Top 10 parts across lines</option><option value="15" selected>Top 15 parts across lines</option><option value="25">Top 25 parts across lines</option><option value="0">No cross-line parts list</option></select></span></label>
+    <label class="lr-opt"><input type="checkbox" id="lr-sec-risk" checked><span><b>Needs attention</b><small>At-risk trailers and the parts blocking each one</small></span></label>
+    <label class="lr-opt"><input type="checkbox" id="lr-sec-parts" checked><span><b>Parts to chase</b><small>Shortage parts on this line, most urgent and most trailers affected first</small>
+      <select id="lr-parts-cap" class="ctrl-sel" style="margin-top:6px" onclick="event.stopPropagation()"><option value="25" selected>Top 25 parts per line</option><option value="50">Top 50 parts per line</option><option value="0">All shortage parts</option></select></span></label>
+    <label class="lr-opt"><input type="checkbox" id="lr-sec-good" checked><span><b>Looks good</b><small>Open trailers with no part shortages</small></span></label>
+    <div style="margin-top:20px;display:flex;gap:8px;align-items:center">
+      <button class="export-btn primary" onclick="generateLineReport()">📄 Generate PDF report</button>
+      <span id="lr-msg" style="font-size:12px;color:var(--critical)"></span>
+    </div>`);
+}
+
+function generateLineReport(){
+  const sel=[...document.querySelectorAll('.lr-line:checked')].map(c=>c.value);
+  const msg=document.getElementById('lr-msg');
+  if(!sel.length){ if(msg) msg.textContent='Select at least one line.'; return; }
+  const horizon=+document.getElementById('lr-horizon').value||0;
+  const sec={summary:document.getElementById('lr-sec-summary').checked, risk:document.getElementById('lr-sec-risk').checked,
+             parts:document.getElementById('lr-sec-parts').checked, good:document.getElementById('lr-sec-good').checked,
+             partsCap:+document.getElementById('lr-parts-cap').value||0,
+             topCap:+document.getElementById('lr-top-cap').value||0};
+  const win=window.open('','_blank');
+  if(!win){ if(msg) msg.textContent='Your browser blocked the report window. Allow pop-ups for this file and try again.'; return; }
+  win.document.open();
+  win.document.write(buildLineReportHTML(sel,horizon,sec));
+  win.document.close();
+  document.getElementById('v2-modal')?.remove();
+}
+
+function buildLineReportHTML(lines,horizonWeeks,sec){
+  const {todayStr,cutoff,stats}=lrComputeStats(lines,horizonWeeks);
+  const partInfo={}; (allData||[]).forEach(d=>{ partInfo[d.ItemCode]=d; });
+  const horizonLabel=horizonWeeks?`Due on or before ${cutoff} (next ${horizonWeeks} weeks, including overdue)`:'All open trailers (WIP below 100%)';
+  const fmtWk=w=>(w||'').replace('WEEK ','Wk ');
+  const chip=(code,u,title)=>`<span class="chip" style="color:${LR_URG_COLOR[u]||'#6B7280'};background:${LR_URG_BG[u]||'#F0F1F3'};border-color:${LR_URG_COLOR[u]||'#E2E4E8'}" title="${lrEsc(title||'')}">${lrEsc(code)}</span>`;
+  const urgTag=u=>`<span class="urg" style="color:${LR_URG_COLOR[u]};background:${LR_URG_BG[u]}">${u==='NONE'?'CLEAR':u}</span>`;
+  const wipCell=w=>{ const n=parseInt(w)||0; const c=n>=80?'#16A34A':n>=40?'#CA8A04':'#DC2626'; return `<span class="wip"><span class="wipbar"><span style="width:${n}%;background:${c}"></span></span>${lrEsc(w||'0%')}</span>`; };
+
+  const metaLine=`MRP: ${lrEsc(window.lastRawFileName||window.lastRawFile||'—')} &nbsp;·&nbsp; Schedule: ${lrEsc(window.lastSchedFileName||'—')} &nbsp;·&nbsp; Steel lead ${leadWeeks} wk · Arrive ${arrivalBuffer} wk early`;
+  const generated=new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+  const band=(title,sub)=>`<div class="band"><div><div class="band-title">${title}</div><div class="band-sub">${sub}</div></div><div class="band-meta">Fontaine Trailer · Purchasing<br>Generated ${lrEsc(generated)}</div></div>`;
+
+  let pages=[];
+
+  if(sec.summary && lines.length>1){
+    const rows=stats.map(s=>`<tr>
+      <td><b>${lrEsc(lrLineLabel(s.line))}</b></td>
+      <td class="num">${s.ts.length}</td>
+      <td class="num" style="color:#DC2626;font-weight:700">${s.risk.length}</td>
+      <td class="num" style="color:#16A34A;font-weight:700">${s.good.length}</td>
+      <td><span class="pct"><span class="pctbar"><span style="width:${s.pctGood}%"></span></span>${s.pctGood}%</span></td>
+      <td class="num">${s.crit||'—'}</td>
+      <td class="num">${s.exp||'—'}</td>
+      <td class="num">${s.overdueRisk||'—'}</td>
+      <td class="nw">${s.nextRisk||'—'}</td>
+      <td class="num">${s.parts.length}</td>
+      <td class="num">${s.noPO||'—'}</td>
+      <td>${s.parts[0]?chip(s.parts[0].ItemCode,s.parts[0].urgency,s.parts[0].ItemCodeDesc)+` <span class="muted">${s.parts[0].trailers.length} trailers</span>`:'—'}</td>
+    </tr>`).join('');
+    const tot=k=>stats.reduce((a,s)=>a+(typeof s[k]==='number'?s[k]:s[k].length),0);
+    // Most needed parts across all selected lines: ranked by total trailers blocked
+    let topHtml='';
+    if(sec.topCap){
+      const xs=lrCrossParts(stats);
+      const top=xs.slice(0,sec.topCap);
+      const shortLine=lrShortLine;
+      const rows=top.map((x,i)=>{
+        const p=x.p, d=partInfo[p.ItemCode]||{};
+        const po=(p.PurchaseOrders||'').trim();
+        const poTxt=po?`${lrEsc(po.length>30?po.slice(0,30)+'…':po)}${d.open_po_qty?`<div class="muted sm">${(d.open_po_qty||0).toLocaleString()} units inbound</div>`:''}`:'<span style="color:#DC2626;font-weight:700">No PO</span>';
+        const lineChips=x.byLine.sort((a,b)=>lrLineSort(a[0],b[0])).map(([l,n])=>`<span class="lchip">${lrEsc(shortLine(l))} <b>${n}</b></span>`).join(' ');
+        return `<tr>
+          <td class="num muted">${i+1}</td>
+          <td><b class="pn">${lrEsc(p.ItemCode)}</b></td>
+          <td>${lrEsc(p.ItemCodeDesc||'')}</td>
+          <td>${urgTag(p.urgency)}</td>
+          <td>${lrEsc(p.VendorName||'—')}</td>
+          <td>${lrEsc(p.BuyerCode||'—')}</td>
+          <td class="num"><b style="font-size:12px">${x.total}</b></td>
+          <td>${lineChips}</td>
+          <td class="nw">${lrEsc(x.earliestDue||'—')}</td>
+          <td class="num" style="color:#DC2626;font-weight:700">${p.min_available??'—'}</td>
+          <td>${poTxt}</td></tr>`;
+      }).join('');
+      topHtml=top.length?`<h2><span class="dot" style="background:#EA580C"></span>Most needed parts across all lines <span class="cnt">Top ${top.length} of ${xs.length} shortage parts, ranked by trailers blocked</span></h2>
+        <table class="tbl"><colgroup><col style="width:3%"><col style="width:8%"><col style="width:15%"><col style="width:7.5%"><col style="width:12%"><col style="width:4.5%"><col style="width:6%"><col style="width:19%"><col style="width:8%"><col style="width:6%"><col></colgroup>
+        <thead><tr><th class="num">#</th><th>Part #</th><th>Description</th><th>Urgency</th><th>Supplier</th><th>Buyer</th><th class="num">Trailers blocked</th><th>Lines (trailers)</th><th>First trailer due</th><th class="num">Shortage</th><th>Open PO</th></tr></thead><tbody>${rows}</tbody></table>`
+        :`<h2><span class="dot" style="background:#16A34A"></span>Most needed parts across all lines</h2><div class="empty good">No part shortages on the selected lines in this window.</div>`;
+    }
+    pages.push(`<section class="page">
+      ${band('Production Line Overview',`${lines.length} lines · ${lrEsc(horizonLabel)}`)}
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-l">Open trailers</div><div class="kpi-n">${tot('ts')}</div></div>
+        <div class="kpi kr"><div class="kpi-l">At risk</div><div class="kpi-n">${tot('risk')}</div></div>
+        <div class="kpi kg"><div class="kpi-l">Looks good</div><div class="kpi-n">${tot('good')}</div></div>
+        <div class="kpi"><div class="kpi-l">On track</div><div class="kpi-n">${tot('ts')?Math.round(tot('good')/tot('ts')*100):0}%</div></div>
+        <div class="kpi kr"><div class="kpi-l">Worst = Critical</div><div class="kpi-n">${tot('crit')}</div></div>
+        <div class="kpi kp"><div class="kpi-l">Worst = Expedite</div><div class="kpi-n">${tot('exp')}</div></div>
+      </div>
+      <h2>By line</h2>
+      <table class="tbl"><colgroup><col style="width:9%"><col style="width:6%"><col style="width:7%"><col style="width:8%"><col style="width:11%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:9%"><col style="width:7%"><col style="width:7%"><col></colgroup><thead><tr><th>Line</th><th class="num">Open</th><th class="num">At risk</th><th class="num">Looks good</th><th>On track</th><th class="num">Worst critical</th><th class="num">Worst expedite</th><th class="num">At risk &amp; overdue</th><th>Next at-risk due</th><th class="num">Shortage parts</th><th class="num">Parts with no PO</th><th>Top blocking part</th></tr></thead><tbody>${rows}</tbody></table>
+      ${topHtml}
+      <div class="defs"><b>How to read this report.</b> <b>Open</b>: trailer on the schedule with WIP below 100%. <b>At risk</b>: at least one part on the trailer goes negative in the MRP during the trailer's build week. <b>Looks good</b>: no part shortages found for the trailer in this MRP. <b>Worst critical / expedite</b>: the trailer's most urgent part is Critical (order deadline passed, no PO) or Expedite (a PO exists but arrives after the shortage). <b>Most needed parts</b>: shortage parts ranked by how many at-risk trailers they block across the selected lines; <b>First trailer due</b> is the earliest due date among those trailers. Urgency uses the dashboard settings: ${metaLine}.</div>
+    </section>`);
+  }
+
+  stats.forEach(s=>{
+    const label=lrLineLabel(s.line);
+    let body='';
+    body+=`<div class="kpis">
+      <div class="kpi"><div class="kpi-l">Open trailers</div><div class="kpi-n">${s.ts.length}</div></div>
+      <div class="kpi kr"><div class="kpi-l">At risk</div><div class="kpi-n">${s.risk.length}</div></div>
+      <div class="kpi kg"><div class="kpi-l">Looks good</div><div class="kpi-n">${s.good.length}</div></div>
+      <div class="kpi"><div class="kpi-l">On track</div><div class="kpi-n">${s.pctGood}%</div><div class="pctbar big"><span style="width:${s.pctGood}%"></span></div></div>
+      <div class="kpi kr"><div class="kpi-l">At risk &amp; overdue</div><div class="kpi-n">${s.overdueRisk}</div></div>
+      <div class="kpi ko"><div class="kpi-l">Shortage parts · no PO</div><div class="kpi-n">${s.parts.length} · ${s.noPO}</div></div>
+    </div>`;
+    if(!s.ts.length) body+=`<div class="empty">No open trailers on ${lrEsc(label)} for this time window.</div>`;
+
+    if(sec.risk && s.ts.length){
+      const rows=s.risk.map(t=>{
+        const ps=[...(t.at_risk_parts||[])].sort((a,b)=>(URG_ORDER[a.urgency]??9)-(URG_ORDER[b.urgency]??9));
+        const shown=ps.slice(0,6).map(p=>chip(p.ItemCode,p.urgency,`${p.ItemCodeDesc||''} — ${p.VendorName||''}`)).join(' ');
+        const more=ps.length>6?` <span class="muted">+${ps.length-6} more</span>`:'';
+        const overdue=t.due_date && t.due_date<todayStr;
+        return `<tr>
+          <td><b class="tn">${lrEsc(t.trailer)}</b></td>
+          <td class="nw${overdue?' od':''}">${lrEsc(t.due_date||'—')}${overdue?'<div class="odt">overdue</div>':''}</td>
+          <td>${lrEsc(fmtWk(t.week)||'—')}</td>
+          <td>${wipCell(t.wip)}</td>
+          <td>${lrEsc(t.customer||'—')}</td>
+          <td>${lrEsc(t.model||'—')}</td>
+          <td>${urgTag(t.worst_urgency)}</td>
+          <td class="num"><b>${t.at_risk_count}</b><div class="muted sm nw" title="Critical · Expedite parts">${t.critical_count||0}C·${t.expedite_count||0}E</div></td>
+          <td class="chips">${shown}${more}</td></tr>`;
+      }).join('');
+      body+=`<h2><span class="dot" style="background:#DC2626"></span>Needs attention <span class="cnt">${s.risk.length} trailer${s.risk.length===1?'':'s'} at risk</span></h2>`;
+      body+=s.risk.length?`<table class="tbl"><colgroup><col style="width:7%"><col style="width:8.5%"><col style="width:5%"><col style="width:7.5%"><col style="width:13%"><col style="width:13%"><col style="width:8%"><col style="width:5.5%"><col></colgroup>
+        <thead><tr><th>Trailer</th><th>Due</th><th>Week</th><th>WIP</th><th>Customer</th><th>Model</th><th>Worst</th><th class="num">Parts</th><th>Blocking parts (most urgent first)</th></tr></thead><tbody>${rows}</tbody></table>`
+        :`<div class="empty good">No trailers at risk on ${lrEsc(label)} in this window. 🎉</div>`;
+    }
+
+    if(sec.parts && s.parts.length){
+      const shownParts=sec.partsCap?s.parts.slice(0,sec.partsCap):s.parts;
+      const hiddenParts=s.parts.length-shownParts.length;
+      const rows=shownParts.map(p=>{
+        const d=partInfo[p.ItemCode]||{};
+        const po=(p.PurchaseOrders||'').trim();
+        const poTxt=po?`${lrEsc(po.length>34?po.slice(0,34)+'…':po)}${d.open_po_qty?`<div class="muted sm">${(d.open_po_qty||0).toLocaleString()} units inbound</div>`:''}`:'<span style="color:#DC2626;font-weight:700">No PO</span>';
+        const tl=p.trailers.slice(0,6).join(', ')+(p.trailers.length>6?` +${p.trailers.length-6}`:'');
+        return `<tr>
+          <td><b class="pn">${lrEsc(p.ItemCode)}</b></td>
+          <td>${lrEsc(p.ItemCodeDesc||'')}</td>
+          <td>${urgTag(p.urgency)}</td>
+          <td>${lrEsc(p.VendorName||'—')}</td>
+          <td>${lrEsc(p.BuyerCode||'—')}</td>
+          <td class="num"><b>${p.trailers.length}</b><div class="muted sm">${lrEsc(tl)}</div></td>
+          <td class="nw">${lrEsc(p.first_negative_week||'—')}</td>
+          <td class="num" style="color:#DC2626;font-weight:700">${p.min_available??'—'}</td>
+          <td>${poTxt}</td></tr>`;
+      }).join('');
+      body+=`<h2><span class="dot" style="background:#EA580C"></span>Parts to chase <span class="cnt">${shownParts.length<s.parts.length?'Top '+shownParts.length+' of ':''}${s.parts.length} shortage part${s.parts.length===1?'':'s'} blocking this line</span></h2>
+        <table class="tbl"><colgroup><col style="width:9%"><col style="width:18%"><col style="width:8%"><col style="width:15%"><col style="width:5%"><col style="width:17%"><col style="width:9%"><col style="width:6%"><col></colgroup>
+        <thead><tr><th>Part #</th><th>Description</th><th>Urgency</th><th>Supplier</th><th>Buyer</th><th class="num">Trailers affected</th><th>Goes negative</th><th class="num">Shortage</th><th>Open PO</th></tr></thead><tbody>${rows}</tbody></table>`
+        +(hiddenParts>0?`<div class="more-note">+${hiddenParts} more shortage part${hiddenParts===1?'':'s'} on this line not shown. Choose “All shortage parts” in Line Reports, or use the All Parts tab, to see them.</div>`:'');
+    }
+
+    if(sec.good && s.ts.length){
+      const rows=s.good.map(t=>`<tr><td><b class="tn">${lrEsc(t.trailer)}</b></td><td>${lrEsc(t.due_date||'—')}</td><td>${lrEsc(fmtWk(t.week)||'—')}</td><td>${wipCell(t.wip)}</td><td>${lrEsc(t.customer||'—')}</td><td>${lrEsc(t.model||'—')}</td></tr>`).join('');
+      body+=`<h2><span class="dot" style="background:#16A34A"></span>Looks good <span class="cnt">${s.good.length} trailer${s.good.length===1?'':'s'} with no part shortages</span></h2>`;
+      body+=s.good.length?`<table class="tbl compact"><colgroup><col style="width:12%"><col style="width:12%"><col style="width:8%"><col style="width:12%"><col style="width:28%"><col></colgroup>
+        <thead><tr><th>Trailer</th><th>Due</th><th>Week</th><th>WIP</th><th>Customer</th><th>Model</th></tr></thead><tbody>${rows}</tbody></table>`
+        :`<div class="empty">Every open trailer on ${lrEsc(label)} in this window has at least one part shortage.</div>`;
+    }
+
+    pages.push(`<section class="page">${band(lrEsc(label)+' — Production Overview',lrEsc(horizonLabel)+' &nbsp;·&nbsp; '+metaLine)}${body}</section>`);
+  });
+
+  const title=`Line Report — ${lines.length===1?lrLineLabel(lines[0]):lines.length+' lines'} — ${todayStr}`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${lrEsc(title)}</title>
+<style>
+@page{size:letter landscape;margin:.4in}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;background:#F5F6F8;color:#1A1A2E;font-family:Inter,'Segoe UI',-apple-system,Arial,sans-serif;font-size:11px;line-height:1.35}
+.toolbar{position:sticky;top:0;z-index:5;background:#1E2A3A;color:#fff;padding:10px 20px;display:flex;align-items:center;gap:14px}
+.toolbar button{background:#2563EB;color:#fff;border:0;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer}
+.toolbar span{font-size:12px;color:#C6CED9}
+.page{background:#fff;max-width:10.4in;margin:16px auto;padding:0 0 16px;border:1px solid #E2E4E8;border-radius:8px;overflow:hidden}
+.band{background:#1E2A3A;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.band-title{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.band-sub{font-size:10.5px;color:#C6CED9;margin-top:3px}
+.band-meta{font-size:10px;color:#C6CED9;text-align:right;white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:14px 18px 4px}
+.kpi{border:1px solid #E2E4E8;border-radius:8px;padding:9px 11px;background:#fff}
+.kpi-l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6B7280}
+.kpi-n{font-size:22px;font-weight:700;margin-top:3px}
+.kr{background:#FEF2F2;border-color:#FCA5A5}.kr .kpi-n{color:#DC2626}
+.kg{background:#F0FDF4;border-color:#86EFAC}.kg .kpi-n{color:#16A34A}
+.kp{background:#F5F3FF;border-color:#C4B5FD}.kp .kpi-n{color:#7C3AED}
+.ko .kpi-n{color:#EA580C}
+h2{font-size:13px;margin:16px 18px 7px;display:flex;align-items:center;gap:7px;break-after:avoid}
+h2 .cnt{font-size:11px;font-weight:500;color:#6B7280}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.tbl{width:calc(100% - 36px);margin:0 18px;border-collapse:collapse;table-layout:fixed}
+.tbl thead{display:table-header-group}
+.tbl th{background:#F0F1F3;color:#6B7280;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:left;padding:6px 7px;border-bottom:1px solid #E2E4E8;vertical-align:bottom}
+.tbl td{padding:6px 7px;border-bottom:1px solid #E2E4E8;vertical-align:top;overflow-wrap:anywhere}
+.tbl tr{break-inside:avoid}
+.tbl.compact td{padding:4px 7px}
+.tbl tbody tr:nth-child(even) td{background:#FAFBFC}
+.num{text-align:right}
+.tn,.pn{color:#2563EB}
+.muted{color:#6B7280}.sm{font-size:9px;margin-top:1px}
+.chip{display:inline-block;font-size:9px;font-weight:600;border:1px solid;border-radius:3px;padding:0 4px;margin:0 2px 2px 0;white-space:nowrap}
+.chips{line-height:1.6}
+.urg{display:inline-block;font-size:9px;font-weight:700;border-radius:3px;padding:1px 5px}
+.wip{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.wipbar{width:28px;height:5px;background:#E2E4E8;border-radius:3px;overflow:hidden;display:inline-block}
+.wipbar span{display:block;height:100%}
+.pct{display:inline-flex;align-items:center;gap:5px}
+.pctbar{width:60px;height:6px;background:#FCA5A5;border-radius:3px;overflow:hidden;display:inline-block}
+.pctbar span{display:block;height:100%;background:#16A34A}
+.pctbar.big{width:100%;margin-top:5px}
+.od{color:#DC2626;font-weight:600}.odt{font-size:8.5px;font-weight:700;text-transform:uppercase}
+.nw{white-space:nowrap}.pct{white-space:nowrap}
+.tn,.pn{white-space:nowrap}.sm.nw{white-space:nowrap}
+.more-note{margin:6px 18px 0;font-size:10px;color:#6B7280;font-style:italic}
+.lchip{display:inline-block;font-size:9px;border:1px solid #E2E4E8;background:#F0F1F3;border-radius:3px;padding:0 4px;margin:0 2px 2px 0;white-space:nowrap}
+.empty{margin:6px 18px;padding:12px;border:1px dashed #E2E4E8;border-radius:6px;color:#6B7280}
+.empty.good{color:#16A34A;border-color:#86EFAC;background:#F0FDF4}
+.defs{margin:14px 18px 0;font-size:10px;color:#6B7280;line-height:1.5;border-top:1px solid #E2E4E8;padding-top:10px}
+@media print{
+  body{background:#fff}
+  .toolbar{display:none}
+  .page{margin:0;border:0;border-radius:0;max-width:none;break-after:page;padding-bottom:0}
+  .page:last-child{break-after:auto}
+}
+</style></head><body>
+<div class="toolbar"><button onclick="window.print()">🖨 Save as PDF / Print</button><span>In the print dialog choose <b>Save as PDF</b> as the destination. Landscape, one line per page section.</span></div>
+${pages.join('\n')}
+<script>setTimeout(function(){window.print();},500);<\/script>
+</body></html>`;
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  OVERVIEW: production lines + most needed parts (Revision 3)
+// ═══════════════════════════════════════════════════════
+function renderOverviewProduction(){
+  const linesEl=document.getElementById('ov-lines'), partsEl=document.getElementById('ov-parts');
+  if(!linesEl||!partsEl) return;
+  const sel=document.getElementById('ov-window');
+  const horizon=sel?(+sel.value||0):4;
+  if(!allData || !allData.length){ linesEl.innerHTML=partsEl.innerHTML='<div class="ov-empty">Load an MRP report to see production exposure.</div>'; return; }
+  if(!window.scheduleBase || !window.scheduleBase.length){
+    const msg='<div class="ov-empty"><b>Load the production schedule to see line health.</b><br>Line totals and the parts blocking the most trailers need the schedule file.<br><button class="export-btn primary" style="margin-top:10px" onclick="document.getElementById(\'schedule-input\').click()">Choose schedule</button></div>';
+    linesEl.innerHTML=msg; partsEl.innerHTML='<div class="ov-empty">Available once the schedule is loaded.</div>';
+    document.getElementById('ov-lines-ct').textContent='';
+    return;
+  }
+  const lines=[...new Set(lrAllTrailers().map(t=>t.line||''))].filter(l=>/^Line\s+\d+$/i.test(l)).sort(lrLineSort);
+  const {stats,cutoff}=lrComputeStats(lines,horizon);
+  const sub=document.getElementById('ov-sub');
+  if(sub) sub.textContent=horizon?`Open trailers due on or before ${cutoff} (next ${horizon} weeks, including overdue)`:'All open trailers (WIP below 100%)';
+  const totOpen=stats.reduce((a,s)=>a+s.ts.length,0), totRisk=stats.reduce((a,s)=>a+s.risk.length,0);
+  document.getElementById('ov-lines-ct').textContent=`${totRisk} of ${totOpen} at risk`;
+
+  const lineRows=stats.map(s=>{
+    const barCls=s.pctGood>=60?'ok':s.pctGood>=35?'mid':'bad';
+    return `<tr class="ov-row" onclick="switchTab('schedule');setSchedSubView('list');setLineFilter('${lrEsc(s.line)}')" title="Open ${lrEsc(s.line)} in Trailers at Risk">
+      <td><b>${lrEsc(s.line)}</b></td>
+      <td><div class="ov-track"><div class="ov-bar ${barCls}"><span style="width:${s.pctGood}%"></span></div><b>${s.pctGood}%</b></div></td>
+      <td class="num">${s.ts.length}</td>
+      <td class="num" style="color:var(--critical);font-weight:700">${s.risk.length||'—'}</td>
+      <td class="num" style="color:var(--low);font-weight:700">${s.good.length||'—'}</td>
+      <td class="num">${s.overdueRisk?`<span style="color:var(--critical);font-weight:600">${s.overdueRisk}</span>`:'—'}</td>
+      <td class="nw">${s.nextRisk||'—'}</td></tr>`;
+  }).join('');
+  linesEl.innerHTML=stats.length?`<table class="ov-tbl"><colgroup><col style="width:13%"><col style="width:23%"><col style="width:9%"><col style="width:10%"><col style="width:9%"><col style="width:13%"><col></colgroup>
+    <thead><tr><th>Line</th><th>On track</th><th class="num">Open</th><th class="num">At risk</th><th class="num">Good</th><th class="num" title="At-risk trailers already past their due date">Overdue</th><th title="Earliest due date among at-risk trailers">Next at-risk</th></tr></thead><tbody>${lineRows}</tbody></table>
+    <div class="ov-foot">Completions and trailers not on the schedule are left out. Line Reports can include them.</div>`
+    :'<div class="ov-empty">No “Line N” sections found in the schedule.</div>';
+
+  const xs=lrCrossParts(stats), top=xs.slice(0,8);
+  const partRows=top.map((x,i)=>{
+    const p=x.p, d=(allData.find(a=>a.ItemCode===p.ItemCode))||{};
+    const po=(p.PurchaseOrders||'').trim();
+    const poTxt=po?`<span class="ov-po" title="${lrEsc(po)}">${lrEsc(po.split(',')[0].trim())}${po.includes(',')?' +':''}</span>${d.open_po_qty?`<div class="ov-small">${d.open_po_qty.toLocaleString()} inbound</div>`:''}`:'<span style="color:var(--critical);font-weight:700">No PO</span>';
+    const chips=x.byLine.slice().sort((a,b)=>lrLineSort(a[0],b[0])).map(([l,n])=>`<span class="ov-lchip">${lrEsc(lrShortLine(l))} <b>${n}</b></span>`).join('');
+    return `<tr class="ov-row" onclick="v2Part('${lrEsc(p.ItemCode)}')">
+      <td class="num" style="color:var(--muted2)">${i+1}</td>
+      <td><div class="ov-pn">${lrEsc(p.ItemCode)}</div><div class="ov-small ov-desc" title="${lrEsc(p.ItemCodeDesc||'')}">${lrEsc(p.ItemCodeDesc||'')}</div></td>
+      <td><span class="urg-badge ub-${p.urgency}">${p.urgency}</span><div class="ov-small ov-desc" title="${lrEsc(p.VendorName||'')}">${lrEsc(p.VendorName||'')}</div></td>
+      <td class="num"><div class="ov-big">${x.total}</div><div class="ov-chips">${chips}</div></td>
+      <td>${poTxt}</td></tr>`;
+  }).join('');
+  partsEl.innerHTML=top.length?`<table class="ov-tbl"><colgroup><col style="width:5%"><col style="width:26%"><col style="width:22%"><col style="width:31%"><col></colgroup>
+    <thead><tr><th class="num">#</th><th>Part</th><th>Urgency · supplier</th><th class="num">Trailers blocked</th><th>Open PO</th></tr></thead><tbody>${partRows}</tbody></table>
+    <div class="ov-foot">Top ${top.length} of ${xs.length} shortage parts on the lines shown.</div>`
+    :'<div class="ov-empty" style="color:var(--low)">No part shortages on any line in this window.</div>';
+}
+// Re-render when the schedule or MRP changes
+(function(){
+  const _setupSchedule=setupSchedule;
+  setupSchedule=function(data){ _setupSchedule(data); try{ renderOverviewProduction(); }catch(e){ console.error(e); } };
+  const _switchTab=switchTab;
+  switchTab=function(t){
+    _switchTab(t);
+    const sr=document.querySelector('.stats-row'); if(sr) sr.classList.toggle('slim', t!=='overview');
+    if(t==='overview'){ try{ renderOverviewProduction(); }catch(e){ console.error(e); } requestAnimationFrame(()=>{ try{ buildChart(); }catch(e){} }); }
+  };
+})();
+
+
+// ═══════════════════════════════════════════════════════
+//  SAVED FILES (Revision 3): keep the latest MRP + schedule in this browser
+//  and open them automatically next time. A new upload replaces the saved copy.
+//  Stored in IndexedDB (handles the ~12 MB MRP); nothing leaves this computer.
+// ═══════════════════════════════════════════════════════
+const FS_DB='fontaine_mrp_dashboard', FS_STORE='files', FS_SETTINGS='mrp_settings_v1';
+function fsOpen(){
+  return new Promise((res,rej)=>{
+    if(!window.indexedDB) return rej(new Error('This browser does not support saved files'));
+    const r=indexedDB.open(FS_DB,1);
+    r.onupgradeneeded=()=>{ if(!r.result.objectStoreNames.contains(FS_STORE)) r.result.createObjectStore(FS_STORE); };
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error||new Error('Could not open saved files'));
+  });
+}
+function fsTx(mode,fn){
+  return fsOpen().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction(FS_STORE,mode), st=tx.objectStore(FS_STORE); let out;
+    const req=fn(st); if(req) req.onsuccess=()=>{ out=req.result; };
+    tx.oncomplete=()=>{ db.close(); res(out); };
+    tx.onerror=tx.onabort=()=>{ db.close(); rej(tx.error||new Error('Saved-file storage error')); };
+  }));
+}
+const fsGet=k=>fsTx('readonly',st=>st.get(k));
+const fsPut=(k,v)=>fsTx('readwrite',st=>st.put(v,k));
+const fsDel=k=>fsTx('readwrite',st=>st.delete(k));
+
+function lsSettingsGet(){ try{ return JSON.parse(localStorage.getItem(FS_SETTINGS)||'null'); }catch(e){ return null; } }
+function lsSettingsSave(){ try{ localStorage.setItem(FS_SETTINGS, JSON.stringify({lead:leadWeeks, buffer:arrivalBuffer})); }catch(e){} }
+
+function saveStoredFile(kind, bytes, name){
+  if(window.__restoring || !bytes) return;
+  if(kind==='mrp') lsSettingsSave();
+  const manual=!window.__sharedLoad;
+  if(manual){ window.__sharedInfo=null; renderSavedStatus(); }   // what's on screen is now this person's upload, not the team copy
+  // copy the bytes so later parsing can never alter the saved copy
+  const copy=bytes.slice ? bytes.slice(0) : bytes;
+  fsPut(kind,{name:name, bytes:copy, savedAt:Date.now()})
+    .then(()=>{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{}); renderSavedStatus(); })
+    .catch(err=>{ console.warn('Could not save '+kind,err); renderSavedStatus('Could not save the '+(kind==='mrp'?'MRP':'schedule')+' for next time: '+err.message); });
+  if(manual) sdOfferPublish(kind, copy, name);
+}
+
+function fsWhen(ts){
+  if(!ts) return '';
+  return new Date(ts).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+}
+function fsAgeDays(ts){ return ts ? Math.floor((Date.now()-ts)/86400000) : 0; }
+
+async function renderSavedStatus(errMsg){
+  const el=document.getElementById('saved-status'); if(!el) return;
+  if(errMsg){ el.className='saved-status warn'; el.textContent='⚠ '+errMsg; return; }
+  const si=window.__sharedInfo;
+  if(si && si.mrp){
+    const old=fsAgeDays(si.mrp.t)>=7;
+    el.className='saved-status team'+(old?' warn':'');
+    el.title=`Team folder: ${si.folder}\nMRP: ${si.mrp.n}`+(si.sched?`\nSchedule: ${si.sched.n}`:'')+'\nEveryone connected to this folder opens these files.';
+    el.innerHTML=(old?`⚠ Team MRP is ${fsAgeDays(si.mrp.t)} days old — `:'👥 Team files · ')
+      +lrEsc(`MRP updated ${fsWhen(si.mrp.t)}`+(si.sched?` · Schedule updated ${fsWhen(si.sched.t)}`:si.schedOwn?' · Schedule: your own copy':' · no schedule in folder'));
+    return;
+  }
+  let mrp=null, sched=null;
+  try{ [mrp,sched]=await Promise.all([fsGet('mrp'),fsGet('sched')]); }catch(e){ el.className='saved-status'; el.textContent='Files are not saved in this browser'; return; }
+  if(!mrp && !sched){ el.className='saved-status'; el.textContent='Nothing saved yet — your next upload will open automatically'; return; }
+  const parts=[];
+  if(mrp) parts.push(`MRP ${fsWhen(mrp.savedAt)}`);
+  if(sched) parts.push(`Schedule ${fsWhen(sched.savedAt)}`);
+  const old=mrp && fsAgeDays(mrp.savedAt)>=7;
+  el.className='saved-status'+(old?' warn':'');
+  el.title=(mrp?'MRP: '+mrp.name:'')+(sched?'\nSchedule: '+sched.name:'')+'\nSaved in this browser only. Connect a team folder in Data & Settings to share with everyone.';
+  el.innerHTML=(old?`⚠ Saved MRP is ${fsAgeDays(mrp.savedAt)} days old — upload a fresh copy · `:'💾 My saved files: ')+lrEsc(parts.join(' · '));
+}
+
+function fsWaitFor(test, ms){
+  return new Promise((res,rej)=>{
+    const t0=Date.now();
+    (function poll(){ let ok=false; try{ ok=test(); }catch(e){} if(ok) return res(); if(Date.now()-t0>ms) return rej(new Error('timed out')); setTimeout(poll,200); })();
+  });
+}
+
+// One load at a time (startup restore, team folder, button clicks)
+let __loadChain=Promise.resolve();
+function withLoadLock(fn){ const next=__loadChain.then(fn,fn); __loadChain=next.catch(()=>{}); return next; }
+
+// Push an MRP (and optional schedule) File through the normal upload path and open the dashboard
+async function loadFilesIntoDashboard(mrpFile, schedFile, bannerText){
+  const banner=document.getElementById('restore-banner');
+  if(banner && bannerText){ banner.style.display='block'; banner.textContent=bannerText; }
+  try{
+    const s=lsSettingsGet();
+    if(s){ const li=document.getElementById('lead-weeks-input'), bi=document.getElementById('arrival-buffer-input'); if(li&&s.lead) li.value=s.lead; if(bi&&s.buffer!=null) bi.value=s.buffer; }
+    const eb=document.getElementById('error-box'); if(eb) eb.textContent='';
+    document.getElementById('ready-panel').style.display='none';
+    handleFile({target:{files:[mrpFile]}});
+    await fsWaitFor(()=>document.getElementById('ready-panel').style.display==='block' || document.getElementById('error-box').textContent, 180000);
+    if(document.getElementById('error-box').textContent) throw new Error(document.getElementById('error-box').textContent);
+    if(!allData || !allData.length) throw new Error('the MRP has no readable parts');
+    if(schedFile){
+      window.scheduleBase=[];
+      handleScheduleUpload({target:{files:[schedFile]}});
+      await fsWaitFor(()=>(window.scheduleBase||[]).length>0, 60000).catch(()=>{});
+    }
+    launchDashboard();
+  }finally{
+    if(banner) banner.style.display='none';
+  }
+}
+
+function restoreFailed(err){
+  console.error('Load failed',err);
+  allData=[]; window.lastRawBytes=null; window.lastRawFileName=null; window.lastRawData=null;
+  try{ updateReloadBtn(); }catch(e){}
+  const hm=document.getElementById('hdr-meta'); if(hm) hm.textContent='';
+  document.getElementById('loading-overlay').style.display='none';
+  document.getElementById('ready-panel').style.display='none';
+}
+
+async function restoreSavedFiles(){
+  let mrp=null, sched=null;
+  try{ [mrp,sched]=await Promise.all([fsGet('mrp'),fsGet('sched')]); }catch(e){ return; } // storage unavailable: normal upload flow
+  if(!mrp || !mrp.bytes) return;
+  window.__restoring=true;
+  try{
+    await loadFilesIntoDashboard(new File([mrp.bytes], mrp.name), sched&&sched.bytes?new File([sched.bytes], sched.name):null,
+      `Opening your saved files: ${mrp.name}${sched?' and '+sched.name:''}…`);
+  }catch(err){
+    fsDel('mrp').catch(()=>{});   // don't retry a broken saved copy every time
+    restoreFailed(err);
+    const eb=document.getElementById('error-box');
+    if(eb){ eb.style.display='block'; eb.textContent='Could not open your saved files ('+err.message+'). Choose your MRP and schedule again — the new upload will replace the saved copy.'; }
+  }finally{
+    window.__restoring=false;
+    renderSavedStatus();
+  }
+}
+
+async function forgetSavedFiles(){
+  try{ await Promise.all([fsDel('mrp'),fsDel('sched')]); }catch(e){}
+  try{ localStorage.removeItem(FS_SETTINGS); }catch(e){}
+  renderSavedStatus();
+  const m=document.getElementById('fs-forget-msg'); if(m) m.textContent='Your saved copies were removed from this browser.';
+}
+
+// ═══════════════════════════════════════════════════════
+//  TEAM SHARED FOLDER: everyone opens the newest MRP + schedule
+//  from one SharePoint folder synced to each PC by OneDrive.
+// ═══════════════════════════════════════════════════════
+const SD_KEY='sharedDir';
+async function sdGetHandle(){
+  if(window.__testSharedDir) return window.__testSharedDir;   // test hook
+  try{ return (await fsGet(SD_KEY))||null; }catch(e){ return null; }
+}
+async function sdPermission(h, mode, ask){
+  if(!h || typeof h.queryPermission!=='function') return 'granted';
+  let p=await h.queryPermission({mode});
+  if(p!=='granted' && ask) p=await h.requestPermission({mode});
+  return p;
+}
+function sdKind(name){
+  if(!name || name.startsWith('~$') || name.startsWith('.')) return null;   // Excel lock/temp files
+  const n=name.toLowerCase();
+  if(/schedule/.test(n) && /\.xlsx$/.test(n)) return 'sched';
+  if(/\.xlsm$/.test(n) || (/\.xlsx$/.test(n) && /mrp/.test(n))) return 'mrp';
+  return null;
+}
+async function sdScan(h){
+  const best={mrp:null, sched:null};
+  for await (const [name, entry] of h.entries()){
+    if(entry.kind!=='file') continue;
+    const k=sdKind(name); if(!k) continue;
+    let f; try{ f=await entry.getFile(); }catch(e){ continue; }   // skip files still syncing / locked
+    if(!best[k] || f.lastModified>best[k].lastModified) best[k]=f;
+  }
+  return best;
+}
+async function sdLoad(h, opts={}){
+  const best=await sdScan(h);
+  if(!best.mrp) throw new Error(`no MRP file (.xlsm) was found in “${h.name}”`);
+  const ids={mrp:{n:best.mrp.name,t:best.mrp.lastModified}, sched:best.sched?{n:best.sched.name,t:best.sched.lastModified}:null};
+  const cur=window.__sharedInfo;
+  if(opts.quietIfSame && cur && cur.mrp && cur.mrp.n===ids.mrp.n && cur.mrp.t===ids.mrp.t &&
+     ((!cur.sched&&!ids.sched) || (cur.sched&&ids.sched&&cur.sched.n===ids.sched.n&&cur.sched.t===ids.sched.t))) return 'same';
+  window.__sharedLoad=true;
+  try{
+    await loadFilesIntoDashboard(best.mrp, best.sched, `Opening the team's latest files from “${h.name}”: ${best.mrp.name}${best.sched?' and '+best.sched.name:''}…`);
+  }finally{ window.__sharedLoad=false; }
+  window.__sharedInfo={folder:h.name, mrp:ids.mrp, sched:ids.sched};
+  renderSavedStatus();
+  return 'loaded';
+}
+
+// Work out whether what's on screen matches the newest files in the team folder
+async function sdSyncInfo(h){
+  const b=await sdScan(h);
+  const mrpTeam=b.mrp && b.mrp.name===window.lastRawFileName;
+  const schedTeam=b.sched && b.sched.name===window.lastSchedFileName;
+  window.__sharedInfo=mrpTeam?{folder:h.name, mrp:{n:b.mrp.name,t:b.mrp.lastModified},
+    sched:schedTeam?{n:b.sched.name,t:b.sched.lastModified}:null, schedOwn:!schedTeam && !!window.lastSchedFileName}:null;
+  return window.__sharedInfo;
+}
+
+// Small notice in the bottom-right corner
+function sdToastClose(){ document.getElementById('sd-toast')?.remove(); }
+function sdToast(msg, buttons=[], sticky=false){
+  sdToastClose();
+  const t=document.createElement('div'); t.id='sd-toast'; t.className='sd-toast'; t.setAttribute('role','status');
+  const p=document.createElement('div'); p.className='sd-toast-msg'; p.textContent=msg; t.appendChild(p);
+  const row=document.createElement('div'); row.className='sd-toast-btns';
+  buttons.forEach(b=>{ const btn=document.createElement('button'); btn.className='export-btn'+(b.primary?' primary':''); btn.textContent=b.label; btn.onclick=b.fn; row.appendChild(btn); });
+  const x=document.createElement('button'); x.className='export-btn'; x.textContent=buttons.length?'Not now':'OK'; x.onclick=sdToastClose; row.appendChild(x);
+  t.appendChild(row); document.body.appendChild(t);
+  if(!sticky) setTimeout(()=>{ if(document.getElementById('sd-toast')===t) t.remove(); }, 9000);
+}
+
+async function sdOpenTeamFiles(){
+  const h=await sdGetHandle(); if(!h){ v2Data(); return; }
+  let perm='denied';
+  try{ perm=await sdPermission(h,'read',true); }catch(e){}   // must run straight from the click
+  if(perm!=='granted'){ sdToast(`Access to “${h.name}” was not allowed, so your own saved files are shown. Select Open team files and choose Allow to use the team folder.`); return; }
+  sdToastClose();
+  try{
+    const r=await withLoadLock(()=>sdLoad(h,{quietIfSame:true}));
+    sdToast(r==='same'?`You already have the latest team files from “${h.name}”.`:`Loaded the newest team files from “${h.name}”.`);
+  }catch(err){ sdToast('Could not load the team files: '+err.message); }
+}
+
+async function sdConnect(){
+  if(typeof window.showDirectoryPicker!=='function'){ sdToast('This browser cannot connect to a folder. Open the dashboard in Chrome or Edge.'); return; }
+  let h;
+  try{ h=await window.showDirectoryPicker({id:'fontaine-mrp-team', mode:'read'}); }catch(e){ return; }   // cancelled
+  try{ await fsPut(SD_KEY,h); }catch(e){ sdToast('The folder could not be remembered by this browser: '+e.message); }
+  document.getElementById('v2-modal')?.remove();
+  try{ await withLoadLock(()=>sdLoad(h)); sdToast(`Connected to “${h.name}”. The dashboard will open the newest files from it every time.`); }
+  catch(err){ sdToast(`Connected to “${h.name}”, but ${err.message}. Save the MRP (.xlsm) and schedule (.xlsx with “Schedule” in the name) into that folder.`, [], true); }
+}
+
+async function sdDisconnect(){
+  try{ await fsDel(SD_KEY); }catch(e){}
+  window.__testSharedDir=null; window.__sharedInfo=null;
+  renderSavedStatus(); v2Data();
+}
+
+function sdOfferPublish(kind, bytes, name){
+  sdGetHandle().then(h=>{
+    if(!h) return;
+    const what=kind==='mrp'?'MRP':'schedule';
+    sdToast(`Share this ${what} with the team? It will be copied into “${h.name}” and open for everyone next time.`,
+      [{label:'Save to team folder', primary:true, fn:()=>sdPublish(kind, bytes, name)}], true);
+  }).catch(()=>{});
+}
+async function sdPublish(kind, bytes, name){
+  const h=await sdGetHandle(); if(!h) return;
+  let perm='denied';
+  try{ perm=await sdPermission(h,'readwrite',true); }catch(e){}
+  if(perm!=='granted'){ sdToast('Saving to the team folder was not allowed. Nothing was changed.'); return; }
+  sdToast(`Saving “${name}” to “${h.name}”…`, [], true);
+  try{
+    const fh=await h.getFileHandle(name,{create:true});
+    const w=await fh.createWritable(); await w.write(bytes); await w.close();
+    await sdSyncInfo(h);
+    renderSavedStatus();
+    sdToast(`Saved “${name}” to “${h.name}”. Everyone gets it the next time they open the dashboard, once OneDrive has synced.`);
+  }catch(err){ sdToast('Could not save to the team folder: '+err.message); }
+}
+
+// Data & Settings panel
+v2Data=function(){
+  v2Panel('Data & Settings',
+    '<h3>Team shared folder</h3><div id="sd-info"><p>Checking…</p></div>'
+    +'<h3>MRP report</h3><p>'+v2Escape(window.lastRawFileName||'No report loaded')+'</p><button class="export-btn primary" onclick="document.getElementById(\'file-input\').click()">Choose MRP</button>'
+    +'<h3>Production schedule</h3><p>'+v2Escape(window.lastSchedFileName||'No schedule uploaded this session')+'</p><button class="export-btn" onclick="document.getElementById(\'schedule-input\').click()">Choose schedule</button>'
+    +'<h3>My saved copy (this browser)</h3><div id="fs-saved-list"><p>Checking…</p></div>'
+    +'<p>Your latest files are also kept in this browser, so the dashboard still opens if the team folder is unavailable. Choosing a new file replaces this copy.</p>'
+    +'<button class="export-btn" onclick="forgetSavedFiles()">Forget my saved copy</button> <span id="fs-forget-msg" style="font-size:12px;color:var(--low)"></span>'
+    +'<h3>Calculation settings</h3><p>Use the steel lead time and arrival buffer controls above the dashboard. Your values are remembered in this browser.</p>'
+    +'<h3>Local work tracking</h3><p>Statuses belong to this browser, not a shared team workspace.</p>');
+  Promise.all([fsGet('mrp'),fsGet('sched')]).then(([m,s])=>{
+    const row=(label,r)=>r?`<p><b>${label}:</b> ${v2Escape(r.name)}<br><small style="color:var(--muted2)">Saved ${v2Escape(fsWhen(r.savedAt))} · ${(r.bytes.byteLength/1048576).toFixed(1)} MB</small></p>`:`<p><b>${label}:</b> <span style="color:var(--muted2)">nothing saved</span></p>`;
+    const el=document.getElementById('fs-saved-list'); if(el) el.innerHTML=row('MRP',m)+row('Schedule',s);
+  }).catch(e=>{ const el=document.getElementById('fs-saved-list'); if(el) el.innerHTML='<p>Saved files are not available in this browser ('+v2Escape(e.message)+').</p>'; });
+  (async()=>{
+    const el=document.getElementById('sd-info'); if(!el) return;
+    const h=await sdGetHandle();
+    if(!h){
+      el.innerHTML='<p>Not connected. Connect a folder that the whole team syncs from SharePoint (OneDrive). The dashboard then opens the newest MRP and schedule in that folder for everyone, every time.</p>'
+        +'<button class="export-btn primary" onclick="sdConnect()">Connect team folder…</button>';
+      return;
+    }
+    let perm='prompt'; try{ perm=await sdPermission(h,'read',false); }catch(e){}
+    let found='';
+    if(perm==='granted'){
+      try{ const b=await sdScan(h);
+        found=`<p><b>Newest MRP:</b> ${b.mrp?v2Escape(b.mrp.name)+' <small style="color:var(--muted2)">· updated '+v2Escape(fsWhen(b.mrp.lastModified))+'</small>':'<span style="color:var(--critical)">none found (.xlsm)</span>'}<br>`
+          +`<b>Newest schedule:</b> ${b.sched?v2Escape(b.sched.name)+' <small style="color:var(--muted2)">· updated '+v2Escape(fsWhen(b.sched.lastModified))+'</small>':'<span style="color:var(--critical)">none found (.xlsx with “Schedule” in the name)</span>'}</p>`;
+      }catch(e){ found=`<p style="color:var(--critical)">Could not read the folder: ${v2Escape(e.message)}</p>`; }
+    } else found='<p style="color:var(--muted2)">Access needs to be allowed again in this browser session.</p>';
+    const showing=window.__sharedInfo?'<span style="color:var(--low);font-weight:600">Showing team files.</span>':'<span style="color:#c2410c;font-weight:600">Showing your own files, not the team folder.</span>';
+    el.innerHTML=`<p><b>Connected:</b> ${v2Escape(h.name)} &nbsp;${showing}</p>${found}`
+      +'<button class="export-btn primary" onclick="document.getElementById(\'v2-modal\').remove();sdOpenTeamFiles()">Open newest team files</button>'
+      +'<button class="export-btn" onclick="sdConnect()">Change folder…</button>'
+      +'<button class="export-btn" onclick="sdDisconnect()">Disconnect</button>'
+      +'<p style="margin-top:8px">When you choose a new MRP or schedule above, the dashboard offers to copy it into this folder so everyone gets it.</p>';
+  })();
+};
+
+// Keep lead time / arrival buffer with the saved MRP when Recalculate is used
+(function(){ const _recalc=recalculate; recalculate=function(){ _recalc(); lsSettingsSave(); }; })();
+
+// Startup: team folder first, then this browser's saved copy
+async function dashStartup(){
+  const h=await sdGetHandle();
+  if(h){
+    let perm='prompt'; try{ perm=await sdPermission(h,'read',false); }catch(e){}
+    if(perm==='granted'){
+      try{ await withLoadLock(()=>sdLoad(h)); return; }
+      catch(err){ console.warn(err); sdToast(`Could not read the team folder “${h.name}” (${err.message}). Showing your last saved copy instead.`, [], true); }
+    } else {
+      sdToast(`Open the team's latest MRP and schedule from “${h.name}”?`, [{label:'Open team files', primary:true, fn:sdOpenTeamFiles}], true);
+    }
+  }
+  await withLoadLock(restoreSavedFiles);
+}
+document.addEventListener('DOMContentLoaded',()=>{ renderSavedStatus(); dashStartup(); });
+
 
 </script>
 </body>
