@@ -7,7 +7,7 @@ import { put, get, del, BlobPreconditionFailedError } from '@vercel/blob';
 // ---------- storage (Vercel Blob, private store) ----------
 const blobStore = {
   async get(path, fresh) {
-    const r = await get(path, { access: 'private', useCache: !fresh });
+    const r = await get(path, { access: 'private', useCache: !fresh, ...(fresh ? { headers: { 'cache-control': 'no-cache' } } : {}) });
     if (!r || r.statusCode !== 200 || !r.stream) return null;
     const buf = Buffer.from(await new Response(r.stream).arrayBuffer());
     return { buf, etag: r.blob && r.blob.etag };
@@ -35,16 +35,20 @@ export function putJSON(path, obj, ifMatch) {
   return store().put(path, JSON.stringify(obj), { contentType: 'application/json', ifMatch });
 }
 
-// Read-modify-write with retry when two people save at the same moment
+// Read-modify-write. The write only lands if nobody changed the file since we read it (ifMatch), so one save
+// can never wipe out another. Right after a save, storage can return the previous version for a few seconds,
+// which makes the write look like a clash: wait a little longer each time and read again (up to ~25 s).
+const RETRY_WAITS = [250, 500, 1000, 1500, 2500, 4000, 6000, 9000];
 export async function updateJSON(path, fn) {
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i <= RETRY_WAITS.length; i++) {
     const { data, etag } = await getJSON(path, true);
     const next = await fn(data);
     if (next === undefined) return data;
     try { await putJSON(path, next, etag || undefined); return next; }
     catch (e) { if (!e.conflict) throw e; }
+    if (i < RETRY_WAITS.length) await new Promise((r) => setTimeout(r, RETRY_WAITS[i] + Math.floor(Math.random() * 200)));
   }
-  throw httpError(409, 'Someone else saved at the same moment. Try again.');
+  throw httpError(409, 'The team storage is still catching up with a save made a moment ago. Wait a minute and try again.');
 }
 
 // ---------- secrets / tokens ----------

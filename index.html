@@ -719,6 +719,22 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
 .file-warn{display:flex;gap:10px;align-items:flex-start;background:#FFFBEB;border:1px solid #FCD34D;color:#92400E;border-radius:8px;padding:10px 14px;margin:0 0 14px;font-size:13px;line-height:1.5}
 .fw-ic{font-size:16px;line-height:1.2}.file-warn>div{flex:1}
 .fw-x{background:none;border:none;color:#92400E;cursor:pointer;font-size:14px;padding:0 2px}
+.ss-sub{color:var(--muted2);font-weight:400}
+
+/* 2.20 Overview layout: both rows use the same two columns, panels in a row are the same height,
+   and the content fills each panel (footnotes sit at the bottom) */
+.ov-grid,.ov-grid.ov-top{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);align-items:stretch!important}
+.ov-grid>.panel{display:flex;flex-direction:column;min-width:0}
+#ov-lines,#ov-parts{flex:1;display:flex;flex-direction:column}
+#ov-lines>table{flex:1}
+#ov-lines>.ov-foot,#ov-parts>.ov-foot{margin-top:auto}
+.ov-bottom>.panel{height:400px}
+.ov-vendor-body{padding:0 16px;flex:1;min-height:0;display:flex;flex-direction:column}
+.ov-vendor-scroll{flex:1;min-height:0;overflow-y:auto}
+.ov-chart-body{flex:1;min-height:0;display:flex;flex-direction:column}
+.ov-chart-box{position:relative;flex:1;min-height:160px}
+.ov-chart-box canvas{position:absolute;inset:0}
+@media(max-width:1100px){.ov-grid,.ov-grid.ov-top{grid-template-columns:minmax(0,1fr)}.ov-bottom>.panel{height:360px}}
 </style>
 </head>
 <body>
@@ -933,7 +949,7 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
           <div id="ov-parts"></div>
         </div>
       </div>
-      <div class="panel-grid ov-grid">
+      <div class="panel-grid ov-grid ov-bottom">
         <!-- Vendor table -->
         <div class="panel">
           <div class="panel-hdr">
@@ -943,8 +959,8 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
             </div>
             <span style="font-size:10px;color:var(--muted2)" id="vendor-ct-lbl"></span>
           </div>
-          <div class="panel-body" style="padding:0 16px">
-            <div style="max-height:310px;overflow-y:auto">
+          <div class="panel-body ov-vendor-body">
+            <div class="ov-vendor-scroll">
               <div class="vendor-hdr">
                 <span>Vendor</span><span>Earliest</span><span>Crit</span><span>High</span><span>No PO</span><span>Total</span>
               </div>
@@ -960,8 +976,8 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
               <div class="panel-sub">Parts per week · 8 weeks back through 16 weeks forward</div>
             </div>
           </div>
-          <div class="panel-body">
-            <div style="position:relative">
+          <div class="panel-body ov-chart-body">
+            <div class="ov-chart-box">
               <canvas id="chart-canvas" style="width:100%;display:block;cursor:crosshair"></canvas>
               <div class="chart-tt" id="chart-tt"></div>
             </div>
@@ -2217,11 +2233,13 @@ function updateStats(){ renderUrgCards(); }   // cards: see URGENCY CARDS
 // ═══════════════════════════════════════════════════════
 //  TIMELINE CHART
 // ═══════════════════════════════════════════════════════
+window.addEventListener('resize', ()=>{ clearTimeout(window.__chartRs); window.__chartRs=setTimeout(()=>{ try{ if(document.getElementById('view-overview')?.style.display!=='none') buildChart(); }catch(e){} }, 150); });
 function buildChart(){
   const canvas=document.getElementById('chart-canvas'); if(!canvas) return;
   const data=timelineData; if(!data||!data.length) return;
   const dpr=window.devicePixelRatio||1;
-  const W=canvas.parentElement.clientWidth||800, H=190;
+  const box=canvas.parentElement;
+  const W=box.clientWidth||800, H=Math.max(160, box.clientHeight||190);   // fills the panel (Overview rows are equal height)
   if(W===0) return;
   canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
@@ -3240,7 +3258,7 @@ function v2Help(){ v2Panel('Help', ''
   +'<h3>FAQ: signing in</h3><p><b>I forgot my password.</b> Ask the admin to select <b>Reset password</b>. You get a new temporary password.<br><b>It says the team server could not be reached.</b> The dashboard falls back to the team folder or your saved copy. Try again later.<br><b>It says team storage is paused.</b> The free storage plan’s monthly limit was reached. The dashboard keeps working with the team folder or your own files until it resets.<br><b>A newer MRP was published while I had the dashboard open.</b> A notice offers <b>Open it now</b>. You can also select <b>👤 your name → Check for newer team files</b>.<br><b>I opened the dashboard file from my computer.</b> Sign-in only works on the team website. A file opened from a folder works the old way (your own files and the team folder).</p>'
   +'<h3>Choose a workspace</h3><p><b>Overview:</b> urgency totals, production line health and the parts blocking the most trailers (choose the time window at the top), then Vendor Priority and the order deadline timeline. Click a line to open its trailers, or a part for its details. On every other tab the urgency totals shrink to one slim row; click any of them to filter All Parts.<br><b>Purchasing Queue:</b> urgent unordered parts and expedite items.<br><b>All Parts:</b> search and filter flagged parts.<br><b>Trailers at Risk:</b> investigate affected trailers.<br><b>Expedite:</b> review late purchase orders.</p>'
   +'<h3>Investigate and follow up</h3><p>Click a part number for details. Click an Open PO badge for the delivery breakdown. Work statuses do not change MRP urgency. When you are signed in they are shared with the team and show who set them and when; otherwise they are saved in this browser only.</p>'
-  +'<h3>Team shared folder (same files for everyone)</h3><p>Connect the dashboard to one folder the whole team syncs from SharePoint. Every time anyone opens the dashboard, it loads the <b>newest MRP (.xlsm)</b> and the <b>newest schedule (.xlsx with “Schedule” in the name)</b> in that folder. “Newest” means the latest <b>report date in the file name</b> (for example MRP_REPORT_10.29.26, or the export number at the end of a Monday schedule file), not when the file was last saved. Date modified is only used when the names have the same date or no date. To update everyone, save the new file into the folder, or choose it in the dashboard and select <b>Save to team folder</b> when asked.</p><p><b>One-time setup for each person</b><br>1. In SharePoint, open the team folder that holds the MRP and schedule and select <b>Sync</b> (or <b>Add shortcut to My files</b>), so it appears in File Explorer.<br>2. In the dashboard, open <b>Data &amp; Settings</b> and select <b>Connect team folder…</b>.<br>3. Pick that folder and select <b>View files</b>, then <b>Allow</b>. If Chrome or Edge offers <b>Allow on every visit</b>, choose it so the team files open with no clicks.<br>Otherwise, when you open the dashboard, select <b>Open team files</b> in the notice in the bottom-right corner.</p><p>The line under the page title shows <b>👥 Team files</b> with when each file was last updated, and turns orange when the team MRP is 7 or more days old. If it shows <b>💾 My saved files</b>, you are looking at your own copy, not the team folder.</p>'
+  +'<h3>Team shared folder (same files for everyone)</h3><p>Connect the dashboard to one folder the whole team syncs from SharePoint. Every time anyone opens the dashboard, it loads the <b>newest MRP (.xlsm)</b> and the <b>newest schedule (.xlsx with “Schedule” in the name)</b> in that folder. “Newest” means the latest <b>report date in the file name</b> (for example MRP_REPORT_10.29.26, or the export number at the end of a Monday schedule file), not when the file was last saved. Date modified is only used when the names have the same date or no date. To update everyone, save the new file into the folder, or choose it in the dashboard and select <b>Save to team folder</b> when asked.</p><p><b>One-time setup for each person</b><br>1. In SharePoint, open the team folder that holds the MRP and schedule and select <b>Sync</b> (or <b>Add shortcut to My files</b>), so it appears in File Explorer.<br>2. In the dashboard, open <b>Data &amp; Settings</b> and select <b>Connect team folder…</b>.<br>3. Pick that folder and select <b>View files</b>, then <b>Allow</b>. If Chrome or Edge offers <b>Allow on every visit</b>, choose it so the team files open with no clicks.<br>Otherwise, when you open the dashboard, select <b>Open team files</b> in the notice in the bottom-right corner.</p><p>The line under the page title shows <b>👥 Team files</b> with the <b>report date</b> of the MRP and the schedule (from the file names), and who published them and when. It turns orange when the MRP’s report date is more than 7 days old. If it shows <b>💾 My saved files</b>, you are looking at your own copy, not the team folder.</p>'
   +'<h3>My saved copy</h3><p>Your latest files are also kept in this browser, so the dashboard still opens when the team folder is not connected or not available. Choosing a new file replaces this copy. To remove it, open <b>Data &amp; Settings</b> and select <b>Forget my saved copy</b>.</p>'
   +'<h3>FAQ: team folder</h3><p><b>Someone else’s new MRP isn’t showing.</b> Their file must finish syncing through OneDrive first. Then open <b>Data &amp; Settings</b> and select <b>Open newest team files</b>.<br><b>No Sync button in SharePoint.</b> Your IT team may have turned off OneDrive syncing for SharePoint; ask them to allow it for this library.<br><b>Connect team folder does nothing.</b> Use Chrome or Edge. Firefox cannot connect to folders.<br><b>Old files in the folder.</b> Only the newest MRP and newest schedule are used, so old copies can stay, but clearing them out keeps things tidy.</p>'
   +'<h3>What Changed (inside lead time)</h3><p>Compares today’s MRP with an earlier one, part by part, and shows what changed inside the steel lead time window. <b>Newly short</b>: the part was fine on the earlier MRP and now goes negative inside lead time. <b>Got worse</b>: the shortage is bigger or starts earlier. <b>On-hand change</b>: on hand moved by an amount that receipts and usage do not explain, usually a cycle count or inventory adjustment. <b>PO change</b>: a PO inside lead time moved, was cut, disappeared or is new. <b>More demand</b>: new trailers or BOM changes added demand inside lead time. <b>Main cause</b> shows which of these moved the balance most at the first short week. Click a row to see the before and now balance chart and the week-by-week numbers.</p><p><b>Which MRP is it compared with?</b> By default, the most recent earlier MRP. When you are signed in, the team’s last 10 published MRPs are available to everyone (marked “(team)” under <b>Compared with</b>), so you can compare with yesterday’s MRP even if you didn’t open it. The dashboard also keeps a copy of the last 8 MRPs opened in this browser, and uses older MRPs in the team folder when it is connected. Use <b>Compared with</b> to pick another (for example a week ago), or <b>Choose an earlier MRP…</b> to use any file.</p><p><b>FAQ.</b> <i>It says there is nothing to compare with.</i> Open the dashboard with each new MRP (or connect the team folder); the next MRP is then compared automatically. <i>An on-hand change was really a receipt.</i> If a PO was received but stayed on the MRP, or was received early, the dashboard may count it as an on-hand change; check the PO lines in the row’s details.</p>'
@@ -3342,7 +3360,7 @@ function openLineReports(){
     <div class="lr-grid">${lineBoxes}</div>
     <h3>Trailers to include</h3>
     <select id="lr-horizon" class="ctrl-sel" style="width:100%">
-      <option value="0">All open trailers (WIP below 100%)</option>
+      <option value="0">All open trailers (not in Completions)</option>
       <option value="2">Due in the next 2 weeks (plus overdue)</option>
       <option value="4" selected>Due in the next 4 weeks (plus overdue)</option>
       <option value="8">Due in the next 8 weeks (plus overdue)</option>
@@ -3381,7 +3399,7 @@ function generateLineReport(){
 function buildLineReportHTML(lines,horizonWeeks,sec){
   const {todayStr,cutoff,stats}=lrComputeStats(lines,horizonWeeks);
   const partInfo={}; (allData||[]).forEach(d=>{ partInfo[d.ItemCode]=d; });
-  const horizonLabel=horizonWeeks?`Due on or before ${cutoff} (next ${horizonWeeks} weeks, including overdue)`:'All open trailers (WIP below 100%)';
+  const horizonLabel=horizonWeeks?`Due on or before ${cutoff} (next ${horizonWeeks} weeks, including overdue)`:'All open trailers (not in Completions)';
   const fmtWk=w=>(w||'').replace('WEEK ','Wk ');
   const chip=(code,u,title)=>`<span class="chip" style="color:${LR_URG_COLOR[u]||'#6B7280'};background:${LR_URG_BG[u]||'#F0F1F3'};border-color:${LR_URG_COLOR[u]||'#E2E4E8'}" title="${lrEsc(title||'')}">${lrEsc(code)}</span>`;
   const urgTag=u=>`<span class="urg" style="color:${LR_URG_COLOR[u]};background:${LR_URG_BG[u]}">${u==='NONE'?'CLEAR':u}</span>`;
@@ -3451,7 +3469,7 @@ function buildLineReportHTML(lines,horizonWeeks,sec){
       <h2>By line</h2>
       <table class="tbl"><colgroup><col style="width:9%"><col style="width:6%"><col style="width:7%"><col style="width:8%"><col style="width:11%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:9%"><col style="width:7%"><col style="width:7%"><col></colgroup><thead><tr><th>Line</th><th class="num">Open</th><th class="num">At risk</th><th class="num">Looks good</th><th>On track</th><th class="num">Worst critical</th><th class="num">Worst expedite</th><th class="num">At risk &amp; overdue</th><th>Next at-risk due</th><th class="num">Shortage parts</th><th class="num">Parts with no PO</th><th>Top blocking part</th></tr></thead><tbody>${rows}</tbody></table>
       ${topHtml}
-      <div class="defs"><b>How to read this report.</b> <b>Open</b>: trailer on the schedule with WIP below 100%. <b>At risk</b>: at least one part on the trailer goes negative in the MRP during the trailer's build week. <b>Looks good</b>: no part shortages found for the trailer in this MRP. <b>Worst critical / expedite</b>: the trailer's most urgent part is Critical (order deadline passed, no PO) or Expedite (a PO exists but arrives after the shortage). <b>Most needed parts</b>: shortage parts ranked by how many at-risk trailers they block across the selected lines; <b>First trailer due</b> is the earliest due date among those trailers. Urgency uses the dashboard settings: ${metaLine}.</div>
+      <div class="defs"><b>How to read this report.</b> <b>Open</b>: trailer on the schedule, not in Completions, with a due date. <b>At risk</b>: at least one part on the trailer goes negative in the MRP during the trailer's build week. <b>Looks good</b>: no part shortages found for the trailer in this MRP. <b>Worst critical / expedite</b>: the trailer's most urgent part is Critical (order deadline passed, no PO) or Expedite (a PO exists but arrives after the shortage). <b>Most needed parts</b>: shortage parts ranked by how many at-risk trailers they block across the selected lines; <b>First trailer due</b> is the earliest due date among those trailers. Urgency uses the dashboard settings: ${metaLine}.</div>
     </section>`);
   }
 
@@ -3612,7 +3630,7 @@ function renderOverviewProduction(){
   const lines=[...new Set(lrAllTrailers().map(t=>t.line||''))].filter(l=>/^Line\s+\d+$/i.test(l)).sort(lrLineSort);
   const {stats,cutoff}=lrComputeStats(lines,horizon);
   const sub=document.getElementById('ov-sub');
-  if(sub) sub.textContent=horizon?`Open trailers due on or before ${cutoff} (next ${horizon} weeks, including overdue)`:'All open trailers (WIP below 100%)';
+  if(sub) sub.textContent=horizon?`Open trailers due on or before ${cutoff} (next ${horizon} weeks, including overdue)`:'All open trailers (not in Completions)';
   const totOpen=stats.reduce((a,s)=>a+s.ts.length,0), totRisk=stats.reduce((a,s)=>a+s.risk.length,0);
   document.getElementById('ov-lines-ct').textContent=`${totRisk} of ${totOpen} at risk`;
 
@@ -3700,37 +3718,50 @@ function fsWhen(ts){
 }
 function fsAgeDays(ts){ return ts ? Math.floor((Date.now()-ts)/86400000) : 0; }
 
+// Report dates come from the file names (MRP_REPORT_10.29.26, …Schedule_1793646488); otherwise when the file was saved
+function reportDate(kind, name, fallbackMs){
+  const t=name?(kind==='sched'?schedNameDate(name):chgNameDate(name)):null;
+  if(t!=null) return {t, utc:true};
+  return fallbackMs?{t:fallbackMs, utc:false}:null;
+}
+function fmtReport(r){ return r?new Date(r.t).toLocaleDateString([], r.utc?{month:'short', day:'numeric', timeZone:'UTC'}:{month:'short', day:'numeric'}):'—'; }
+function reportAgeDays(r){
+  if(!r) return 0; const d=new Date(r.t);
+  const day=r.utc?r.t:Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  return Math.round((new Date(TODAY_STR+'T00:00:00Z').getTime()-day)/DAY_MS);
+}
+// "👥 Team files · MRP Oct 29 · Schedule Nov 2 · published Nov 4, 10:24 AM by Drew"
+function savedLine(el, icon, mrpR, schedR, schedNote, tail, title){
+  const age=reportAgeDays(mrpR), old=mrpR && age>7;
+  el.className='saved-status'+(icon==='👥'?' team':'')+(old?' warn':'');
+  el.title=title;
+  el.innerHTML=(old?`⚠ ${icon==='👥'?'Team ':''}MRP is from ${lrEsc(fmtReport(mrpR))} (${age} days old)`:`${icon} ${icon==='👥'?'Team files':'My saved files'} · MRP ${lrEsc(fmtReport(mrpR))}`)
+    +' · '+(schedR?'Schedule '+lrEsc(fmtReport(schedR)):lrEsc(schedNote))
+    +(tail?` <span class="ss-sub">· ${lrEsc(tail)}</span>`:'');
+}
 async function renderSavedStatus(errMsg){
   const el=document.getElementById('saved-status'); if(!el) return;
   if(errMsg){ el.className='saved-status warn'; el.textContent='⚠ '+errMsg; return; }
   const ci=window.__cloudInfo;   // signed in: the team's published files
   if(ci && ci.mrp && ci.mrp.name===window.lastRawFileName){
-    const old=fsAgeDays(ci.mrp.publishedAt)>=7;
-    el.className='saved-status team'+(old?' warn':'');
-    el.title=`Team files published to everyone\nMRP: ${ci.mrp.name} (by ${ci.mrp.byName||ci.mrp.by})`+(ci.sched?`\nSchedule: ${ci.sched.name} (by ${ci.sched.byName||ci.sched.by})`:'');
-    el.innerHTML=(old?`⚠ Team MRP is ${fsAgeDays(ci.mrp.publishedAt)} days old — `:'👥 Team files · ')
-      +lrEsc(`MRP published ${fsWhen(ci.mrp.publishedAt)} by ${ci.mrp.byName||ci.mrp.by}`+(ci.sched?` · Schedule ${fsWhen(ci.sched.publishedAt)}`:(window.lastSchedFileName?' · Schedule: your own copy':' · no team schedule')));
+    savedLine(el, '👥', reportDate('mrp', ci.mrp.name, ci.mrp.modified), ci.sched?reportDate('sched', ci.sched.name, ci.sched.modified):null,
+      window.lastSchedFileName?'Schedule: your own copy':'no team schedule',
+      `published ${fsWhen(ci.mrp.publishedAt)} by ${ci.mrp.byName||ci.mrp.by}`,
+      `Team files published to everyone\nMRP: ${ci.mrp.name} (published ${fsWhen(ci.mrp.publishedAt)} by ${ci.mrp.byName||ci.mrp.by})`+(ci.sched?`\nSchedule: ${ci.sched.name} (published ${fsWhen(ci.sched.publishedAt)} by ${ci.sched.byName||ci.sched.by})`:''));
     return;
   }
   const si=window.__sharedInfo;
   if(si && si.mrp){
-    const old=fsAgeDays(si.mrp.t)>=7;
-    el.className='saved-status team'+(old?' warn':'');
-    el.title=`Team folder: ${si.folder}\nMRP: ${si.mrp.n}`+(si.sched?`\nSchedule: ${si.sched.n}`:'')+'\nEveryone connected to this folder opens these files.';
-    el.innerHTML=(old?`⚠ Team MRP is ${fsAgeDays(si.mrp.t)} days old — `:'👥 Team files · ')
-      +lrEsc(`MRP updated ${fsWhen(si.mrp.t)}`+(si.sched?` · Schedule updated ${fsWhen(si.sched.t)}`:si.schedOwn?' · Schedule: your own copy':' · no schedule in folder'));
+    savedLine(el, '👥', reportDate('mrp', si.mrp.n, si.mrp.t), si.sched?reportDate('sched', si.sched.n, si.sched.t):null,
+      si.schedOwn?'Schedule: your own copy':'no schedule in folder', `from ${si.folder}`,
+      `Team folder: ${si.folder}\nMRP: ${si.mrp.n} (saved ${fsWhen(si.mrp.t)})`+(si.sched?`\nSchedule: ${si.sched.n} (saved ${fsWhen(si.sched.t)})`:'')+'\nEveryone connected to this folder opens these files.');
     return;
   }
   let mrp=null, sched=null;
   try{ [mrp,sched]=await Promise.all([fsGet('mrp'),fsGet('sched')]); }catch(e){ el.className='saved-status'; el.textContent='Files are not saved in this browser'; return; }
   if(!mrp && !sched){ el.className='saved-status'; el.textContent='Nothing saved yet — your next upload will open automatically'; return; }
-  const parts=[];
-  if(mrp) parts.push(`MRP ${fsWhen(mrp.savedAt)}`);
-  if(sched) parts.push(`Schedule ${fsWhen(sched.savedAt)}`);
-  const old=mrp && fsAgeDays(mrp.savedAt)>=7;
-  el.className='saved-status'+(old?' warn':'');
-  el.title=(mrp?'MRP: '+mrp.name:'')+(sched?'\nSchedule: '+sched.name:'')+'\nSaved in this browser only. Connect a team folder in Data & Settings to share with everyone.';
-  el.innerHTML=(old?`⚠ Saved MRP is ${fsAgeDays(mrp.savedAt)} days old — upload a fresh copy · `:'💾 My saved files: ')+lrEsc(parts.join(' · '));
+  savedLine(el, '💾', mrp?reportDate('mrp', mrp.name, mrp.savedAt):null, sched?reportDate('sched', sched.name, sched.savedAt):null, 'no schedule', 'this browser only',
+    (mrp?'MRP: '+mrp.name+' (saved '+fsWhen(mrp.savedAt)+')':'')+(sched?'\nSchedule: '+sched.name+' (saved '+fsWhen(sched.savedAt)+')':'')+'\nSaved in this browser only. Connect a team folder in Data & Settings to share with everyone.');
 }
 
 function fsWaitFor(test, ms){
