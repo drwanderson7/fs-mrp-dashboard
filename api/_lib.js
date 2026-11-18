@@ -2,15 +2,21 @@
 // The server never sees MRP, schedule or status contents: browsers encrypt them
 // with the team key before upload. The server only checks who is signed in.
 import crypto from 'node:crypto';
-import { put, get, del, BlobPreconditionFailedError } from '@vercel/blob';
+import { put, get, del, head, BlobPreconditionFailedError } from '@vercel/blob';
 
 // ---------- storage (Vercel Blob, private store) ----------
 const blobStore = {
   async get(path, fresh) {
-    const r = await get(path, { access: 'private', useCache: !fresh, ...(fresh ? { headers: { 'cache-control': 'no-cache' } } : {}) });
+    // fresh reads ask for the uncompressed, uncached copy
+    const r = await get(path, { access: 'private', useCache: !fresh, ...(fresh ? { headers: { 'cache-control': 'no-cache', 'accept-encoding': 'identity' } } : {}) });
     if (!r || r.statusCode !== 200 || !r.stream) return null;
     const buf = Buffer.from(await new Response(r.stream).arrayBuffer());
-    return { buf, etag: r.blob && r.blob.etag };
+    return { buf, etag: r.blob && r.blob.etag, uploadedAt: r.blob && r.blob.uploadedAt ? new Date(r.blob.uploadedAt).getTime() : 0 };
+  },
+  // the storage API's own record of the file: the version tag it checks saves against, size, save time
+  async head(path) {
+    try { const h = await head(path, { access: 'private' }); return { etag: h.etag, size: h.size, uploadedAt: new Date(h.uploadedAt).getTime() }; }
+    catch (e) { if (/not.?found|404/i.test(String(e && (e.name + ' ' + e.message)))) return null; throw e; }
   },
   async put(path, data, opts = {}) {
     const o = {
@@ -29,8 +35,9 @@ export const store = () => globalThis.__TEST_STORE || blobStore;
 export async function getJSON(path, fresh) {
   const r = await store().get(path, fresh);
   if (!r) return { data: null, etag: null };
-  return { data: JSON.parse(r.buf.toString('utf8')), etag: r.etag };
+  return { data: JSON.parse(r.buf.toString('utf8')), etag: r.etag, size: r.buf.length, uploadedAt: r.uploadedAt || 0 };
 }
+const bareTag = (t) => String(t || '').replace(/^W\//, '').replace(/"/g, '');
 export function putJSON(path, obj, ifMatch) {
   return store().put(path, JSON.stringify(obj), { contentType: 'application/json', ifMatch });
 }
@@ -41,11 +48,25 @@ export function putJSON(path, obj, ifMatch) {
 const RETRY_WAITS = [250, 500, 1000, 1500, 2500, 4000, 6000, 9000];
 export async function updateJSON(path, fn) {
   for (let i = 0; i <= RETRY_WAITS.length; i++) {
-    const { data, etag } = await getJSON(path, true);
-    const next = await fn(data);
-    if (next === undefined) return data;
-    try { await putJSON(path, next, etag || undefined); return next; }
-    catch (e) { if (!e.conflict) throw e; }
+    const got = await getJSON(path, true);
+    // Save against the storage API's own version tag, and only when the copy just read IS that version
+    // (same tag once quotes/W\/ are ignored, or same size and save time). The copy served for reading can
+    // carry a differently formatted tag (e.g. when compressed), which must not block every save.
+    let ifMatch;
+    if (got.data !== null) {
+      const h = store().head ? await store().head(path) : null;
+      const same = !h || bareTag(h.etag) === bareTag(got.etag) || (h.size === got.size && Math.abs(h.uploadedAt - got.uploadedAt) < 1500);
+      if (!same) {   // an older copy was served: wait for storage to catch up
+        console.warn('updateJSON: stale read', path, { read: got.etag, current: h.etag, readSize: got.size, size: h.size });
+        if (i < RETRY_WAITS.length) { await new Promise((r) => setTimeout(r, RETRY_WAITS[i])); continue; }
+        break;
+      }
+      ifMatch = h ? h.etag : got.etag;
+    }
+    const next = await fn(got.data);
+    if (next === undefined) return got.data;
+    try { await putJSON(path, next, ifMatch || undefined); return next; }
+    catch (e) { if (!e.conflict) throw e; console.warn('updateJSON: changed while saving', path); }
     if (i < RETRY_WAITS.length) await new Promise((r) => setTimeout(r, RETRY_WAITS[i] + Math.floor(Math.random() * 200)));
   }
   throw httpError(409, 'The team storage is still catching up with a save made a moment ago. Wait a minute and try again.');
