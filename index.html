@@ -610,6 +610,17 @@ td{line-height:1.4}
 /* ── What Changed ── */
 .chg-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;border:1px solid #86efac;background:#f0fdf4;border-radius:10px;font-size:13px;color:var(--text)}
 .chg-strip.alert{border-color:#fed7aa;background:#fff7ed}
+/* 2.22 Sage vs Schedule */
+.chg-strip.mm-strip{border-color:#FCA5A5;background:#FEF2F2}.mm-strip>div{flex:1;min-width:300px;line-height:1.5}
+.tbl-wrap table.mm-tbl{min-width:1100px}
+.mm-desc{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 12px}
+.mm-tag{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#C2410C;background:#FFF7ED;border:1px solid #FED7AA;border-radius:4px;padding:0 5px;line-height:1.6;white-space:nowrap;cursor:pointer;vertical-align:middle}
+.mm-tag.mm-red{color:#DC2626;background:#FEF2F2;border-color:#FCA5A5}
+.mm-chip{font-size:11px;font-weight:600;color:#C2410C;background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:3px 10px;cursor:pointer;white-space:nowrap}
+.mm-tbl th{white-space:nowrap}.mm-tbl td{vertical-align:middle}.mm-tbl tbody tr:hover{background:var(--surface2)}
+.mm-switch{display:grid;gap:8px;margin:6px 0}.mm-switch label{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.5;cursor:pointer}
+#view-mismatch .chg-card-s{font-size:10.5px}
+@media(max-width:1300px){#view-mismatch .chg-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 #chg-head{margin-bottom:12px}
 .chg-cards{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-bottom:14px}
 .chg-card{text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;font-family:'Inter',sans-serif;display:flex;flex-direction:column;gap:3px;min-height:86px}
@@ -724,6 +735,7 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
 .fw-x{background:none;border:none;color:#92400E;cursor:pointer;font-size:14px;padding:0 2px}
 .ss-sub{color:var(--muted2);font-weight:400}
 
+/* 2.22 (11/19): Sage vs Schedule tab, 📅 Date mismatch tags, Overview count, Date shortages by Sage | Schedule. 2.21: local today, shortage rounds up, logo + header. */
 /* 2.20 Overview layout: both rows use the same two columns, panels in a row are the same height,
    and the content fills each panel (footnotes sit at the bottom) */
 .ov-grid,.ov-grid.ov-top{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);align-items:stretch!important}
@@ -899,12 +911,15 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
     <div class="tab" id="tab-schedule" onclick="switchTab('schedule')">
       🚛 Trailers at Risk <span class="tab-badge" id="schedule-badge" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa">0</span>
     </div>
+    <div class="tab" id="tab-mismatch" onclick="switchTab('mismatch')">
+      📅 Sage vs Schedule <span class="tab-badge" id="mismatch-badge" style="background:#FEF2F2;color:#DC2626;border-color:#FCA5A5">0</span>
+    </div>
     <div class="tab" id="tab-late-po" onclick="switchTab('late-po')">
       Expedite <span class="tab-badge" id="late-po-badge" style="background:var(--expedite-bg);color:var(--expedite);border-color:var(--expedite-border)">0</span>
     </div>
   </div>
 
-  <div class="main"><div id="workspace-context"><div><h2 id="workspace-title">Overview</h2><p id="workspace-sub">Purchasing priorities and production exposure</p></div><span id="saved-status" class="saved-status" onclick="v2Data()"></span></div>
+  <div class="main"><div id="workspace-context"><div><h2 id="workspace-title">Overview</h2><p id="workspace-sub">Purchasing priorities and production exposure</p></div><span style="display:flex;gap:10px;align-items:center"><span id="date-mode-chip" class="mm-chip" onclick="v2Data()" title="Change in Data &amp; Settings" style="display:none"></span><span id="saved-status" class="saved-status" onclick="v2Data()"></span></span></div>
 
     <!-- STAT CARDS -->
     <div class="stats-row"></div>   <!-- filled by renderUrgCards() -->
@@ -912,6 +927,7 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
     <!-- OVERVIEW TAB -->
     <div id="view-overview">
       <div id="chg-strip" class="chg-strip" style="display:none"></div>
+      <div id="mm-strip" class="chg-strip alert mm-strip" style="display:none"></div>
       <div class="ov-head">
         <div>
           <div class="ov-title">Production exposure</div>
@@ -1159,6 +1175,9 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
       <div id="chg-body"></div>
       <input type="file" id="chg-file" accept=".xlsx,.xlsm" style="display:none" onchange="chgPickFile(event)">
     </div>
+
+    <!-- SAGE VS SCHEDULE TAB (2.22) -->
+    <div id="view-mismatch" style="display:none"><div class="sched-card" id="mm-root"></div></div>
 
     <!-- LATE PO TAB -->
     <div id="view-late-po" style="display:none">
@@ -1612,8 +1631,259 @@ function urgMatch(d,f){
   if(f==='haspo') return d.urgency==='EXPEDITE';  // a PO arrives after it goes short
   return d.urgency===f;
 }
+
+// ═══════════════════════════════════════════════════════
+//  2.22: SAGE vs SCHEDULE
+//  Sage needs a trailer's parts in the MRP week 2 weeks before its schedule due date (the schedule's
+//  Parts Delivery Date). mmSageInfo() reads, straight from the MRP rows, the week Sage has each trailer in.
+//  mmBuild() compares that with the schedule. redateRaw() can move each trailer's demand to the week the
+//  schedule implies ("Date shortages by: Schedule" in Data & Settings).
+// ═══════════════════════════════════════════════════════
+const MM_DAY=86400000, MM_WEEK=7*MM_DAY, MM_MODE_KEY='mrp_datemode_v1';
+let dateMode=(()=>{ try{ return localStorage.getItem(MM_MODE_KEY)==='schedule'?'schedule':'sage'; }catch(e){ return 'sage'; } })();
+function mrpWeekMs(v){
+  if(v===''||v==null) return null;
+  const d=typeof v==='number'?new Date(Date.UTC(1899,11,30)+v*MM_DAY):new Date(v);
+  const t=d.getTime(); return isNaN(t)?null:t;
+}
+function mmIso(ms){ if(ms==null) return ''; const d=new Date(ms); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); }
+function mmShort(iso){ if(!iso) return '—'; const [y,m,d]=String(iso).split('-').map(Number); return new Date(Date.UTC(y,m-1,d)).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}); }
+// The MRP week Sage should have a trailer in: the Sunday on or before (due date - 2 weeks)
+function mmTargetMs(m){
+  if(!m || !m.due_date || schedDone(m)) return null;
+  const [y,mo,d]=String(m.due_date).split('-').map(Number); if(!y) return null;
+  let t=Date.UTC(y,mo-1,d)-14*MM_DAY; t-=new Date(t).getUTCDay()*MM_DAY; return t;
+}
+function mmCols(raw){
+  const keys=(raw[0]||[]).map(k=>String(k||'').trim());
+  return {code:fk(keys,'ItemCode','itemcode','code'), week:fk(keys,'WeekOf','week','date'), pl:fk(keys,'ProductLine','productline','product'),
+    qoh:fk(keys,'QuantityOnHand','qoh','onhand'), alloc:fk(keys,'Allocated','alloc'), avail:fk(keys,'Available','avail'), inc:fk(keys,'Incoming','incoming'),
+    so:fk(keys,'SalesOrders','salesorders','salesorder'), ppo:fk(keys,'PriorPO'), pso:fk(keys,'PriorSO'), tn:fk(keys,'TrailerNumbers','trailernumber')};
+}
+const mmSplit=v=>String(v||'').split(',').map(x=>x.trim()).filter(Boolean);
+
+// Sage's own dates, read before any re-dating: trailer -> first MRP week (or 'past'), part counts, first/last week,
+// and each part's Sage shortage (so work statuses don't show "Changed" just because the date view was switched)
+function mmSageInfo(raw){
+  const c=mmCols(raw), excl=getExcludedPL();
+  const soWeek={}, prior=new Set(), parts={}, seen=new Set(), item={};
+  let first=Infinity, last=-Infinity;
+  for(let i=1;i<raw.length;i++){
+    const r=raw[i]; const code=r[c.code]; if(!code) continue;
+    if(excl.has(String(r[c.pl]||''))) continue;
+    const w=mrpWeekMs(r[c.week]); if(w==null) continue;
+    if(w<first) first=w; if(w>last) last=w;
+    if(!seen.has(code)){ seen.add(code); if(c.tn>=0) mmSplit(r[c.tn]).forEach(t=>{ prior.add(t); (parts[t]=parts[t]||new Set()).add(code); }); }
+    if(c.so>=0) mmSplit(r[c.so]).forEach(t=>{ if(soWeek[t]==null||w<soWeek[t]) soWeek[t]=w; (parts[t]=parts[t]||new Set()).add(code); });
+    const av=toNum(r[c.avail]); const it=item[code]||(item[code]={fn:null,min:Infinity});
+    if(av<it.min) it.min=av; if(av<0 && (it.fn==null||w<it.fn)) it.fn=w;
+  }
+  const tw={}; prior.forEach(t=>{ tw[t]='past'; }); Object.keys(soWeek).forEach(t=>{ tw[t]=soWeek[t]; });
+  const snap={}; Object.keys(item).forEach(code=>{ const it=item[code]; if(it.fn==null) return;
+    snap[code]={fn:mmIso(it.fn), min:-Math.ceil(-it.min-1e-9), nb:mmIso(it.fn-arrivalBuffer*MM_WEEK)}; });
+  const nparts={}; Object.keys(parts).forEach(t=>{ nparts[t]=parts[t].size; });
+  return {tw, nparts, snap, first:isFinite(first)?first:null, last:isFinite(last)?last:null};
+}
+
+// Copy of the MRP rows with each trailer's demand moved to the week its schedule due date implies.
+// Trailers not on the schedule, without a due date, or completed keep Sage's week. Demand the schedule puts
+// before the first MRP week becomes past due; demand after the last MRP week goes in the last week.
+// Available is then recalculated the same way Sage does: on hand + prior POs - past due + running (incoming - demand).
+function redateRaw(raw, schedBase){
+  const c=mmCols(raw); if(c.code<0||c.week<0||c.alloc<0||c.avail<0) return raw;
+  const tgt={}; (schedBase||[]).forEach(m=>{ const t=mmTargetMs(m); if(t!=null) tgt[m.trailer]=t; });
+  const byItem={};
+  for(let i=1;i<raw.length;i++){ const r=raw[i]; const code=r[c.code]; if(!code) continue; const w=mrpWeekMs(r[c.week]); if(w==null) continue; (byItem[code]=byItem[code]||[]).push([w,i]); }
+  const out=raw.slice(); const R=x=>Math.round(x*1e6)/1e6;
+  for(const code in byItem){
+    const rows=byItem[code].sort((a,b)=>a[0]-b[0]); const weeks=rows.map(x=>x[0]); const w0=weeks[0], wl=weeks[weeks.length-1];
+    const r0=raw[rows[0][1]];
+    const alloc=new Map(weeks.map(w=>[w,0])), sos=new Map(weeks.map(w=>[w,[]]));
+    const priorT=[]; let pso=0;
+    const snapWeek=t=>{ if(t>=wl) return wl; let best=w0; for(const w of weeks){ if(w<=t) best=w; else break; } return best; };
+    const place=(t,q,sageW)=>{
+      const g=tgt[t];
+      if(g==null){ if(sageW==null){ priorT.push(t); pso+=q; } else { alloc.set(sageW,alloc.get(sageW)+q); sos.get(sageW).push(t); } return; }
+      if(g<w0){ priorT.push(t); pso+=q; return; }
+      const w=snapWeek(g); alloc.set(w,alloc.get(w)+q); sos.get(w).push(t);
+    };
+    const pT=c.tn>=0?mmSplit(r0[c.tn]):[], pS=c.pso>=0?toNum(r0[c.pso]):0;
+    if(pT.length){ const q=pS/pT.length; pT.forEach(t=>place(t,q,null)); } else pso+=pS;
+    for(const [w,i] of rows){
+      const r=raw[i]; const a=toNum(r[c.alloc]); const s=c.so>=0?mmSplit(r[c.so]):[];
+      if(s.length && a>0){ const q=a/s.length; s.forEach(t=>place(t,q,w)); }
+      else { alloc.set(w,alloc.get(w)+a); s.forEach(t=>sos.get(w).push(t)); }
+    }
+    let bal=toNum(r0[c.qoh])+(c.ppo>=0?toNum(r0[c.ppo]):0)-pso;
+    const uniq=a=>[...new Set(a)];
+    for(const [w,i] of rows){
+      bal+=toNum(raw[i][c.inc])-alloc.get(w);
+      const nr=raw[i].slice();
+      nr[c.alloc]=R(alloc.get(w)); nr[c.avail]=R(bal);
+      if(c.so>=0) nr[c.so]=uniq(sos.get(w)).join(', ');
+      if(c.pso>=0) nr[c.pso]=R(pso);
+      if(c.tn>=0) nr[c.tn]=uniq(priorT).join(', ');
+      out[i]=nr;
+    }
+  }
+  return out;
+}
+
+const MM_ISSUES=[
+  {k:'later', label:'Sage later', sub:'Sage needs the parts later than the schedule: shortages may come sooner than shown', c:'cc-red'},
+  {k:'earlier', label:'Sage earlier', sub:'Sage needs the parts earlier than the schedule: parts may look more urgent than they are', c:'cc-orange'},
+  {k:'pastlater', label:'Past due in Sage', sub:'Past due in Sage, but due later on the schedule', c:'cc-orange'},
+  {k:'pastboth', label:'Past due in both', sub:'Past due in Sage and on the schedule, not in Completions', c:'cc-gray'},
+  {k:'notinsage', label:'Not in Sage', sub:'Open trailer (0% WIP) due inside the MRP horizon with no parts demand in Sage', c:'cc-red'},
+  {k:'dup', label:'Listed twice', sub:'Same trailer number on two schedule rows; the dashboard uses the first', c:'cc-gray'},
+];
+function mmBuild(){
+  const info=window.__sageInfo, sb=window.scheduleBase||[];
+  if(!info || !sb.length) return null;
+  const today=new Date(TODAY_STR); const weekEnd=mmIso(today.getTime()+(6-today.getUTCDay())*MM_DAY);
+  const horizonEnd=info.last!=null?mmIso(info.last+6*MM_DAY):'';
+  const shortBy={}; (allData||[]).forEach(d=>(d.at_risk_trailers||[]).forEach(t=>{ (shortBy[t]=shortBy[t]||[]).push(d.ItemCode); }));
+  const rows=[], byT={};
+  const add=(m,issue,sage,gap)=>{ const exp=mmTargetMs(m);
+    const r={trailer:m.trailer, line:m.line||'', customer:m.customer||'', model:m.model||'', wip:m.wip||'', due:m.due_date, exp:exp!=null?mmIso(exp):'',
+      sage, gap, nparts:info.nparts[m.trailer]||0, short:(shortBy[m.trailer]||[]).sort(), issue};
+    rows.push(r); if(!byT[m.trailer]) byT[m.trailer]=r; };
+  sb.forEach(m=>{
+    if(schedDone(m) || !m.due_date) return;
+    const s=info.tw[m.trailer];
+    if(s===undefined){ if(horizonEnd && m.due_date<=horizonEnd && (!m.wip || m.wip==='0%')) add(m,'notinsage','',null); return; }
+    if(s==='past'){ add(m, m.due_date>weekEnd?'pastlater':'pastboth', 'past', null); return; }
+    const gap=Math.round((s-mmTargetMs(m))/MM_WEEK); if(gap) add(m, gap>0?'later':'earlier', mmIso(s), gap);
+  });
+  const smap={}; sb.forEach(m=>{ smap[m.trailer]=m; });
+  (window.__schedDupes||[]).forEach(t=>{ const m=smap[t]; if(!m) return; const s=info.tw[t];
+    rows.push({trailer:t, line:m.line||'', customer:m.customer||'', model:m.model||'', wip:m.wip||'', due:m.due_date, exp:mmTargetMs(m)!=null?mmIso(mmTargetMs(m)):'',
+      sage:s===undefined?'':s==='past'?'past':mmIso(s), gap:null, nparts:info.nparts[t]||0, short:(shortBy[t]||[]).sort(), issue:'dup'}); });
+  const counts={}; MM_ISSUES.forEach(x=>{ counts[x.k]=rows.filter(r=>r.issue===x.k).length; });
+  return {rows, byT, counts};
+}
+let mmState={issue:'', line:'', q:'', sort:'issue', dir:1};
+function mmRefresh(){
+  window.__mm=mmBuild();
+  const b=document.getElementById('mismatch-badge'); if(b) b.textContent=window.__mm?window.__mm.rows.length:0;
+  try{ mmStrip(); }catch(e){ console.error(e); }
+  if(document.getElementById('view-mismatch')?.style.display==='block') mmRender();
+  mmModeChip();
+}
+// Small tag beside a trailer's due date when Sage and the schedule disagree
+function mmTag(t){
+  const r=window.__mm&&window.__mm.byT[t]; if(!r || r.issue==='notinsage' || r.issue==='pastboth') return '';
+  const tip=r.issue==='dup'?`${t} is on two schedule rows. The dashboard uses the first one (due ${mmShort(r.due)}).`
+    :`Schedule due ${mmShort(r.due)}, so Sage should need the parts the week of ${mmShort(r.exp)}. Sage has `+(r.sage==='past'?'them past due.':`the week of ${mmShort(r.sage)} (${r.gap>0?'+':''}${r.gap} wk).`);
+  const red=r.issue==='later';
+  return ` <span class="mm-tag${red?' mm-red':''}" title="${lrEsc(tip)}" onclick="event.stopPropagation();mmGoto('${lrEsc(t)}')">📅 ${r.issue==='dup'?'Listed twice':'Date mismatch'}</span>`;
+}
+function mmGoto(t){ document.getElementById('v2-modal')?.remove(); mmState.issue=''; mmState.line=''; mmState.q=t; switchTab('mismatch'); }
+function mmStrip(){
+  const el=document.getElementById('mm-strip'); if(!el) return;
+  const mm=window.__mm; if(!mm || !mm.rows.length){ el.style.display='none'; return; }
+  const n=mm.counts;
+  el.style.display='flex';
+  el.innerHTML=`<div>📅 <b>${n.later} trailer${n.later===1?' is':'s are'} later in Sage than on the schedule</b>, so ${n.later===1?'its':'their'} parts may be needed sooner than shown.
+    <span style="color:var(--muted)"> Also: ${n.earlier} earlier in Sage · ${n.pastlater} past due in Sage but later on the schedule · ${n.notinsage} on the schedule but not in Sage.</span>
+    ${dateMode==='schedule'?'<span style="color:var(--muted)"> Shortages below are dated by the schedule.</span>':''}</div>
+    <button class="export-btn primary" onclick="mmState.issue='later';mmState.line='';mmState.q='';switchTab('mismatch')">Review →</button>`;
+}
+function mmSetSort(k){ if(mmState.sort===k) mmState.dir*=-1; else { mmState.sort=k; mmState.dir=1; } mmRender(); }
+function mmFiltered(){
+  const mm=window.__mm; if(!mm) return [];
+  const q=mmState.q.trim().toLowerCase();
+  let rows=mm.rows.filter(r=>(!mmState.issue||r.issue===mmState.issue)&&(!mmState.line||r.line===mmState.line)
+    &&(!q||[r.trailer,r.customer,r.model,r.line].join(' ').toLowerCase().includes(q)));
+  const k=mmState.sort, dir=mmState.dir;
+  const io={}; MM_ISSUES.forEach((x,i)=>{ io[x.k]=i; });
+  const val=r=>k==='issue'?io[r.issue]:k==='short'?r.short.length:k==='gap'?(r.gap==null?-999:r.gap):k==='nparts'?r.nparts:k==='sage'?(r.sage==='past'?'0':r.sage||'9'):String(r[k]||'');
+  rows.sort((a,b)=>{ const x=val(a), y=val(b); return (x<y?-1:x>y?1:0)*dir || String(a.due).localeCompare(String(b.due)) || a.trailer.localeCompare(b.trailer); });
+  return rows;
+}
+function mmRender(){
+  const root=document.getElementById('mm-root'); if(!root) return;
+  const mm=window.__mm;
+  if(!mm){ root.innerHTML=`<div class="empty-state" style="padding:40px"><div style="font-size:28px">📅</div><p>Load both an MRP and a production schedule to compare Sage with the schedule.</p></div>`; return; }
+  const issueLbl={}; MM_ISSUES.forEach(x=>{ issueLbl[x.k]=x.label; });
+  const cards=MM_ISSUES.map(x=>`<button class="chg-card ${x.c}${mmState.issue===x.k?' active':''}" onclick="mmState.issue=mmState.issue==='${x.k}'?'':'${x.k}';mmRender()" title="${lrEsc(x.sub)}">
+    <span class="chg-card-l">${x.label}</span><span class="chg-card-n">${mm.counts[x.k]}</span><span class="chg-card-s">${x.sub}</span></button>`).join('');
+  const lines=[...new Set(mm.rows.map(r=>r.line).filter(Boolean))].sort(lrLineSort);
+  const rows=mmFiltered();
+  const arrow=k=>mmState.sort===k?(mmState.dir>0?' ▲':' ▼'):'';
+  const th=(k,l,cls='')=>`<th class="${cls}" onclick="mmSetSort('${k}')" style="cursor:pointer">${l}${arrow(k)}</th>`;
+  const sageCell=r=>r.sage==='past'?'<span class="cchip c-orange">Past due</span>':r.sage?mmShort(r.sage):'<span style="color:var(--muted2)">Not in Sage</span>';
+  const gapCell=r=>r.gap==null?'':`<span class="cchip ${r.gap>0?'c-red':'c-orange'}">${r.gap>0?'+':''}${r.gap} wk</span>`;
+  const body=rows.slice(0,600).map(r=>`<tr onclick="mmTrailer('${lrEsc(r.trailer)}','${r.issue}')" style="cursor:pointer">
+    <td><b style="color:var(--accent)">${lrEsc(r.trailer)}</b></td><td>${lrEsc(r.line)}</td>
+    <td style="max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${lrEsc(r.customer+' · '+r.model)}">${lrEsc(r.customer)}<br><small style="color:var(--muted2)">${lrEsc(r.model)}</small></td>
+    <td>${lrEsc(r.wip||'—')}</td><td>${mmShort(r.due)}</td><td>${mmShort(r.exp)}</td><td>${sageCell(r)}</td><td>${gapCell(r)}</td>
+    <td class="num">${r.nparts||'—'}</td><td class="num">${r.short.length?`<b style="color:var(--critical)">${r.short.length}</b>`:'—'}</td>
+    <td>${lrEsc(issueLbl[r.issue])}</td></tr>`).join('');
+  root.innerHTML=`<div class="sched-toolbar">
+      <p class="mm-desc">Trailers where Sage’s parts dates and the production schedule disagree. Normally Sage needs a trailer’s parts the week 2 weeks before its schedule due date (the Parts Delivery Date). <b>Gap</b> = Sage’s week minus that week: <span class="cchip c-red">+</span> Sage later (riskier), <span class="cchip c-orange">−</span> Sage earlier. Fix dates in Sage (or the schedule) and the list shrinks with the next MRP.</p>
+      <div class="chg-cards" style="grid-template-columns:repeat(6,minmax(0,1fr))">${cards}</div>
+      <div class="tb-row"><span class="tb-label">Line</span>
+        <select class="ctrl-sel" onchange="mmState.line=this.value;mmRender()"><option value="">All lines</option>${lines.map(l=>`<option${mmState.line===l?' selected':''}>${lrEsc(l)}</option>`).join('')}</select>
+        <input type="text" class="search-box" id="mm-search" placeholder="Search trailer, customer, model…" style="max-width:320px" value="${lrEsc(mmState.q)}" oninput="mmState.q=this.value;clearTimeout(window.__mmT);window.__mmT=setTimeout(()=>{mmRender();const s=document.getElementById('mm-search');if(s){s.focus();s.setSelectionRange(s.value.length,s.value.length);}},250)">
+        <span class="result-ct">${rows.length.toLocaleString()} trailer${rows.length===1?'':'s'}${mmState.issue?' · '+lrEsc(issueLbl[mmState.issue]):''}${rows.length>600?' · showing the first 600 (narrow it down or export)':''}</span>
+        <div class="tb-right"><button class="export-btn" onclick="mmExport()">⬇ Export Excel</button></div></div>
+    </div>
+    <div class="tbl-wrap"><table class="chg-week mm-tbl"><thead><tr>${th('trailer','Trailer')}${th('line','Line')}${th('customer','Customer · model')}${th('wip','WIP')}${th('due','Schedule due')}${th('exp','Sage should be')}${th('sage','Sage has')}${th('gap','Gap')}${th('nparts','Parts in Sage','num')}${th('short','Short parts','num')}${th('issue','Issue')}</tr></thead>
+    <tbody>${body||'<tr><td colspan="11" style="padding:24px;text-align:center;color:var(--muted2)">No trailers match.</td></tr>'}</tbody></table></div>
+    <p class="tc-small" style="padding:8px 16px">Click a trailer to see its short parts. Short parts are the parts this trailer is at risk on${dateMode==='schedule'?', with shortages dated by the schedule':''}. Weeks start on Sunday, like the MRP.</p>`;
+}
+function mmTrailer(t, issue){
+  const r=(window.__mm.rows||[]).find(x=>x.trailer===t && x.issue===issue); if(!r) return;
+  const P={}; (allData||[]).forEach(d=>{ P[d.ItemCode]=d; });
+  const rows=r.short.map(c=>P[c]).filter(Boolean).sort((a,b)=>(URG_ORDER[a.urgency]??9)-(URG_ORDER[b.urgency]??9));
+  v2Panel(t+' | Sage vs Schedule', `<p class="pn-desc">${lrEsc(r.customer)} · ${lrEsc(r.model)} · ${lrEsc(r.line)} · WIP ${lrEsc(r.wip||'—')}</p>
+    <div class="v2-kv pn-kv"><div><small>Schedule due</small><b>${mmShort(r.due)}</b></div><div><small>Sage should be</small><b>${mmShort(r.exp)}</b></div>
+    <div><small>Sage has</small><b>${r.sage==='past'?'Past due':r.sage?mmShort(r.sage):'Not in Sage'}</b></div><div><small>Gap</small><b>${r.gap==null?'—':(r.gap>0?'+':'')+r.gap+' wk'}</b></div></div>
+    <h3>Short parts (${rows.length})</h3>${rows.length?`<table class="chg-week"><thead><tr><th>Part</th><th>Description</th><th>Urgency</th><th>Goes negative</th><th class="num">Shortage</th><th>Supplier</th><th>Buyer</th></tr></thead><tbody>
+    ${rows.map(d=>`<tr><td><a href="#" onclick="event.preventDefault();v2Part('${lrEsc(d.ItemCode)}')"><b>${lrEsc(d.ItemCode)}</b></a></td><td>${lrEsc(d.ItemCodeDesc)}</td><td>${lrEsc(d.urgency)}</td><td>${lrEsc(d.first_negative_week||'')}</td><td class="num">${Math.abs(d.min_available||0).toLocaleString()}</td><td>${lrEsc(d.VendorName)}</td><td>${lrEsc(d.BuyerCode||'')}</td></tr>`).join('')}</tbody></table>`
+    :`<p>${r.issue==='notinsage'?'Sage has no parts demand for this trailer, so its shortages can’t be seen yet. Check that the sales order and its bill of materials are in Sage.':'No short parts for this trailer.'}</p>`}`);
+}
+function mmExport(){
+  const issueLbl={}; MM_ISSUES.forEach(x=>{ issueLbl[x.k]=x.label; });
+  const rows=mmFiltered();
+  const hdr=['Trailer','Line','Customer','Model','WIP','Schedule due','Sage should be (week of)','Sage has (week of)','Gap (weeks)','Parts in Sage','Short parts','Short part list','Issue'];
+  downloadXLSX([{name:'Sage vs Schedule', rows:[hdr, ...rows.map(r=>[r.trailer,r.line,r.customer,r.model,r.wip,r.due,r.exp,r.sage==='past'?'Past due':r.sage||'Not in Sage',r.gap==null?'':r.gap,r.nparts,r.short.length,r.short.join(', '),issueLbl[r.issue]])]}], 'Sage_vs_Schedule.xlsx');
+}
+
+// "Date shortages by" switch (Data & Settings). Stored per browser.
+function mmSchedCur(){
+  const raw=window.__redatedRaw; if(!raw) return null;
+  if(!window.__mmCur || window.__mmCur.raw!==raw) window.__mmCur={raw, snap:chgBuildSnapshot(raw)};
+  return window.__mmCur;
+}
+function setDateMode(m){
+  dateMode=m==='schedule'?'schedule':'sage';
+  try{ localStorage.setItem(MM_MODE_KEY, dateMode); }catch(e){}
+  document.getElementById('v2-modal')?.remove();
+  if(!window.lastRawData || !window.lastRawData.length){ mmModeChip(); return; }
+  document.getElementById('loading-overlay').style.display='flex';
+  try{ setDialPct(50, dateMode==='schedule'?'Dating shortages by the schedule…':'Dating shortages by Sage…'); }catch(e){}
+  setTimeout(()=>{
+    allData=processRaw(window.lastRawData, window.lastRawFile||window.lastRawFileName);
+    setupDashboard();
+    try{ applyFilters(); }catch(e){}
+    if(dateMode==='schedule' && !(window.scheduleBase||[]).length) uiNotice('No schedule is loaded, so shortages are still dated by Sage. Load a schedule to use schedule dates.');
+  }, 30);
+}
+function mmModeChip(){
+  const el=document.getElementById('date-mode-chip'); if(!el) return;
+  const on=window.__datedBy==='schedule';
+  el.style.display=(dateMode==='schedule')?'inline-block':'none';
+  el.textContent=on?'📅 Shortages dated by schedule':'📅 Schedule dating is on, but no schedule is loaded';
+}
+
 function processRaw(raw, filename) {
   mrpSafeRows(raw);   // quotes/brackets -> look-alikes before anything reads the rows
+  // 2.22: Sage's own trailer dates first; then, if chosen, move each trailer's demand to its schedule week
+  try{ window.__sageInfo=mmSageInfo(raw); }catch(e){ console.error(e); window.__sageInfo=null; }
+  window.__datedBy='sage'; window.__redatedRaw=null;
+  if(dateMode==='schedule' && (window.scheduleBase||[]).length){ try{ raw=redateRaw(raw, window.scheduleBase); window.__redatedRaw=raw; window.__datedBy='schedule'; }catch(e){ console.error(e); } }
   try {
     const today=new Date(TODAY_STR);
     const todayMs=today.getTime();
@@ -1780,6 +2050,7 @@ function processRaw(raw, filename) {
         _alloc:{start:item.QuantityOnHand+item.PriorPO, priorSO:item.PriorSO, prior:item.priorTrailers, first:item.weeks[0].weekMs,
           weeks:item.weeks.map(w=>[w.weekMs, w.alloc, w.inc, item.soByWeek[w.weekMs]||[]])},
         _firstNegMs:firstNegMs,
+        _sageSnap:window.__datedBy==='schedule'&&window.__sageInfo?(window.__sageInfo.snap[item.ItemCode]||null):undefined,
         _earliestDeliveryMs:poMs
       });
     }
@@ -1801,7 +2072,7 @@ function processRaw(raw, filename) {
     vendorData=Object.values(vm).sort((a,b)=>b.nopo-a.nopo);
 
     const exclPlStr=excludedPL.size?(' · excl: '+[...excludedPL].join(', ')):'';
-    document.getElementById('hdr-meta').textContent=filename+' · '+leadWeeks+'wk lead · arrive '+arrivalBuffer+'wk early'+exclPlStr+' · '+result.length.toLocaleString()+' parts flagged';
+    document.getElementById('hdr-meta').textContent=filename+' · '+leadWeeks+'wk lead · arrive '+arrivalBuffer+'wk early'+exclPlStr+' · '+result.length.toLocaleString()+' parts flagged'+(window.__datedBy==='schedule'?' · dated by schedule':'');
     result.forEach(d=>{ d.short_now=!!(d.first_negative_week && String(d.first_negative_week)<=TODAY_STR); });   // already short this week
     window.__mrpDemandTrailers=demandTrailers;
     allocAll(result, window.scheduleBase);   // which trailers each shortage hits
@@ -1972,7 +2243,7 @@ function readScheduleViaZip(file, callback){
 function parseScheduleRaw(raw, fileName){
   mrpSafeRows(raw);
   let iName=-1,iDue=-1,iCust=-1,iModel=-1,iWip=-1,currentLine='';
-  const trailers=[]; const seenTrailers=new Set(); let currentWeek='';
+  const trailers=[]; const seenTrailers=new Set(); let currentWeek=''; const dupes=new Set();
   const isHdr=r=>r && r.includes('Name') && r.includes('Due Date');
   const onlyFirst=r=>r.slice(1).every(v=>!String(v||'').trim());
   // A Monday group starts with its name on one row and the column headers on the next row.
@@ -1996,6 +2267,7 @@ function parseScheduleRaw(raw, fileName){
     if(name.startsWith('WEEK')){currentWeek=name;continue;}
     // Any other one-cell row that isn't a trailer is not a group (see above): skip it
     if(!/^[A-Z]\d+$/.test(name) && onlyFirst(row)) continue;
+    if(/^[A-Z]\d+$/.test(name) && seenTrailers.has(name)) dupes.add(name);   // 2.22: same trailer on two rows
     if(/^[A-Z]\d+$/.test(name) && !seenTrailers.has(name)){
       seenTrailers.add(name);
       const dueRaw=String(row[iDue]||'').trim(); let dueDate=null;
@@ -2017,7 +2289,7 @@ function parseScheduleRaw(raw, fileName){
         worst_urgency:'NONE',critical_count:0,expedite_count:0,high_count:0});
     }
   }
-  window.scheduleBase=trailers;
+  window.scheduleBase=trailers; window.__schedDupes=[...dupes].sort();
   setTimeout(()=>{ try{ renderFileWarn(); }catch(e){} }, 0);
   window.__schedWarn=(iName<0||iDue<0)?'The schedule is missing the Name or Due Date column. The Monday export may have changed, so no trailers could be read.':'';
   if(window.__schedWarn && typeof sdToast==='function') sdToast(window.__schedWarn, [], true);
@@ -2026,7 +2298,11 @@ function parseScheduleRaw(raw, fileName){
   ['schedule-file-name'].forEach(function(id){
     const el=document.getElementById(id); if(el&&fileName) el.textContent=fileName;
   });
-  if(allData.length){
+  if(allData.length && dateMode==='schedule' && window.lastRawData && window.lastRawData.length){
+    // 2.22: shortages are dated by the schedule, so a new schedule means recalculating them
+    allData=processRaw(window.lastRawData, window.lastRawFile||window.lastRawFileName);
+    if(document.getElementById('dashboard').style.display!=='none'){ setupDashboard(); setTimeout(()=>switchTab('schedule'),0); }
+  } else if(allData.length){
     const enriched=buildScheduleFromMRP(allData,trailers);
     setupSchedule(enriched);
     if(document.getElementById('dashboard').style.display!=='none'){
@@ -2174,9 +2450,9 @@ function setupDashboard(){
 // ═══════════════════════════════════════════════════════
 //  TAB SWITCHING
 // ═══════════════════════════════════════════════════════
-const TAB_TITLES={overview:['Overview','Purchasing priorities and production exposure'],actions:['Purchasing Queue','Order, expedite and track follow-up'],parts:['All Flagged Parts','Search, filter and investigate'],schedule:['Production Risk','Affected trailers and blocking parts'],'late-po':['Expedite','Existing purchase orders arriving late'],changes:['What Changed','Changes inside lead time since an earlier MRP']};
+const TAB_TITLES={overview:['Overview','Purchasing priorities and production exposure'],actions:['Purchasing Queue','Order, expedite and track follow-up'],parts:['All Flagged Parts','Search, filter and investigate'],schedule:['Production Risk','Affected trailers and blocking parts'],'late-po':['Expedite','Existing purchase orders arriving late'],changes:['What Changed','Changes inside lead time since an earlier MRP'],mismatch:['Sage vs Schedule','Trailers where Sage’s parts dates and the production schedule disagree']};
 function switchTab(t){
-  ['overview','actions','parts','late-po','schedule','changes'].forEach(n=>{
+  ['overview','actions','parts','late-po','schedule','changes','mismatch'].forEach(n=>{
     const v=document.getElementById('view-'+n); if(v) v.style.display=n===t?'block':'none';
     document.getElementById('tab-'+n)?.classList.toggle('active',n===t);
   });
@@ -2189,6 +2465,7 @@ function switchTab(t){
   if(t==='schedule') renderSchedule();
   if(t==='overview'){ try{ renderOverviewProduction(); }catch(e){ console.error(e); } requestAnimationFrame(()=>{ try{ buildChart(); }catch(e){} }); }
   if(t==='changes') chgRender();
+  if(t==='mismatch') mmRender();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2592,6 +2869,7 @@ function setupSchedule(data){
   document.getElementById('schedule-badge').textContent=scheduleData.length;
   filterSchedule();
   try{ renderOverviewProduction(); }catch(e){ console.error(e); }
+  try{ mmRefresh(); }catch(e){ console.error(e); }   // 2.22 Sage vs Schedule
 }
 function setLineFilter(line){
   scheduleLineFilter=line;
@@ -2920,7 +3198,7 @@ function renderSchedule(){
 
     return `<tr onclick="toggleTrailerDetail('${tid}', this)" style="cursor:pointer" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
       <td style="white-space:nowrap"><span style="font-size:13px;font-weight:700;color:var(--accent)">${t.trailer}</span> <span id="chevron-${tid}" style="font-size:10px;color:var(--muted2);margin-left:2px">▼</span></td>
-      <td style="font-size:13px;font-weight:500;white-space:nowrap">${t.due_date||'—'}</td>
+      <td style="font-size:13px;font-weight:500;white-space:nowrap">${t.due_date||'—'}${mmTag(t.trailer)}</td>
       <td style="font-size:12px;color:var(--muted);white-space:nowrap">${(t.week||'').replace('WEEK ','Wk ')||'—'}</td>
       <td>${wipBar}</td>
       <td style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.customer||''}">${t.customer||'—'}</td>
@@ -3273,6 +3551,9 @@ function v2Help(){ v2Panel('Help', ''
   +'<h3>Work statuses</h3><p>Every tab uses the same four statuses: <b>— Not started</b>, <b>📞 Contacted supplier</b>, <b>📋 PO / date set</b> and <b>✅ Confirmed</b>.</p><p><b>⚠ Changed since set</b> appears under a status when the part changed after the status was chosen: it now goes short sooner, the shortage got bigger, or its PO changed (new, gone, or different). Hover over the tag to see what changed. After you have checked it, click the tag to mark the status current. To list them all, open <b>All Parts</b> and choose <b>Work Status → ⚠ Changed since set</b>. The count also shows in the green status summary in the header.</p>'
   +'<h3>Urgency filters</h3><p><b>⏱ Short now</b> (Purchasing Queue and All Parts) shows parts that are already short this week: their balance goes negative this week or earlier. These are the ones holding up builds today. A red <b>Short now</b> tag also appears under the Goes Negative date. <b>No buyer</b> (buyer filters) shows flagged parts that have no buyer code in the MRP, so they don’t get missed.</p><p>The <b>Status</b> column stays pinned to the right edge of wide tables, so you can set a status without scrolling sideways.</p>'
   +'<h3>How the schedule is read</h3><p>Trailers in the <b>Completions</b> group are done. Trailers in a <b>Line</b> group (and Military) are open. Trailers without a due date are left out of the trailer views (Overview, Trailers at Risk, By Week, Line Reports) until they get one; parts are still flagged from the MRP. Columns are found by their header names (Name, Due Date, Customer, Model, WIP Progress), so moving columns on the Monday board does not break anything. Only Name and Due Date are required; if either is missing, a notice says so.</p><p><b>Product lines.</b> Consignment product lines (0003, 0019, 0041, 0045, FAST, 0069) are left out by default. Your choices under <b>Advanced: individual product line control</b> on the start screen are kept every time you load an MRP or select Recalculate.</p><p><b>Clearing statuses.</b> Open <b>Data &amp; Settings</b> and select <b>Clear all statuses…</b>. When signed in, only an admin can do this, because it clears them for the whole team.</p>'
+  +'<h3>📅 Sage vs Schedule</h3><p>Sage should need a trailer’s parts in the MRP week 2 weeks before the trailer’s schedule due date (the schedule’s Parts Delivery Date). This tab lists every open trailer where it doesn’t: <b>Sage later</b> (the riskiest: parts may be needed sooner than the dashboard shows), <b>Sage earlier</b> (parts may look more urgent than they are), <b>Past due in Sage</b> but due later on the schedule, <b>Past due in both</b> but not in Completions, <b>Not in Sage</b> (open trailers at 0% WIP with no parts demand in the MRP, so their shortages can’t be seen), and trailers <b>Listed twice</b> on the schedule. <b>Gap</b> is Sage’s week minus the week it should be. Click a card to filter, a column heading to sort, or a trailer to see its short parts. Fix the dates in Sage or on the schedule and the list shrinks with the next files.</p>'
+  +'<p>A <span class="mm-tag mm-red">📅 Date mismatch</span> tag next to a due date (part details and Trailers at Risk) means Sage and the schedule disagree for that trailer; red means Sage is later. Point at it to see both dates, or click it to open the trailer on the Sage vs Schedule tab. The Overview shows how many trailers are later in Sage.</p>'
+  +'<h3>Date shortages by Sage or the schedule</h3><p>In <b>Data &amp; Settings</b>, <b>Date shortages by</b> is <b>Sage</b> by default. Choose <b>Schedule</b> to move each trailer’s parts demand to 2 weeks before its schedule due date and recalculate every shortage, urgency and trailer at risk from that. The header then shows <b>📅 Shortages dated by schedule</b>. Trailers not on the schedule, without a due date, or completed keep Sage’s week. The setting is per browser. What Changed and work statuses always use Sage’s dates, so switching doesn’t mark statuses as changed.</p>'
   +'<h3>Exports and refresh</h3><p>All Parts and Purchasing Queue exports use the current filtered list, including an empty result. Reload Last File reuses the parsed MRP data in this session. Opening the same MRP again takes about a second, because the dashboard keeps the rows it read last time. Choose a file again to load changes made outside the dashboard.</p>'); }
 document.addEventListener('click',e=>{const a=e.target.closest('a');if(a&&a.closest('#action-body,#table-body,#late-po-body')){e.preventDefault();v2Part(a.textContent.trim());}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('v2-modal')?.remove();});
@@ -3984,6 +4265,9 @@ function v2Data(){
     +'<p>Your latest files are also kept in this browser, so the dashboard still opens if the team folder is unavailable. Choosing a new file replaces this copy.</p>'
     +'<button class="export-btn" onclick="forgetSavedFiles()">Forget my saved copy</button> <span id="fs-forget-msg" style="font-size:12px;color:var(--low)"></span>'
     +'<h3>Calculation settings</h3><p>Use the steel lead time and arrival buffer controls above the dashboard. Your values are remembered in this browser.</p>'
+    +'<h3>Date shortages by</h3><div class="mm-switch"><label><input type="radio" name="mm-mode" value="sage"'+(dateMode!=='schedule'?' checked':'')+' onchange="setDateMode(\'sage\')"> <span><b>Sage</b> (default): use the weeks in the MRP report as they are.</span></label>'
+    +'<label><input type="radio" name="mm-mode" value="schedule"'+(dateMode==='schedule'?' checked':'')+' onchange="setDateMode(\'schedule\')"> <span><b>Schedule</b>: move each trailer’s parts demand to 2 weeks before its schedule due date, then recalculate shortages, urgency and trailers at risk.</span></label></div>'
+    +'<p class="tc-small">This setting is for this browser only. Trailers that aren’t on the schedule, have no due date, or are completed keep Sage’s week. What Changed and work statuses always use Sage’s dates. See the 📅 Sage vs Schedule tab for every trailer where the two disagree.</p>'
     +'<h3>Work statuses</h3><p>'+(TC.user?'You are signed in, so statuses are shared with the team. Each one shows who set it and when.':'Statuses are saved in this browser only. Sign in to share them with the team.')+'</p>'
     +((!TC.user||TC.user.role==='admin')?'<button class="export-btn" onclick="document.getElementById(\'v2-modal\')?.remove();confirmClearStatuses()">'+(TC.user?'Clear all statuses for the team…':'Clear all statuses…')+'</button>':''));
   Promise.all([fsGet('mrp'),fsGet('sched')]).then(([m,s])=>{
@@ -4056,7 +4340,10 @@ const ST_META='mrp_status_meta_v1';
 let statusMeta=(function(){ try{ return JSON.parse(localStorage.getItem(ST_META)||'{}'); }catch(e){ return {}; } })();
 function saveStatusMeta(){ try{ localStorage.setItem(ST_META, JSON.stringify(statusMeta)); }catch(e){} }
 const poSet=s=>String(s||'').split(/[,\s]+/).map(x=>x.trim()).filter(Boolean).sort().join(',');
-function statusSnap(d){ return {fn:String(d.first_negative_week||''), min:Math.round(d.min_available||0), po:hasPO(d)?poSet(d.PurchaseOrders):'', nb:String(d.need_by||'')}; }
+function statusSnap(d){
+  // 2.22: with shortages dated by the schedule, compare Sage's own dates so switching the view doesn't mark statuses Changed
+  if(d._sageSnap!==undefined){ const s=d._sageSnap||{fn:'',min:0,nb:''}; return {fn:s.fn, min:s.min, po:hasPO(d)?poSet(d.PurchaseOrders):'', nb:s.nb}; }
+  return {fn:String(d.first_negative_week||''), min:Math.round(d.min_available||0), po:hasPO(d)?poSet(d.PurchaseOrders):'', nb:String(d.need_by||'')}; }
 function statusSnapFor(code){
   const t=(typeof TC!=='undefined' && TC.user && TC.statusBy[code] && TC.statusBy[code].snap)||null;
   if(t) return {snap:t, at:TC.statusBy[code].at};
@@ -5245,7 +5532,7 @@ function partWeekTable(it, cur){
 }
 function v2Part(code){
   const d=allData.find(x=>String(x.ItemCode)===String(code)); if(!d) return;
-  let cur=null, it=null; try{ cur=chgEnsureCur(); it=cur&&cur.snap.items[code]; }catch(e){}
+  let cur=null, it=null; try{ cur=window.__datedBy==='schedule'?mmSchedCur():chgEnsureCur(); it=cur&&cur.snap.items[code]; }catch(e){}   // 2.22: chart follows the date view
   const st=getStatus(code);
   const urgCol={CRITICAL:'var(--critical)',HIGH:'var(--high)',MEDIUM:'var(--medium)',LOW:'var(--low)',EXPEDITE:'var(--expedite)'}[d.urgency]||'var(--muted)';
   const dt=d.days_to_order;
@@ -5256,7 +5543,7 @@ function v2Part(code){
     return `<tr><td><b>${lrEsc(p.po)}</b></td><td>${lrEsc(p.week)}</td><td class="num">${(p.qty||0).toLocaleString()}</td><td>${late?'<span class="sn-tag">After need-by</span>':'<span class="pn-ok">On time</span>'}</td></tr>`; }).join('');
   const sb={}; (window.scheduleBase||[]).forEach(m=>{ sb[m.trailer]=m; });
   const trs=(d.at_risk_trailers||[]).map(t=>({t, m:sb[t]})).sort((a,b)=>((a.m&&a.m.due_date)||'9999').localeCompare((b.m&&b.m.due_date)||'9999'))
-    .map(({t,m})=>`<tr class="${m&&m.due_date?'':'pn-dim'}"><td><b>${lrEsc(t)}</b></td><td>${lrEsc(m?(m.line||'—'):'Not on schedule')}</td><td>${lrEsc(m&&m.due_date||'No due date')}</td><td>${lrEsc(m?[m.customer,m.model].filter(Boolean).join(' · '):'')}</td><td>${lrEsc(m&&m.wip||'')}</td><td class="num">${(d.trailer_short&&d.trailer_short[t])?Math.ceil(d.trailer_short[t]-1e-6).toLocaleString():''}</td></tr>`).join('');
+    .map(({t,m})=>`<tr class="${m&&m.due_date?'':'pn-dim'}"><td><b>${lrEsc(t)}</b></td><td>${lrEsc(m?(m.line||'—'):'Not on schedule')}</td><td style="white-space:nowrap">${lrEsc(m&&m.due_date||'No due date')}${mmTag(t)}</td><td>${lrEsc(m?[m.customer,m.model].filter(Boolean).join(' · '):'')}</td><td>${lrEsc(m&&m.wip||'')}</td><td class="num">${(d.trailer_short&&d.trailer_short[t])?Math.ceil(d.trailer_short[t]-1e-6).toLocaleString():''}</td></tr>`).join('');
   const notes=partNotes(code);
   const me=TC.user?TC.user.u:null;
   const noteHtml=notes.map(n=>`<div class="pn-note"><div class="pn-note-h"><b>${lrEsc(TC.user?(n.u===me?'You':n.name):'You')}</b> · ${lrEsc(new Date(n.at).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}))}${(!TC.user||n.u===me)?` <button type="button" class="pn-del" onclick="deleteNote('${lrEsc(code)}','${n.id}')">Delete</button>`:''}</div><div class="pn-note-t">${lrEsc(n.t)}</div></div>`).join('');
