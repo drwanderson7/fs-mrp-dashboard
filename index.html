@@ -538,6 +538,7 @@ td{line-height:1.4}
 /* Urgency badges stay on one line */
 .urg-badge{white-space:nowrap}
 /* Long PO lists: max 2 lines in the table, full list on hover / in the PO popup */
+.po-link{color:var(--accent);font-weight:600;text-decoration:none;border-bottom:1px dotted currentColor;cursor:pointer}.po-link:hover{border-bottom-style:solid}
 .po-list{font-size:11px;font-weight:600;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
 /* Trailers at Risk table: fits wider screens, At-Risk Parts column absorbs remaining width */
 .sched-tbl table{min-width:1320px}
@@ -1526,6 +1527,41 @@ function soCell(d){
 }
 function toCSVRow(arr){ return arr.map(v=>{ const s=String(v==null?'':v); return (s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s; }).join(',')+'\r\n'; }
 
+// -- 2.22: clickable PO numbers + PO details panel ------------------------
+function poLink(po){ po=String(po||'').trim(); if(!po) return ''; const e=lrEsc(po); return `<a href="#" class="po-link" onclick="event.preventDefault();event.stopPropagation();v2PO('${e.replace(/'/g,'&#39;')}')" title="PO details">${e}</a>`; }
+function poLinks(str){ return String(str||'').split(',').map(x=>x.trim()).filter(Boolean).map(poLink).join(', '); }
+function v2PO(po){
+  po=String(po||'').trim(); document.getElementById('po-cov-modal')?.remove();
+  const P=(window.__poIdx||{})[po];
+  if(!P){ v2Panel('PO '+po+' | PO details', '<p>This PO isn’t on the MRP that’s loaded, so it has nothing open (it may be received or closed).</p>'); return; }
+  const parts={}; (allData||[]).forEach(d=>{ parts[d.ItemCode]=d; });
+  const today=new Date(TODAY_STR).getTime();
+  const lines=[]; Object.values(P).forEach(L=>{ L.del.forEach(([w,q])=>lines.push({...L, w, q})); });
+  lines.sort((a,b)=>a.w-b.w || a.code.localeCompare(b.code));
+  const vendors=[...new Set(lines.map(l=>l.vendor).filter(Boolean))], buyers=[...new Set(lines.map(l=>l.buyer).filter(Boolean))];
+  const open=lines.filter(l=>l.q>0); const tot=open.reduce((s,l)=>s+l.q,0);
+  const ws=open.map(l=>l.w); const first=ws.length?Math.min(...ws):null, last=ws.length?Math.max(...ws):null;
+  let late=0, short=0;
+  const rows=lines.map(l=>{ const d=parts[l.code]; const wIso=mmIso(l.w);
+    let timing='<span class="pn-ok">Part not short</span>';
+    if(d){ short++; if(l.q<=0) timing='<span class="sn-tag">No qty on this week</span>';
+      else if(d.need_by && wIso>d.need_by){ late++; timing=`<span class="sn-tag">After need-by ${lrEsc(d.need_by)}</span>`; } else timing='<span class="pn-ok">On time</span>'; }
+    const past=l.w<today-7*86400000;
+    return `<tr><td>${d?`<a href="#" onclick="event.preventDefault();v2Part('${lrEsc(l.code)}')"><b>${lrEsc(l.code)}</b></a>`:`<b>${lrEsc(l.code)}</b>`}</td>
+      <td>${lrEsc(l.desc)}${getExcludedPL().has(l.pl)?' <small style="color:var(--muted2)">(excluded line '+lrEsc(l.pl)+')</small>':''}</td>
+      <td style="white-space:nowrap">${lrEsc(wIso)}${past?' <span class="sn-tag">Past due</span>':''}</td><td class="num">${Math.round(l.q).toLocaleString()}</td>
+      <td>${d?`<span class="urg-badge ub-${d.urgency}">${d.urgency}</span>`:'—'}</td><td>${timing}</td>
+      <td class="num">${d&&(d.at_risk_trailers||[]).length?(d.at_risk_trailers||[]).length:'—'}</td></tr>`; }).join('');
+  v2Panel('PO '+po+' | PO details', `
+    <p class="pn-desc">${lrEsc(vendors.join(', ')||'Supplier not listed')}${buyers.length?' · Buyer '+lrEsc(buyers.join(', ')):''}</p>
+    <div class="v2-kv pn-kv"><div><small>Parts on this PO</small><b>${Object.keys(P).length}</b></div><div><small>Qty still inbound</small><b>${Math.round(tot).toLocaleString()}</b></div>
+      <div><small>First arrival</small><b>${first!=null?lrEsc(mmIso(first)):'—'}</b></div><div><small>Last arrival</small><b>${last!=null?lrEsc(mmIso(last)):'—'}</b></div>
+      <div><small>Lines for short parts</small><b>${short}</b></div><div><small>Arrive after need-by</small><b style="color:${late?'var(--critical)':'inherit'}">${late}</b></div></div>
+    <h3>Lines (week of arrival)</h3>
+    <table class="chg-week"><thead><tr><th>Part</th><th>Description</th><th>Arrives</th><th class="num">Qty</th><th>Part urgency</th><th>Timing</th><th class="num">Trailers at risk</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="tc-small">From the MRP report: each line is the open quantity Sage expects in that week. Received quantities and prices aren’t in the MRP. “After need-by” means it arrives later than the part’s need-by date (${arrivalBuffer} weeks before it goes short).</p>`);
+}
+
 // -- PO Coverage cell + modal --------------------------------------------
 function poCoverageLabel(d){
   if(!hasPO(d)) return 'No PO';
@@ -1546,7 +1582,7 @@ function poCell(d){
   }[status]||{bg:'var(--surface2)',col:'var(--muted)',bdr:'var(--border)',label:'Open'};
   const codeEsc=String(d.ItemCode).replace(/'/g,"\\'");
   return '<div style="cursor:pointer" onclick="showPOCoverage(\'' + codeEsc + '\')" title="Click to see PO delivery schedule">'
-    + '<div class="po-list" title="' + d.PurchaseOrders.trim().replace(/"/g,'&quot;') + '">' + d.PurchaseOrders.trim() + '</div>'
+    + '<div class="po-list" title="' + d.PurchaseOrders.trim().replace(/"/g,'&quot;') + '">' + poLinks(d.PurchaseOrders) + '</div>'
     + '<span style="font-size:10.5px;font-weight:600;background:' + cfg.bg + ';color:' + cfg.col + ';border:1px solid ' + cfg.bdr + ';border-radius:3px;padding:1px 5px;white-space:nowrap;display:inline-block;margin-top:2px">' + qty.toLocaleString() + ' units - ' + cfg.label + '</span>'
     + '</div>';
 }
@@ -1559,7 +1595,7 @@ function showPOCoverage(itemCode){
   const openQty=d.open_po_qty||0;
   const gap=Math.max(0,shortage-openQty);
   const rows=(d.po_deliveries||[]).map(function(dl){
-    return '<tr><td style="padding:6px 10px;font-size:11px;font-weight:600">'+dl.po+'</td>'
+    return '<tr><td style="padding:6px 10px;font-size:11px;font-weight:600">'+poLink(dl.po)+'</td>'
       +'<td style="padding:6px 10px;font-size:11px">'+dl.week+'</td>'
       +'<td style="padding:6px 10px;font-size:11px;text-align:right;font-weight:600">'+dl.qty.toLocaleString()+'</td></tr>';
   }).join('') || '<tr><td colspan="3" style="padding:10px;text-align:center;color:var(--muted2);font-size:11px">No open PO deliveries found</td></tr>';
@@ -1960,7 +1996,7 @@ function processRaw(raw, filename) {
     const splitList=v=>String(v||'').split(',').map(x=>x.trim()).filter(Boolean);
     const demandTrailers={};   // every trailer the MRP still has parts demand for (used to spot completed trailers)
     const excludedPL=getExcludedPL();
-    const items={}; const allPLs=new Set(); const plItems={}, plInfo={};   // every product line in the file, including excluded ones
+    const items={}; const allPLs=new Set(); const plItems={}, plInfo={}; const poIdx={};   // poIdx: 2.22 PO details   // every product line in the file, including excluded ones
 
     for(let i=1;i<raw.length;i++){
       const r=raw[i];
@@ -1968,6 +2004,9 @@ function processRaw(raw, filename) {
       const weekRaw=r[cWeek];
       if(!code||!weekRaw) continue;
       const plCode=String(r[cPL]||'');
+      { const pv=r[cPO]?String(r[cPO]).trim():''; if(pv){ const wMs=mrpWeekMs(weekRaw); if(wMs!=null) pv.split(',').map(x=>x.trim()).filter(Boolean).forEach(po=>{
+          const P=poIdx[po]||(poIdx[po]={}); const L=P[code]||(P[code]={code:String(code), desc:String(r[cDesc]||''), vendor:String(r[cVend]||''), buyer:String(r[cBuyer]||''), pl:plCode, del:[]});
+          L.del.push([wMs, toNum(r[cInc])]); }); } }
       if(plCode){ allPLs.add(plCode); const s=plItems[plCode]||(plItems[plCode]=new Set()); if(!s.has(code)){ s.add(code); const v=String(r[cVend]||''); const pi=plInfo[plCode]||(plInfo[plCode]={v:{},ex:[]}); if(v) pi.v[v]=(pi.v[v]||0)+1; if(pi.ex.length<4) pi.ex.push(String(r[cDesc]||'').trim()); } }
       if(excludedPL.has(plCode)) continue;
       let week;
@@ -2012,6 +2051,7 @@ function processRaw(raw, filename) {
 
     // Build the checkboxes from ALL product lines (not only the ones kept), so excluded lines stay excluded on the next load
     const foundPLs=[...allPLs].sort();
+    window.__poIdx=poIdx;
     window.__plCounts={}; window.__plInfo={};
     Object.keys(plItems).forEach(pl=>{ window.__plCounts[pl]=plItems[pl].size; const vs=Object.entries(plInfo[pl].v).sort((a,b)=>b[1]-a[1]);
       window.__plInfo[pl]={vendors:vs.slice(0,2).map(x=>x[0]), ex:plInfo[pl].ex}; });
@@ -3232,7 +3272,7 @@ function renderSchedule(){
         <td style="padding:7px 10px;font-size:12px;color:var(--muted)">${p.BuyerCode||'—'}</td>
         <td style="padding:7px 10px;font-size:12px;color:var(--muted)">Neg. ${p.first_negative_week||'—'}</td>
         <td style="padding:7px 10px;font-size:12px;font-weight:600;color:var(--critical)">${p.min_available??'—'}</td>
-        <td style="padding:7px 10px;font-size:12px;color:${poColor};font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${poTxt}">${poTxt}</td>
+        <td style="padding:7px 10px;font-size:12px;color:${poColor};font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${poTxt}">${p.PurchaseOrders?poLinks(p.PurchaseOrders):'No PO'}</td>
       </tr>`;
     }).join('');
 
@@ -3616,6 +3656,7 @@ function v2Help(){ v2Panel('Help', ''
   +'<h3>Work statuses</h3><p>Every tab uses the same four statuses: <b>— Not started</b>, <b>📞 Contacted supplier</b>, <b>📋 PO / date set</b> and <b>✅ Confirmed</b>.</p><p><b>⚠ Changed since set</b> appears under a status when the part changed after the status was chosen: it now goes short sooner, the shortage got bigger, or its PO changed (new, gone, or different). Hover over the tag to see what changed. After you have checked it, click the tag to mark the status current. To list them all, open <b>All Parts</b> and choose <b>Work Status → ⚠ Changed since set</b>. The count also shows in the green status summary in the header.</p>'
   +'<h3>Urgency filters</h3><p><b>⏱ Short now</b> (Purchasing Queue and All Parts) shows parts that are already short this week: their balance goes negative this week or earlier. These are the ones holding up builds today. A red <b>Short now</b> tag also appears under the Goes Negative date. <b>No buyer</b> (buyer filters) shows flagged parts that have no buyer code in the MRP, so they don’t get missed.</p><p>The <b>Status</b> column stays pinned to the right edge of wide tables, so you can set a status without scrolling sideways.</p>'
   +'<h3>How the schedule is read</h3><p>Trailers in the <b>Completions</b> group, or with <b>Inspected &amp; Completed</b> set to <b>Done</b>, are done (Ship Hold is still open). Trailers in a <b>Line</b> group (and Military) are open. Trailers without a due date are left out of the trailer views (Overview, Trailers at Risk, By Week, Line Reports) until they get one; parts are still flagged from the MRP. Columns are found by their header names (Name, Due Date, Customer, Model, WIP Progress), so moving columns on the Monday board does not break anything. Only Name and Due Date are required; if either is missing, a notice says so.</p><p><b>Product lines.</b> Consignment product lines (0003, 0019, 0041, 0045, FAST, 0069) are left out by default. Your choices under <b>Advanced: individual product line control</b> on the start screen are kept every time you load an MRP or select Recalculate.</p><p><b>Clearing statuses.</b> Open <b>Data &amp; Settings</b> and select <b>Clear all statuses…</b>. When signed in, only an admin can do this, because it clears them for the whole team.</p>'
+  +'<h3>PO details</h3><p>Click any PO number (Purchasing Queue, All Parts, Expedite, Trailers at Risk, the Overview, part details and What Changed) to see everything on that PO in the MRP: each part, the week it arrives, the quantity, whether that part is short, and whether the line arrives after the part’s need-by date. Received quantities and prices aren’t in the MRP, so they don’t show.</p>'
   +'<h3>Excluded product lines</h3><p>Consignment lines (0003, 0019, 0041, 0045) plus FAST and 0069 are left out by default. To change which lines are left out, open <b>Data &amp; Settings</b>, check or uncheck lines under <b>Excluded product lines</b>, then select <b>Apply and recalculate</b>. Your choice is remembered in this browser, and the header shows the excluded lines.</p>'
   +'<h3>📅 Sage vs Schedule</h3><p>Sage should need a trailer’s parts in the MRP week 2 weeks before the trailer’s schedule due date (the schedule’s Parts Delivery Date). This tab lists every open trailer where it doesn’t: <b>Sage later</b> (the riskiest: parts may be needed sooner than the dashboard shows), <b>Sage earlier</b> (parts may look more urgent than they are), <b>Past due in Sage</b> but due later on the schedule, <b>Past due in both</b> but not in Completions, <b>Not in Sage</b> (open trailers at 0% WIP with no parts demand in the MRP, so their shortages can’t be seen), and trailers <b>Listed twice</b> on the schedule. <b>Gap</b> is Sage’s week minus the week it should be. Click a card to filter, a column heading to sort, or a trailer to see its short parts. Fix the dates in Sage or on the schedule and the list shrinks with the next files.</p>'
   +'<p>A <span class="mm-tag mm-red">📅 Date mismatch</span> tag next to a due date (part details and Trailers at Risk) means Sage and the schedule disagree for that trailer; red means Sage is later. Point at it to see both dates, or click it to open the trailer on the Sage vs Schedule tab. The Overview shows how many trailers are later in Sage.</p>'
@@ -4005,7 +4046,7 @@ function renderOverviewProduction(){
   const partRows=top.map((x,i)=>{
     const p=x.p, d=(allData.find(a=>a.ItemCode===p.ItemCode))||{};
     const po=(p.PurchaseOrders||'').trim();
-    const poTxt=po?`<span class="ov-po" title="${lrEsc(po)}">${lrEsc(po.split(',')[0].trim())}${po.includes(',')?' +':''}</span>${d.open_po_qty?`<div class="ov-small">${d.open_po_qty.toLocaleString()} inbound</div>`:''}`:'<span style="color:var(--critical);font-weight:700">No PO</span>';
+    const poTxt=po?`<span class="ov-po" title="${lrEsc(po)}">${poLink(po.split(',')[0].trim())}${po.includes(',')?' +':''}</span>${d.open_po_qty?`<div class="ov-small">${d.open_po_qty.toLocaleString()} inbound</div>`:''}`:'<span style="color:var(--critical);font-weight:700">No PO</span>';
     const chips=x.byLine.slice().sort((a,b)=>lrLineSort(a[0],b[0])).map(([l,n])=>`<span class="ov-lchip">${lrEsc(lrShortLine(l))} <b>${n}</b></span>`).join('');
     return `<tr class="ov-row" onclick="v2Part('${lrEsc(p.ItemCode)}')">
       <td class="num" style="color:var(--muted2)">${i+1}</td>
@@ -5422,7 +5463,7 @@ function chgDetail(code){
       <div class="v2-kv"><div><small>Lowest balance in lead time</small><b>${r.pMin.toLocaleString()} → ${r.cMin.toLocaleString()}</b></div><div><small>First short week</small><b>${r.pNeg?chgFmtShort(r.pNeg):'—'} → ${r.cNeg?chgFmtShort(r.cNeg):'—'}</b></div>
         <div><small>On hand</small><b>${r.qohP.toLocaleString()} → ${r.qohC.toLocaleString()}</b></div><div><small>On-hand change not explained by receipts or usage</small><b>${r.U>0?'+':''}${r.U.toLocaleString()}</b></div></div>
       ${parts?`<h3>What moved the balance${r.cNeg?' at '+chgFmtShort(r.cNeg):''}</h3><ul class="chg-ul">${parts}</ul>`:''}
-      ${r.poCh.length?`<h3>Purchase orders</h3><ul class="chg-ul">${r.poCh.map(p=>`<li>${lrEsc(chgPoText(p))}</li>`).join('')}</ul>`:''}
+      ${r.poCh.length?`<h3>Purchase orders</h3><ul class="chg-ul">${r.poCh.map(p=>`<li>${lrEsc(chgPoText(p)).replace(lrEsc(p.po), poLink(p.po))}</li>`).join('')}</ul>`:''}
       ${r.newTr.length?`<h3>New trailers inside lead time</h3><p>${lrEsc(r.newTr.join(', '))}</p>`:''}
       <h3>Week by week (inside lead time)</h3><p style="font-size:12px">Old values are struck through.</p>
       <table class="chg-week"><thead><tr><th>Week</th><th class="num">Demand</th><th class="num">Incoming</th><th class="num">Balance</th></tr></thead><tbody>${trs}</tbody></table>`);
@@ -5607,7 +5648,7 @@ function v2Part(code){
     ['Lowest balance', (d.min_available||0).toLocaleString()],['Recommended qty', Math.abs(d.min_available||0).toLocaleString()],['On hand', (d.QuantityOnHand||0).toLocaleString()],
     ['Open PO qty', (d.open_po_qty||0).toLocaleString()],['Product line', d.ProductLine||'—']];
   const pos=(d.po_deliveries||[]).map(p=>{ const late=d.need_by && p.week>d.need_by;
-    return `<tr><td><b>${lrEsc(p.po)}</b></td><td>${lrEsc(p.week)}</td><td class="num">${(p.qty||0).toLocaleString()}</td><td>${late?'<span class="sn-tag">After need-by</span>':'<span class="pn-ok">On time</span>'}</td></tr>`; }).join('');
+    return `<tr><td><b>${poLink(p.po)}</b></td><td>${lrEsc(p.week)}</td><td class="num">${(p.qty||0).toLocaleString()}</td><td>${late?'<span class="sn-tag">After need-by</span>':'<span class="pn-ok">On time</span>'}</td></tr>`; }).join('');
   const sb={}; (window.scheduleBase||[]).forEach(m=>{ sb[m.trailer]=m; });
   const trs=(d.at_risk_trailers||[]).map(t=>({t, m:sb[t]})).sort((a,b)=>((a.m&&a.m.due_date)||'9999').localeCompare((b.m&&b.m.due_date)||'9999'))
     .map(({t,m})=>`<tr class="${m&&m.due_date?'':'pn-dim'}"><td><b>${lrEsc(t)}</b></td><td>${lrEsc(m?(m.line||'—'):'Not on schedule')}</td><td style="white-space:nowrap">${lrEsc(m&&m.due_date||'No due date')}${mmTag(t)}</td><td>${lrEsc(m?[m.customer,m.model].filter(Boolean).join(' · '):'')}</td><td>${lrEsc(m&&m.wip||'')}</td><td class="num">${(d.trailer_short&&d.trailer_short[t])?Math.ceil(d.trailer_short[t]-1e-6).toLocaleString():''}</td></tr>`).join('');
