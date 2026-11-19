@@ -1444,7 +1444,7 @@ function setDialPct(pct, msg){
   if(txt && msg) txt.textContent = msg;
 }
 let arrivalBuffer=2;
-let scheduleData=[], scheduleFiltered=[], schedulePage=1, scheduleSearch='', scheduleUrgFilter='all', scheduleLineFilter='', scheduleSort='due_date', scheduleSortDir='asc';
+let scheduleData=[], scheduleFiltered=[], schedulePage=1, scheduleSearch='', scheduleUrgFilter='all', scheduleLineFilter='', scheduleSort='due_date', scheduleSortDir='asc', scheduleWeekFilter='';   // 2.22: By Week drill-down filters on the exact week
 const SCHEDULE_PAGE=50;
 let leadWeeks=8, activeSupplier='', currentPage=1, actPage=1, latePOPage=1;
 let sortCol='days_to_order', sortDir='asc';
@@ -2284,7 +2284,7 @@ function parseScheduleRaw(raw, fileName){
       if(dueDate){
         try{
           const dd=new Date(dueDate);
-          const d=new Date(Date.UTC(dd.getFullYear(),dd.getMonth(),dd.getDate()));
+          const d=new Date(Date.UTC(dd.getUTCFullYear(),dd.getUTCMonth(),dd.getUTCDate()));   // 2.22: dueDate is UTC midnight, so read UTC parts (local parts were a day early in Central time)
           d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
           const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
           const isoWk=Math.ceil((((d-yearStart)/86400000)+1)/7);
@@ -2894,17 +2894,24 @@ function setSchedFilter(u){
   ['all','CRITICAL','EXPEDITE','HIGH','clear'].forEach(id=>{ const el=document.getElementById('sf-'+id); if(el) el.classList.toggle('active',id===u); });
   schedulePage=1; filterSchedule();
 }
+// Line + Show filters (shared by the Trailer List and By Week, so both count the same trailers)
+function schedLineUrgMatch(t){
+  if(scheduleLineFilter && (t.line||'')!==scheduleLineFilter) return false;
+  if(scheduleUrgFilter==='all') return true;
+  if(scheduleUrgFilter==='clear') return t.worst_urgency==='NONE';
+  return t.worst_urgency===scheduleUrgFilter||(scheduleUrgFilter==='CRITICAL'&&t.critical_count>0)||(scheduleUrgFilter==='EXPEDITE'&&t.expedite_count>0)||(scheduleUrgFilter==='HIGH'&&t.high_count>0);
+}
 function filterSchedule(){
   const q=scheduleSearch.toLowerCase();
   scheduleFiltered=scheduleData.filter(t=>{
-    if(scheduleLineFilter && (t.line||'')!==scheduleLineFilter) return false;
+    if(!schedLineUrgMatch(t)) return false;
+    if(scheduleWeekFilter && (t.week||'')!==scheduleWeekFilter) return false;
     const weekLabel=(t.week||'').replace('WEEK ','Wk ');
     if(q&&![t.trailer,t.customer,t.model,t.week,weekLabel].join(' ').toLowerCase().includes(q)) return false;
-    if(scheduleUrgFilter==='all') return true;
-    if(scheduleUrgFilter==='clear') return t.worst_urgency==='NONE';
-    return t.worst_urgency===scheduleUrgFilter||(scheduleUrgFilter==='CRITICAL'&&t.critical_count>0)||(scheduleUrgFilter==='EXPEDITE'&&t.expedite_count>0)||(scheduleUrgFilter==='HIGH'&&t.high_count>0);
+    return true;
   });
   sortSched(scheduleSort,true);
+  if(schedSubView==='week') buildWeekGrid();   // By Week follows the Line and Show filters
 }
 // ── SCHEDULE SUB-VIEWS ──────────────────────────────────
 let schedSubView = 'list';
@@ -2969,9 +2976,9 @@ function buildTopParts(){
 function buildWeekGrid(){
   const el = document.getElementById('week-grid'); if(!el) return;
 
-  // Group scheduleData by week
+  // Group by week the trailers that pass the Line and Show filters
   const weekMap = {};
-  scheduleData.forEach(t=>{
+  scheduleData.filter(schedLineUrgMatch).forEach(t=>{
     const wk = t.week||'Unknown';
     if(!weekMap[wk]) weekMap[wk]={week:wk, trailers:[], earliest_due:t.due_date||'9999'};
     weekMap[wk].trailers.push(t);
@@ -3096,7 +3103,7 @@ function toggleTrailerDetail(tid, row){
   if(!isOpen) row.style.background = 'var(--surface2)';
 }
 function clearWeekDrill(){
-  scheduleSearch='';
+  scheduleSearch=''; scheduleWeekFilter='';
   document.getElementById('sched-search').value='';
   const bb=document.getElementById('week-back-btn'); if(bb) bb.style.display='none';
   schedulePage=1;
@@ -3109,9 +3116,9 @@ function drillWeek(encodedWeek){
   // Switch to Trailer List view and filter to this week
   setSchedSubView('list');
   const weekLabel = week.replace('WEEK ','Wk ');
-  // Search using the raw stored value ("WEEK 12") so filterSchedule matches t.week exactly
-  scheduleSearch = week.toLowerCase();
-  document.getElementById('sched-search').value = weekLabel;
+  // Filter on the exact week (a text search for "week 3" would also match weeks 30-39)
+  scheduleWeekFilter = week; scheduleSearch = '';
+  document.getElementById('sched-search').value = '';
   // Show back button with display label
   const backBtn = document.getElementById('week-back-btn');
   if(backBtn){ backBtn.style.display='inline-block'; backBtn.textContent='← '+weekLabel+' — all weeks'; }
