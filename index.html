@@ -623,6 +623,12 @@ td{line-height:1.4}
 .pl-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);cursor:pointer}
 .pl-chip small{font-weight:500;color:var(--muted2);font-size:10px}
 .pl-chip.on{border-color:#FCA5A5;background:#FEF2F2;color:#DC2626}
+.pl-chip.on-b{border-color:#93C5FD;background:#EFF6FF;color:#2563EB}
+.er-lines{display:flex!important;flex-wrap:wrap;gap:6px;max-height:none;border:0}
+.er-checks{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.er-l{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}.er-l small{font-weight:400;color:var(--muted)}
+.er-l textarea,.er-l input[type=email]{display:block;width:100%;margin-top:4px;padding:7px 9px;border:1px solid var(--border2);border-radius:6px;font:inherit;font-weight:400}
+.er-grid{display:grid;gap:8px;margin:10px 0;font-size:13px}.er-grid label{line-height:1.7}
 .pl-set{display:block;max-height:420px;overflow:auto;border:1px solid var(--border);border-radius:6px}
 .pl-tbl td{vertical-align:top}.pl-tbl td small{color:var(--muted2);font-size:10.5px}.pl-tbl tr.on td{background:#FEF2F2}.pl-tbl tr.on td b{color:#DC2626}.pl-tbl input{width:15px;height:15px;accent-color:#DC2626;cursor:pointer}
 .v2-panel .pl-tbl th{top:0}
@@ -3656,6 +3662,7 @@ function v2Help(){ v2Panel('Help', ''
   +'<h3>Work statuses</h3><p>Every tab uses the same four statuses: <b>— Not started</b>, <b>📞 Contacted supplier</b>, <b>📋 PO / date set</b> and <b>✅ Confirmed</b>.</p><p><b>⚠ Changed since set</b> appears under a status when the part changed after the status was chosen: it now goes short sooner, the shortage got bigger, or its PO changed (new, gone, or different). Hover over the tag to see what changed. After you have checked it, click the tag to mark the status current. To list them all, open <b>All Parts</b> and choose <b>Work Status → ⚠ Changed since set</b>. The count also shows in the green status summary in the header.</p>'
   +'<h3>Urgency filters</h3><p><b>⏱ Short now</b> (Purchasing Queue and All Parts) shows parts that are already short this week: their balance goes negative this week or earlier. These are the ones holding up builds today. A red <b>Short now</b> tag also appears under the Goes Negative date. <b>No buyer</b> (buyer filters) shows flagged parts that have no buyer code in the MRP, so they don’t get missed.</p><p>The <b>Status</b> column stays pinned to the right edge of wide tables, so you can set a status without scrolling sideways.</p>'
   +'<h3>How the schedule is read</h3><p>Trailers in the <b>Completions</b> group, or with <b>Inspected &amp; Completed</b> set to <b>Done</b>, are done (Ship Hold is still open). Trailers in a <b>Line</b> group (and Military) are open. Trailers without a due date are left out of the trailer views (Overview, Trailers at Risk, By Week, Line Reports) until they get one; parts are still flagged from the MRP. Columns are found by their header names (Name, Due Date, Customer, Model, WIP Progress), so moving columns on the Monday board does not break anything. Only Name and Due Date are required; if either is missing, a notice says so.</p><p><b>Product lines.</b> Consignment product lines (0003, 0019, 0041, 0045, FAST, 0069) are left out by default. Your choices under <b>Advanced: individual product line control</b> on the start screen are kept every time you load an MRP or select Recalculate.</p><p><b>Clearing statuses.</b> Open <b>Data &amp; Settings</b> and select <b>Clear all statuses…</b>. When signed in, only an admin can do this, because it clears them for the whole team.</p>'
+  +'<h3>📧 Scheduled Line Report emails (admin)</h3><p>An admin can have the server email the Line Report every weekday morning: a daily report (by default critical and expedite trailers due in the next 4 weeks) and a full weekly report, with the printable Line Report attached as a PDF. Set it up in <b>Data &amp; Settings → Scheduled Line Report emails</b>: add the email addresses, pick the lines, select <b>Preview</b> to check it, <b>Send a test to me</b>, then <b>Save and turn on</b>. It uses the files most recently published to the team, and warns in the email when they are 3 or more days old.</p>'
   +'<h3>PO details</h3><p>Click any PO number (Purchasing Queue, All Parts, Expedite, Trailers at Risk, the Overview, part details and What Changed) to see everything on that PO in the MRP: each part, the week it arrives, the quantity, whether that part is short, and whether the line arrives after the part’s need-by date. Received quantities and prices aren’t in the MRP, so they don’t show.</p>'
   +'<h3>Excluded product lines</h3><p>Consignment lines (0003, 0019, 0041, 0045) plus FAST and 0069 are left out by default. To change which lines are left out, open <b>Data &amp; Settings</b>, check or uncheck lines under <b>Excluded product lines</b>, then select <b>Apply and recalculate</b>. Your choice is remembered in this browser, and the header shows the excluded lines.</p>'
   +'<h3>📅 Sage vs Schedule</h3><p>Sage should need a trailer’s parts in the MRP week 2 weeks before the trailer’s schedule due date (the schedule’s Parts Delivery Date). This tab lists every open trailer where it doesn’t: <b>Sage later</b> (the riskiest: parts may be needed sooner than the dashboard shows), <b>Sage earlier</b> (parts may look more urgent than they are), <b>Past due in Sage</b> but due later on the schedule, <b>Past due in both</b> but not in Completions, <b>Not in Sage</b> (open trailers at 0% WIP with no parts demand in the MRP, so their shortages can’t be seen), and trailers <b>Listed twice</b> on the schedule. <b>Gap</b> is Sage’s week minus the week it should be. Click a card to filter, a column heading to sort, or a trailer to see its short parts. Fix the dates in Sage or on the schedule and the list shrinks with the next files.</p>'
@@ -4362,6 +4369,99 @@ async function sdPublish(kind, bytes, name){
 }
 
 // Data & Settings panel
+
+// ═══════════════════════════════════════════════════════
+//  2.22: SCHEDULED LINE REPORT EMAILS (admin, Data & Settings)
+//  The server builds the Line Report from the published team files and emails it through Resend.
+// ═══════════════════════════════════════════════════════
+function erSectionHtml(){
+  if(!TC.user || TC.user.role!=='admin') return '';
+  return '<h3>📧 Scheduled Line Report emails</h3><div id="er-box"><p>Checking…</p></div>';
+}
+async function erLoad(){
+  const box=document.getElementById('er-box'); if(!box) return;
+  let d; try{ d=await tcFetch('/reports?op=settings'); }catch(e){ box.innerHTML=`<p style="color:var(--critical)">Could not load: ${v2Escape(e.message)}. Make sure the latest api files are deployed.</p>`; return; }
+  window.__er=d; const s=d.settings, st=d.status;
+  const lines=[...new Set((window.scheduleBase||[]).filter(t=>!schedDone(t)&&t.due_date).map(t=>t.line||''))].filter(Boolean).sort(lrLineSort);
+  const defLine=l=>/^Line\s+\d+$/i.test(l);
+  const lineBoxes=lines.map(l=>`<label class="pl-chip${(s.lines.length?s.lines.includes(l):defLine(l))?' on-b':''}"><input type="checkbox" class="er-line" value="${v2Escape(l)}"${(s.lines.length?s.lines.includes(l):defLine(l))?' checked':''} onchange="this.parentElement.classList.toggle('on-b',this.checked)"> ${v2Escape(l)}</label>`).join('');
+  const dayOpts=[1,2,3,4,5].map(i=>`<option value="${i}"${s.weekly.day===i?' selected':''}>${d.days[i]}</option>`).join('');
+  const wkOpts=(v,list)=>list.map(n=>`<option value="${n}"${v===n?' selected':''}>${n?'next '+n+' weeks':'all open trailers'}</option>`).join('');
+  const ok=(b,t,f)=>`<span class="cchip ${b?'c-green':'c-red'}">${b?'✓ '+t:'✗ '+f}</span>`;
+  const last=st?(st.ok?`Last sent ${v2Escape(fsWhen(st.at))}: ${v2Escape(st.kind)} report to ${st.to} people${st.pdf?' with PDF':''}${st.pdfError?' (PDF failed: '+v2Escape(st.pdfError)+')':''}.${st.note?' '+v2Escape(st.note):''}`:`<span style="color:var(--critical)">Last try ${v2Escape(fsWhen(st.at))} failed: ${v2Escape(st.error)}</span>`):'Nothing sent yet.';
+  box.innerHTML=`
+    <p>Every weekday morning (about 5–6 AM Central) the server builds the Line Report from the published team files and emails it. On the weekly day the full weekly report goes out instead of the daily one.</p>
+    <div class="er-checks">${ok(d.keyStored,'Server can read the team files','Not turned on')} ${ok(d.env.resend,'Resend key set','RESEND_API_KEY missing in Vercel')} ${ok(d.env.cron,'Schedule secret set','CRON_SECRET missing in Vercel')} ${ok(s.enabled,'Emails on','Emails off')}</div>
+    <p class="tc-small">Sending from: <b>${v2Escape(d.env.from)}</b>${/resend\.dev/.test(d.env.from)?' — Resend’s test address: it can only email the address you signed up to Resend with, until your company domain is set up.':''}</p>
+    <p class="tc-small">${last}</p>
+    <label class="er-l">Send to <small>(email addresses, one per line or separated by commas)</small><textarea id="er-to" rows="3">${v2Escape(s.recipients.join('\n'))}</textarea></label>
+    <label class="er-l">Your email for tests<input id="er-test" type="email" value="${v2Escape(s.testTo||'')}"></label>
+    <div class="er-l">Lines<div class="pl-set er-lines">${lineBoxes||'<span class="tc-small">Load a schedule to choose lines.</span>'}</div></div>
+    <div class="er-grid">
+      <label><input type="checkbox" id="er-daily"${s.daily.on?' checked':''}> <b>Daily</b> (Mon–Fri): trailers due in the <select id="er-dweeks" class="ctrl-sel">${wkOpts(s.daily.weeks,[2,4,6,8])}</select>
+        <br><label style="margin-left:22px"><input type="checkbox" id="er-urgent"${s.daily.urgentOnly?' checked':''}> list only critical and expedite trailers in the email</label></label>
+      <label><input type="checkbox" id="er-weekly"${s.weekly.on?' checked':''}> <b>Weekly</b> on <select id="er-wday" class="ctrl-sel">${dayOpts}</select>: trailers due in the <select id="er-wweeks" class="ctrl-sel">${wkOpts(s.weekly.weeks,[4,8,12,0])}</select></label>
+      <label><input type="checkbox" id="er-pdf"${s.pdf?' checked':''}> Attach the Line Report PDF</label>
+      <label><input type="checkbox" id="er-new"${s.onlyIfNew?' checked':''}> Only send when a new MRP or schedule has been published since the last email</label>
+    </div>
+    <p class="tc-small">The report uses this browser’s settings when you select Save: steel lead ${leadWeeks} wk, arrive ${arrivalBuffer} wk early, shortages dated by ${dateMode==='schedule'?'the schedule':'Sage'}, excluded lines ${[...getExcludedPL()].join(', ')||'none'}.${s.enabled?' Saved: lead '+s.leadWeeks+' wk, arrive '+s.arrivalBuffer+' wk, '+(s.dateMode==='schedule'?'schedule':'Sage')+' dates, excluded '+v2Escape(s.excluded.join(', ')||'none')+'.':''}</p>
+    <p>
+      <button class="export-btn primary" onclick="erSave(true)">${s.enabled?'Save':'Save and turn on'}</button>
+      ${s.enabled?'<button class="export-btn" onclick="erSave(false)">Turn off</button>':''}
+      <button class="export-btn" onclick="erPreview('daily')">Preview daily</button>
+      <button class="export-btn" onclick="erPreview('weekly')">Preview weekly</button>
+      <button class="export-btn" onclick="erTest(false)">Send a test to me</button>
+      ${s.recipients.length?'<button class="export-btn" onclick="erTest(true)">Send now to everyone</button>':''}
+      ${d.keyStored?'<button class="export-btn" onclick="erForget()">Remove the server’s key</button>':''}
+    </p>
+    <div id="er-msg" class="tc-msg"></div>
+    <p class="tc-small">Turning this on stores a copy of the team key in your Vercel storage, locked with DASHBOARD_SECRET, so the server can read the published files at night. Anyone who can sign in to your Vercel account could then read the MRP and schedule. “Remove the server’s key” undoes this.</p>`;
+}
+function erMsg(t, ok){ const m=document.getElementById('er-msg'); if(m){ m.textContent=t; m.className='tc-msg'+(ok?' ok':''); } }
+function erCollect(enabled){
+  return {enabled, recipients:document.getElementById('er-to').value, testTo:document.getElementById('er-test').value.trim(),
+    lines:[...document.querySelectorAll('.er-line:checked')].map(c=>c.value),
+    daily:{on:document.getElementById('er-daily').checked, weeks:+document.getElementById('er-dweeks').value, urgentOnly:document.getElementById('er-urgent').checked},
+    weekly:{on:document.getElementById('er-weekly').checked, day:+document.getElementById('er-wday').value, weeks:+document.getElementById('er-wweeks').value},
+    pdf:document.getElementById('er-pdf').checked, onlyIfNew:document.getElementById('er-new').checked,
+    leadWeeks, arrivalBuffer, excluded:[...getExcludedPL()], dateMode, site:location.origin.startsWith('https://')?location.origin:''};
+}
+async function erSave(enabled){
+  erMsg('Saving…', true);
+  try{
+    if(enabled && !(window.__er&&window.__er.keyStored)){
+      if(!TC.keyRaw) throw new Error('sign in again first');
+      await tcFetch('/reports?op=key', {json:{key:tcB64(TC.keyRaw)}});
+    }
+    await tcFetch('/reports?op=settings', {json:{settings:erCollect(enabled)}});
+    await erLoad(); erMsg(enabled?'Saved. Emails are on.':'Saved. Emails are off.', true);
+  }catch(e){ erMsg('Could not save: '+e.message); }
+}
+async function erForget(){
+  if(!(await uiConfirm('Remove the server’s copy of the team key? Scheduled emails stop until an admin turns them on again.','Remove'))) return;
+  try{ await tcFetch('/reports?op=key', {json:{remove:true}}); await erLoad(); erMsg('Removed. The server can no longer read the team files.', true); }catch(e){ erMsg('Could not remove: '+e.message); }
+}
+async function erPreview(kind){
+  erMsg('Building the '+kind+' email… (about 20 seconds)', true);
+  try{
+    await tcFetch('/reports?op=settings', {json:{settings:erCollect(!!(window.__er&&window.__er.settings.enabled))}});
+    const r=await fetch(TC.api+'/reports?op=preview&kind='+kind, {headers:{authorization:'Bearer '+TC.token}, cache:'no-store'});
+    const t=await r.text(); if(!r.ok){ let m=t; try{ m=JSON.parse(t).error; }catch(e){} throw new Error(m); }
+    const w=window.open('','_blank'); if(!w) throw new Error('your browser blocked the preview window');
+    w.document.open(); w.document.write(t); w.document.close(); erMsg('Preview opened in a new tab (the PDF isn’t included in previews).', true);
+  }catch(e){ erMsg('Could not build the preview: '+e.message); }
+}
+async function erTest(all){
+  if(all && !(await uiConfirm('Send the report to everyone on the list now?','Send'))) return;
+  erMsg('Building and sending… (up to a minute)', true);
+  try{
+    await tcFetch('/reports?op=settings', {json:{settings:erCollect(!!(window.__er&&window.__er.settings.enabled))}});
+    if(!(window.__er&&window.__er.keyStored)){ if(!TC.keyRaw) throw new Error('sign in again first'); await tcFetch('/reports?op=key', {json:{key:tcB64(TC.keyRaw)}}); }
+    const d=await tcFetch('/reports?op=test', {json:{kind:new Date().getDay()===+document.getElementById('er-wday').value?'weekly':'daily', toList:all}, timeout:120000});
+    await erLoad(); erMsg(`Sent to ${d.to.join(', ')}${d.pdf?' with the PDF':''}.${d.pdfError?' The PDF failed: '+d.pdfError:''}`, true);
+  }catch(e){ erMsg('Could not send: '+e.message); }
+}
+
 function v2Data(){
   v2Panel('Data & Settings',
     tcDataSection()
@@ -4376,8 +4476,10 @@ function v2Data(){
     +'<h3>Date shortages by</h3><div class="mm-switch"><label><input type="radio" name="mm-mode" value="sage"'+(dateMode!=='schedule'?' checked':'')+' onchange="setDateMode(\'sage\')"> <span><b>Sage</b> (default): use the weeks in the MRP report as they are.</span></label>'
     +'<label><input type="radio" name="mm-mode" value="schedule"'+(dateMode==='schedule'?' checked':'')+' onchange="setDateMode(\'schedule\')"> <span><b>Schedule</b>: move each trailer’s parts demand to 2 weeks before its schedule due date, then recalculate shortages, urgency and trailers at risk.</span></label></div>'
     +'<p class="tc-small">This setting is for this browser only. Trailers that aren’t on the schedule, have no due date, or are completed keep Sage’s week. What Changed and work statuses always use Sage’s dates. See the 📅 Sage vs Schedule tab for every trailer where the two disagree.</p>'
+    +erSectionHtml()
     +'<h3>Work statuses</h3><p>'+(TC.user?'You are signed in, so statuses are shared with the team. Each one shows who set it and when.':'Statuses are saved in this browser only. Sign in to share them with the team.')+'</p>'
     +((!TC.user||TC.user.role==='admin')?'<button class="export-btn" onclick="document.getElementById(\'v2-modal\')?.remove();confirmClearStatuses()">'+(TC.user?'Clear all statuses for the team…':'Clear all statuses…')+'</button>':''));
+  erLoad();
   Promise.all([fsGet('mrp'),fsGet('sched')]).then(([m,s])=>{
     const row=(label,r)=>r?`<p><b>${label}:</b> ${v2Escape(r.name)}<br><small style="color:var(--muted2)">Saved ${v2Escape(fsWhen(r.savedAt))} · ${(r.bytes.byteLength/1048576).toFixed(1)} MB</small></p>`:`<p><b>${label}:</b> <span style="color:var(--muted2)">nothing saved</span></p>`;
     const el=document.getElementById('fs-saved-list'); if(el) el.innerHTML=row('MRP',m)+row('Schedule',s);

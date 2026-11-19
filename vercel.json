@@ -1,0 +1,9 @@
+{
+  "crons": [
+    { "path": "/api/cron", "schedule": "15 11 * * 1-5" }
+  ],
+  "functions": {
+    "api/reports.js": { "maxDuration": 60, "includeFiles": "index.html" },
+    "api/cron.js": { "maxDuration": 60, "includeFiles": "index.html" }
+  }
+}
