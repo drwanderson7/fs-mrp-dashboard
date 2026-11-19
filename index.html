@@ -622,6 +622,9 @@ td{line-height:1.4}
 .pl-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);cursor:pointer}
 .pl-chip small{font-weight:500;color:var(--muted2);font-size:10px}
 .pl-chip.on{border-color:#FCA5A5;background:#FEF2F2;color:#DC2626}
+.pl-set{display:block;max-height:420px;overflow:auto;border:1px solid var(--border);border-radius:6px}
+.pl-tbl td{vertical-align:top}.pl-tbl td small{color:var(--muted2);font-size:10.5px}.pl-tbl tr.on td{background:#FEF2F2}.pl-tbl tr.on td b{color:#DC2626}.pl-tbl input{width:15px;height:15px;accent-color:#DC2626;cursor:pointer}
+.v2-panel .pl-tbl th{top:0}
 .mm-switch{display:grid;gap:8px;margin:6px 0}.mm-switch label{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.5;cursor:pointer}
 #view-mismatch .chg-card-s{font-size:10.5px}
 @media(max-width:1300px){#view-mismatch .chg-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
@@ -1403,6 +1406,7 @@ const DEFAULT_EXCLUDED_PL = new Set(['0003','0019','0041','0045','FAST','0069'])
 const ALL_KNOWN_PL = ['0003','0004','0012','0015','0016','0017','0018','0019','0021','0022','0028','0030','0031','0033','0038','0041','0045','0048','0051','0061','0069','0071','0072','0073','0081','0082','0084','0085','0088','0089','0098','FAST','FTSR','NP','TARM'];
 
 // 2.22: excluded product lines are remembered in this browser and can be changed in Data & Settings
+const PL_GUESS={"0003": "Steel flat bar stock", "0004": "Steel beams (wide flange / M-beams)", "0012": "Kingpins", "0015": "Cut steel plates, stiffeners and gussets", "0016": "Formed brackets, winch track, XTP parts", "0017": "Floor, crossmember and frame parts", "0018": "Fabricated deck, ramp and bogie parts (largest line)", "0019": "Steel beams, flanges, webs and side rails", "0021": "ABS electronics (ECU/valves, power cables)", "0022": "Complete axles", "0028": "ABS sensors, cables and hubodometer brackets", "0030": "Complete sub-assemblies (jeeps, flipboxes, spreaders)", "0031": "Slider hardware (nuts, washers, rails)", "0033": "Suspensions and axle kits", "0038": "Suspension height-control kits", "0041": "Tires", "0045": "Wheels", "0048": "Wheel separators", "0051": "Wood deck flooring", "0061": "Topcoat paint colors", "0069": "Primer, catalyst and paint additives", "0071": "Air brake valves and reservoirs", "0072": "Lighting, wiring harnesses and air cylinders", "0073": "Hydraulic hoses, fittings and cylinders", "0081": "Landing gear", "0082": "Mud flaps", "0084": "Decals, logos and graphics", "0085": "Winch binders", "0088": "Accessories and castings (GPS, scales, brackets)", "0089": "Chain", "0098": "Shop supplies and military (CARC) primer", "FAST": "Fasteners and fittings (bolts, nuts, air fittings)", "FTSR": "Fabricated plates, ramps and deck parts; United Rentals decals", "NP": "Non-production and customer-furnished items", "TARM": "TRV trailer parts (plates, deck, hydraulic cylinders)"};   // 2.22: best guess from each line's part descriptions and suppliers (11/18/26 MRP); Sage has the official names
 const PL_KEY='mrp_excl_pl_v1';
 function plSaved(){ try{ const a=JSON.parse(localStorage.getItem(PL_KEY)||'null'); return Array.isArray(a)?new Set(a):null; }catch(e){ return null; } }
 function plSave(){ try{ localStorage.setItem(PL_KEY, JSON.stringify([...getExcludedPL()])); }catch(e){} }
@@ -1415,7 +1419,7 @@ function initPLFilter(plList) {
   container.innerHTML = list.map(pl => {
     const saved = plSaved();
     const excluded = (pl in prev) ? prev[pl] : saved ? saved.has(pl) : DEFAULT_EXCLUDED_PL.has(pl);
-    return `<label style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:4px;border:1px solid ${excluded?'var(--critical-border)':'var(--border)'};background:${excluded?'var(--critical-bg)':'var(--surface)'};cursor:pointer;color:${excluded?'var(--critical)':'var(--text)'}">
+    return `<label title="${PL_GUESS[pl]?lrEsc(PL_GUESS[pl])+' (best guess)':''}" style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:4px;border:1px solid ${excluded?'var(--critical-border)':'var(--border)'};background:${excluded?'var(--critical-bg)':'var(--surface)'};cursor:pointer;color:${excluded?'var(--critical)':'var(--text)'}">
       <input type="checkbox" id="pl-${pl}" ${excluded?'checked':''} onchange="updatePLStyle(this,'${pl}')">
       ${pl}
     </label>`;
@@ -1880,14 +1884,20 @@ function recalcAll(msg){
 function plSettingsHtml(){
   const cbs=[...document.querySelectorAll('#pl-filter-list input[type=checkbox]')];
   const n=window.__plCounts||{};
-  const chips=cbs.map(cb=>{ const pl=cb.id.replace('pl-',''); const on=cb.checked;
-    return `<label class="pl-chip${on?' on':''}"><input type="checkbox" data-pl="${lrEsc(pl)}"${on?' checked':''} onchange="this.parentElement.classList.toggle('on',this.checked)"> ${lrEsc(pl)}${n[pl]!=null?` <small>${n[pl]}</small>`:''}</label>`; }).join('');
-  return '<h3>Excluded product lines</h3><p>Checked lines (red) are left out of every count, list and export, for example consignment lines. The small number is how many parts that line has in the MRP. Your choice is remembered in this browser.</p>'
-    +`<div class="pl-set" id="pl-set">${chips||'<span class="tc-small">Load an MRP to see its product lines.</span>'}</div>`
+  const info=window.__plInfo||{};
+  const rows=cbs.map(cb=>{ const pl=cb.id.replace('pl-',''); const on=cb.checked; const i=info[pl]||{};
+    const tip=(i.ex||[]).length?'Example parts: '+i.ex.join(' · '):'';
+    return `<tr class="${on?'on':''}" title="${lrEsc(tip)}"><td><input type="checkbox" data-pl="${lrEsc(pl)}"${on?' checked':''} onchange="this.closest('tr').classList.toggle('on',this.checked)"></td>
+      <td><b>${lrEsc(pl)}</b></td><td>${lrEsc(PL_GUESS[pl]||'—')}<br><small>${lrEsc((i.ex||[]).slice(0,2).join(' · '))}</small></td>
+      <td class="num">${n[pl]!=null?n[pl].toLocaleString():'—'}</td><td>${lrEsc((i.vendors||[]).join(', ')||'—')}</td></tr>`; }).join('');
+  return '<h3>Excluded product lines</h3><p>Checked lines (red) are left out of every count, list and export, for example consignment lines. Your choice is remembered in this browser.</p>'
+    +'<p class="tc-small">“Looks like” is a best guess from each line’s part descriptions and suppliers; Sage has the official names. Point at a row to see example parts.</p>'
+    +(rows?`<div class="pl-set" id="pl-set"><table class="chg-week pl-tbl"><thead><tr><th>Exclude</th><th>Line</th><th>Looks like</th><th class="num">Parts</th><th>Main suppliers</th></tr></thead><tbody>${rows}</tbody></table></div>`
+      :'<div id="pl-set"><span class="tc-small">Load an MRP to see its product lines.</span></div>')
     +'<p style="margin-top:8px"><button class="export-btn primary" onclick="plApply()">Apply and recalculate</button> <button class="export-btn" onclick="plSetAll(\'default\')">Reset to default</button> <button class="export-btn" onclick="plSetAll(false)">Include all</button></p>'
     +`<p class="tc-small">Default: ${[...DEFAULT_EXCLUDED_PL].join(', ')} excluded.</p>`;
 }
-function plSetAll(v){ document.querySelectorAll('#pl-set input[data-pl]').forEach(cb=>{ cb.checked = v==='default' ? DEFAULT_EXCLUDED_PL.has(cb.dataset.pl) : !!v; cb.parentElement.classList.toggle('on', cb.checked); }); }
+function plSetAll(v){ document.querySelectorAll('#pl-set input[data-pl]').forEach(cb=>{ cb.checked = v==='default' ? DEFAULT_EXCLUDED_PL.has(cb.dataset.pl) : !!v; cb.closest('tr').classList.toggle('on', cb.checked); }); }
 function plApply(){
   document.querySelectorAll('#pl-set input[data-pl]').forEach(x=>{ const cb=document.getElementById('pl-'+x.dataset.pl); if(cb){ cb.checked=x.checked; updatePLStyle(cb, x.dataset.pl); } });
   const ct=document.getElementById('consignment-toggle'); if(ct) ct.checked=['0003','0019','0041','0045'].every(pl=>document.getElementById('pl-'+pl)?.checked);
@@ -1950,7 +1960,7 @@ function processRaw(raw, filename) {
     const splitList=v=>String(v||'').split(',').map(x=>x.trim()).filter(Boolean);
     const demandTrailers={};   // every trailer the MRP still has parts demand for (used to spot completed trailers)
     const excludedPL=getExcludedPL();
-    const items={}; const allPLs=new Set(); const plItems={};   // every product line in the file, including excluded ones
+    const items={}; const allPLs=new Set(); const plItems={}, plInfo={};   // every product line in the file, including excluded ones
 
     for(let i=1;i<raw.length;i++){
       const r=raw[i];
@@ -1958,7 +1968,7 @@ function processRaw(raw, filename) {
       const weekRaw=r[cWeek];
       if(!code||!weekRaw) continue;
       const plCode=String(r[cPL]||'');
-      if(plCode){ allPLs.add(plCode); (plItems[plCode]=plItems[plCode]||new Set()).add(code); }
+      if(plCode){ allPLs.add(plCode); const s=plItems[plCode]||(plItems[plCode]=new Set()); if(!s.has(code)){ s.add(code); const v=String(r[cVend]||''); const pi=plInfo[plCode]||(plInfo[plCode]={v:{},ex:[]}); if(v) pi.v[v]=(pi.v[v]||0)+1; if(pi.ex.length<4) pi.ex.push(String(r[cDesc]||'').trim()); } }
       if(excludedPL.has(plCode)) continue;
       let week;
       try{
@@ -2002,7 +2012,9 @@ function processRaw(raw, filename) {
 
     // Build the checkboxes from ALL product lines (not only the ones kept), so excluded lines stay excluded on the next load
     const foundPLs=[...allPLs].sort();
-    window.__plCounts={}; Object.keys(plItems).forEach(pl=>{ window.__plCounts[pl]=plItems[pl].size; });
+    window.__plCounts={}; window.__plInfo={};
+    Object.keys(plItems).forEach(pl=>{ window.__plCounts[pl]=plItems[pl].size; const vs=Object.entries(plInfo[pl].v).sort((a,b)=>b[1]-a[1]);
+      window.__plInfo[pl]={vendors:vs.slice(0,2).map(x=>x[0]), ex:plInfo[pl].ex}; });
     if(foundPLs.length) initPLFilter(foundPLs);
 
     const fmt=ms=>{ if(!ms) return null; const d=new Date(ms); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); };
