@@ -618,6 +618,10 @@ td{line-height:1.4}
 .mm-tag.mm-red{color:#DC2626;background:#FEF2F2;border-color:#FCA5A5}
 .mm-chip{font-size:11px;font-weight:600;color:#C2410C;background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:3px 10px;cursor:pointer;white-space:nowrap}
 .mm-tbl th{white-space:nowrap}.mm-tbl td{vertical-align:middle}.mm-tbl tbody tr:hover{background:var(--surface2)}
+.pl-set{display:flex;flex-wrap:wrap;gap:6px}
+.pl-chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);cursor:pointer}
+.pl-chip small{font-weight:500;color:var(--muted2);font-size:10px}
+.pl-chip.on{border-color:#FCA5A5;background:#FEF2F2;color:#DC2626}
 .mm-switch{display:grid;gap:8px;margin:6px 0}.mm-switch label{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.5;cursor:pointer}
 #view-mismatch .chg-card-s{font-size:10.5px}
 @media(max-width:1300px){#view-mismatch .chg-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
@@ -1398,6 +1402,10 @@ function uiConfirm(msg, okLabel, danger){
 const DEFAULT_EXCLUDED_PL = new Set(['0003','0019','0041','0045','FAST','0069']);
 const ALL_KNOWN_PL = ['0003','0004','0012','0015','0016','0017','0018','0019','0021','0022','0028','0030','0031','0033','0038','0041','0045','0048','0051','0061','0069','0071','0072','0073','0081','0082','0084','0085','0088','0089','0098','FAST','FTSR','NP','TARM'];
 
+// 2.22: excluded product lines are remembered in this browser and can be changed in Data & Settings
+const PL_KEY='mrp_excl_pl_v1';
+function plSaved(){ try{ const a=JSON.parse(localStorage.getItem(PL_KEY)||'null'); return Array.isArray(a)?new Set(a):null; }catch(e){ return null; } }
+function plSave(){ try{ localStorage.setItem(PL_KEY, JSON.stringify([...getExcludedPL()])); }catch(e){} }
 function initPLFilter(plList) {
   const list = (plList && plList.length) ? plList : ALL_KNOWN_PL;
   const container = document.getElementById('pl-filter-list');
@@ -1405,7 +1413,8 @@ function initPLFilter(plList) {
   // keep the person's current choices; new product lines start from the defaults
   const prev={}; container.querySelectorAll('input[type=checkbox]').forEach(cb=>{ prev[cb.id.replace('pl-','')]=cb.checked; });
   container.innerHTML = list.map(pl => {
-    const excluded = (pl in prev) ? prev[pl] : DEFAULT_EXCLUDED_PL.has(pl);
+    const saved = plSaved();
+    const excluded = (pl in prev) ? prev[pl] : saved ? saved.has(pl) : DEFAULT_EXCLUDED_PL.has(pl);
     return `<label style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:4px;border:1px solid ${excluded?'var(--critical-border)':'var(--border)'};background:${excluded?'var(--critical-bg)':'var(--surface)'};cursor:pointer;color:${excluded?'var(--critical)':'var(--text)'}">
       <input type="checkbox" id="pl-${pl}" ${excluded?'checked':''} onchange="updatePLStyle(this,'${pl}')">
       ${pl}
@@ -1414,6 +1423,7 @@ function initPLFilter(plList) {
 }
 function updatePLStyle(cb, pl) {
   const lbl = cb.parentElement;
+  plSave();
   if (cb.checked) { lbl.style.borderColor='var(--critical-border)'; lbl.style.background='var(--critical-bg)'; lbl.style.color='var(--critical)'; }
   else { lbl.style.borderColor='var(--border)'; lbl.style.background='var(--surface)'; lbl.style.color='var(--text)'; }
 }
@@ -1859,6 +1869,32 @@ function mmSchedCur(){
   if(!window.__mmCur || window.__mmCur.raw!==raw) window.__mmCur={raw, snap:chgBuildSnapshot(raw)};
   return window.__mmCur;
 }
+// Recalculate everything from the MRP already loaded (used by settings that change the math)
+function recalcAll(msg){
+  if(!window.lastRawData || !window.lastRawData.length) return false;
+  document.getElementById('loading-overlay').style.display='flex';
+  try{ setDialPct(50, msg||'Recalculating…'); }catch(e){}
+  setTimeout(()=>{ allData=processRaw(window.lastRawData, window.lastRawFile||window.lastRawFileName); setupDashboard(); try{ applyFilters(); }catch(e){} }, 30);
+  return true;
+}
+function plSettingsHtml(){
+  const cbs=[...document.querySelectorAll('#pl-filter-list input[type=checkbox]')];
+  const n=window.__plCounts||{};
+  const chips=cbs.map(cb=>{ const pl=cb.id.replace('pl-',''); const on=cb.checked;
+    return `<label class="pl-chip${on?' on':''}"><input type="checkbox" data-pl="${lrEsc(pl)}"${on?' checked':''} onchange="this.parentElement.classList.toggle('on',this.checked)"> ${lrEsc(pl)}${n[pl]!=null?` <small>${n[pl]}</small>`:''}</label>`; }).join('');
+  return '<h3>Excluded product lines</h3><p>Checked lines (red) are left out of every count, list and export, for example consignment lines. The small number is how many parts that line has in the MRP. Your choice is remembered in this browser.</p>'
+    +`<div class="pl-set" id="pl-set">${chips||'<span class="tc-small">Load an MRP to see its product lines.</span>'}</div>`
+    +'<p style="margin-top:8px"><button class="export-btn primary" onclick="plApply()">Apply and recalculate</button> <button class="export-btn" onclick="plSetAll(\'default\')">Reset to default</button> <button class="export-btn" onclick="plSetAll(false)">Include all</button></p>'
+    +`<p class="tc-small">Default: ${[...DEFAULT_EXCLUDED_PL].join(', ')} excluded.</p>`;
+}
+function plSetAll(v){ document.querySelectorAll('#pl-set input[data-pl]').forEach(cb=>{ cb.checked = v==='default' ? DEFAULT_EXCLUDED_PL.has(cb.dataset.pl) : !!v; cb.parentElement.classList.toggle('on', cb.checked); }); }
+function plApply(){
+  document.querySelectorAll('#pl-set input[data-pl]').forEach(x=>{ const cb=document.getElementById('pl-'+x.dataset.pl); if(cb){ cb.checked=x.checked; updatePLStyle(cb, x.dataset.pl); } });
+  const ct=document.getElementById('consignment-toggle'); if(ct) ct.checked=['0003','0019','0041','0045'].every(pl=>document.getElementById('pl-'+pl)?.checked);
+  plSave();
+  document.getElementById('v2-modal')?.remove();
+  if(!recalcAll('Applying product line choices…')) uiNotice('Saved. Your product line choices apply when the next MRP loads.');
+}
 function setDateMode(m){
   dateMode=m==='schedule'?'schedule':'sage';
   try{ localStorage.setItem(MM_MODE_KEY, dateMode); }catch(e){}
@@ -1914,7 +1950,7 @@ function processRaw(raw, filename) {
     const splitList=v=>String(v||'').split(',').map(x=>x.trim()).filter(Boolean);
     const demandTrailers={};   // every trailer the MRP still has parts demand for (used to spot completed trailers)
     const excludedPL=getExcludedPL();
-    const items={}; const allPLs=new Set();   // every product line in the file, including excluded ones
+    const items={}; const allPLs=new Set(); const plItems={};   // every product line in the file, including excluded ones
 
     for(let i=1;i<raw.length;i++){
       const r=raw[i];
@@ -1922,7 +1958,7 @@ function processRaw(raw, filename) {
       const weekRaw=r[cWeek];
       if(!code||!weekRaw) continue;
       const plCode=String(r[cPL]||'');
-      if(plCode) allPLs.add(plCode);
+      if(plCode){ allPLs.add(plCode); (plItems[plCode]=plItems[plCode]||new Set()).add(code); }
       if(excludedPL.has(plCode)) continue;
       let week;
       try{
@@ -1966,6 +2002,7 @@ function processRaw(raw, filename) {
 
     // Build the checkboxes from ALL product lines (not only the ones kept), so excluded lines stay excluded on the next load
     const foundPLs=[...allPLs].sort();
+    window.__plCounts={}; Object.keys(plItems).forEach(pl=>{ window.__plCounts[pl]=plItems[pl].size; });
     if(foundPLs.length) initPLFilter(foundPLs);
 
     const fmt=ms=>{ if(!ms) return null; const d=new Date(ms); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0'); };
@@ -3567,6 +3604,7 @@ function v2Help(){ v2Panel('Help', ''
   +'<h3>Work statuses</h3><p>Every tab uses the same four statuses: <b>— Not started</b>, <b>📞 Contacted supplier</b>, <b>📋 PO / date set</b> and <b>✅ Confirmed</b>.</p><p><b>⚠ Changed since set</b> appears under a status when the part changed after the status was chosen: it now goes short sooner, the shortage got bigger, or its PO changed (new, gone, or different). Hover over the tag to see what changed. After you have checked it, click the tag to mark the status current. To list them all, open <b>All Parts</b> and choose <b>Work Status → ⚠ Changed since set</b>. The count also shows in the green status summary in the header.</p>'
   +'<h3>Urgency filters</h3><p><b>⏱ Short now</b> (Purchasing Queue and All Parts) shows parts that are already short this week: their balance goes negative this week or earlier. These are the ones holding up builds today. A red <b>Short now</b> tag also appears under the Goes Negative date. <b>No buyer</b> (buyer filters) shows flagged parts that have no buyer code in the MRP, so they don’t get missed.</p><p>The <b>Status</b> column stays pinned to the right edge of wide tables, so you can set a status without scrolling sideways.</p>'
   +'<h3>How the schedule is read</h3><p>Trailers in the <b>Completions</b> group, or with <b>Inspected &amp; Completed</b> set to <b>Done</b>, are done (Ship Hold is still open). Trailers in a <b>Line</b> group (and Military) are open. Trailers without a due date are left out of the trailer views (Overview, Trailers at Risk, By Week, Line Reports) until they get one; parts are still flagged from the MRP. Columns are found by their header names (Name, Due Date, Customer, Model, WIP Progress), so moving columns on the Monday board does not break anything. Only Name and Due Date are required; if either is missing, a notice says so.</p><p><b>Product lines.</b> Consignment product lines (0003, 0019, 0041, 0045, FAST, 0069) are left out by default. Your choices under <b>Advanced: individual product line control</b> on the start screen are kept every time you load an MRP or select Recalculate.</p><p><b>Clearing statuses.</b> Open <b>Data &amp; Settings</b> and select <b>Clear all statuses…</b>. When signed in, only an admin can do this, because it clears them for the whole team.</p>'
+  +'<h3>Excluded product lines</h3><p>Consignment lines (0003, 0019, 0041, 0045) plus FAST and 0069 are left out by default. To change which lines are left out, open <b>Data &amp; Settings</b>, check or uncheck lines under <b>Excluded product lines</b>, then select <b>Apply and recalculate</b>. Your choice is remembered in this browser, and the header shows the excluded lines.</p>'
   +'<h3>📅 Sage vs Schedule</h3><p>Sage should need a trailer’s parts in the MRP week 2 weeks before the trailer’s schedule due date (the schedule’s Parts Delivery Date). This tab lists every open trailer where it doesn’t: <b>Sage later</b> (the riskiest: parts may be needed sooner than the dashboard shows), <b>Sage earlier</b> (parts may look more urgent than they are), <b>Past due in Sage</b> but due later on the schedule, <b>Past due in both</b> but not in Completions, <b>Not in Sage</b> (open trailers at 0% WIP with no parts demand in the MRP, so their shortages can’t be seen), and trailers <b>Listed twice</b> on the schedule. <b>Gap</b> is Sage’s week minus the week it should be. Click a card to filter, a column heading to sort, or a trailer to see its short parts. Fix the dates in Sage or on the schedule and the list shrinks with the next files.</p>'
   +'<p>A <span class="mm-tag mm-red">📅 Date mismatch</span> tag next to a due date (part details and Trailers at Risk) means Sage and the schedule disagree for that trailer; red means Sage is later. Point at it to see both dates, or click it to open the trailer on the Sage vs Schedule tab. The Overview shows how many trailers are later in Sage.</p>'
   +'<h3>Date shortages by Sage or the schedule</h3><p>In <b>Data &amp; Settings</b>, <b>Date shortages by</b> is <b>Sage</b> by default. Choose <b>Schedule</b> to move each trailer’s parts demand to 2 weeks before its schedule due date and recalculate every shortage, urgency and trailer at risk from that. The header then shows <b>📅 Shortages dated by schedule</b>. Trailers not on the schedule, without a due date, or completed keep Sage’s week. The setting is per browser. What Changed and work statuses always use Sage’s dates, so switching doesn’t mark statuses as changed.</p>'
@@ -4281,6 +4319,7 @@ function v2Data(){
     +'<p>Your latest files are also kept in this browser, so the dashboard still opens if the team folder is unavailable. Choosing a new file replaces this copy.</p>'
     +'<button class="export-btn" onclick="forgetSavedFiles()">Forget my saved copy</button> <span id="fs-forget-msg" style="font-size:12px;color:var(--low)"></span>'
     +'<h3>Calculation settings</h3><p>Use the steel lead time and arrival buffer controls above the dashboard. Your values are remembered in this browser.</p>'
+    +plSettingsHtml()
     +'<h3>Date shortages by</h3><div class="mm-switch"><label><input type="radio" name="mm-mode" value="sage"'+(dateMode!=='schedule'?' checked':'')+' onchange="setDateMode(\'sage\')"> <span><b>Sage</b> (default): use the weeks in the MRP report as they are.</span></label>'
     +'<label><input type="radio" name="mm-mode" value="schedule"'+(dateMode==='schedule'?' checked':'')+' onchange="setDateMode(\'schedule\')"> <span><b>Schedule</b>: move each trailer’s parts demand to 2 weeks before its schedule due date, then recalculate shortages, urgency and trailers at risk.</span></label></div>'
     +'<p class="tc-small">This setting is for this browser only. Trailers that aren’t on the schedule, have no due date, or are completed keep Sage’s week. What Changed and work statuses always use Sage’s dates. See the 📅 Sage vs Schedule tab for every trailer where the two disagree.</p>'
