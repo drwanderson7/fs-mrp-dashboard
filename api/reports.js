@@ -13,7 +13,7 @@ const STATUS = 'reports/status.json';
 const DEFAULTS = {
   enabled: false, recipients: [], testTo: '', lines: [],
   daily: { on: true, weeks: 4, urgentOnly: true }, weekly: { on: true, day: 1, weeks: 8 },
-  leadWeeks: 8, arrivalBuffer: 2, excluded: ['0003', '0019', '0041', '0045', 'FAST', '0069'], dateMode: 'sage',
+  leadWeeks: 8, arrivalBuffer: 2, excluded: ['0003', '0019', '0041', '0045', 'FAST', '0069'], dateMode: 'schedule',
   pdf: true, site: '', onlyIfNew: false,
 };
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -64,7 +64,7 @@ function cleanSettings(s) {
     weekly: { on: !!s.weekly?.on, day: n(s.weekly?.day, 1, 5, 1), weeks: n(s.weekly?.weeks, 0, 26, 8) },
     leadWeeks: n(s.leadWeeks, 1, 52, 8), arrivalBuffer: n(s.arrivalBuffer, 0, 26, 2),
     excluded: (Array.isArray(s.excluded) ? s.excluded : DEFAULTS.excluded).map(String).slice(0, 100),
-    dateMode: s.dateMode === 'schedule' ? 'schedule' : 'sage', pdf: s.pdf !== false,
+    dateMode: s.dateMode === 'sage' ? 'sage' : 'schedule', pdf: s.pdf !== false,
     site: /^https:\/\/[^\s"<>]+$/.test(String(s.site || '')) ? String(s.site) : '', onlyIfNew: !!s.onlyIfNew,
   };
 }
@@ -193,8 +193,8 @@ export const POST = handle(async (request, url) => {
     const kind = b.kind === 'weekly' ? 'weekly' : 'daily';
     const to = b.toList ? s.recipients : [s.testTo].filter(Boolean);
     if (!to.length) throw httpError(400, b.toList ? 'Add at least one email address first.' : 'Add your email address for tests first.');
-    let rep, id;
-    try { rep = await buildReport(kind, s); id = await sendEmail(to, rep, kind); } catch (e) { if (e.status) throw e; throw httpError(400, e.message); }
+    let rep, id;   // test emails start with "TEST ·" so the Outlook relay flow can skip them
+    try { rep = await buildReport(kind, s); if (!b.toList) rep.subject = 'TEST · ' + rep.subject; id = await sendEmail(to, rep, kind); } catch (e) { if (e.status) throw e; throw httpError(400, e.message); }
     return json({ sent: true, to, id, pdf: !!rep.pdf, pdfError: rep.pdfError, subject: rep.subject });
   }
   throw httpError(404, 'Unknown request');

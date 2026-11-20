@@ -246,7 +246,7 @@ header {
 
 /* ── VENDOR TABLE ── */
 .vendor-hdr {
-  display: grid; grid-template-columns: 1fr 80px 42px 42px 48px 42px;
+  display: grid; grid-template-columns: 1fr 80px 40px 40px 40px 46px 40px;
   gap: 6px; padding: 0 0 7px 0; border-bottom: 1px solid var(--border);
   margin-bottom: 2px;
 }
@@ -256,7 +256,7 @@ header {
 }
 .vendor-hdr span:first-child { text-align: left; }
 .vendor-row {
-  display: grid; grid-template-columns: 1fr 80px 42px 42px 48px 42px;
+  display: grid; grid-template-columns: 1fr 80px 40px 40px 40px 46px 40px;
   gap: 6px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border);
   cursor: pointer; transition: background .1s;
 }
@@ -611,6 +611,19 @@ td{line-height:1.4}
 /* ── What Changed ── */
 .chg-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;border:1px solid #86efac;background:#f0fdf4;border-radius:10px;font-size:13px;color:var(--text)}
 .chg-strip.alert{border-color:#fed7aa;background:#fff7ed}
+.pn-est{font-size:10px;color:var(--muted2);font-weight:400}   /* 2.23 */
+/* 2.25 Push Out / Cancel */
+.pu-tbl td{vertical-align:top}
+.pu-desc{font-size:11px;color:var(--muted);max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pu-vend{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pu-tbl .nw{white-space:nowrap}
+.pu-tbl .cchip{margin-bottom:2px}
+.pu-short{color:#DC2626;background:#FFFFFF;border-color:#FCA5A5}
+.pu-edge{color:#6B7280;background:#F0F1F3;border-color:#E2E4E8}
+.pu-opt{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.tbl-wrap table.pu-tbl{min-width:1180px}
+.pu-tbl .status-select{min-width:0;width:112px}
+.pu-tbl td:first-child{max-width:110px}
 /* 2.22 Sage vs Schedule */
 .chg-strip.mm-strip{border-color:#FCA5A5;background:#FEF2F2}.mm-strip>div{flex:1;min-width:300px;line-height:1.5}
 .tbl-wrap table.mm-tbl{min-width:1100px}
@@ -749,6 +762,10 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
 .fw-x{background:none;border:none;color:#92400E;cursor:pointer;font-size:14px;padding:0 2px}
 .ss-sub{color:var(--muted2);font-weight:400}
 
+/* 2.26 (11/20): defaults: shortages dated by the schedule; excluded lines 0003, 0019, 0041, 0045, FAST, 0069. Both settings reset once in every browser (new localStorage keys); scheduled emails default to Schedule. */
+/* 2.25 (11/20): Push Out / Cancel tab (puBuild): open PO deliveries matched first-in first-out to demand; Cancel / Reduce qty / Push out with suggested qty and date, statuses, Excel export, part panel; reads the MRP's Excess Obsolete sheet for last receipt/usage. */
+/* 2.24 (11/20): Vendor Priority ranked by Critical + Expedite with an Exp column; deadline chart stacked by urgency with Expedite in the legend, every week shown, hover counts and an accurate subtitle; Trailers at Risk page title; Expedite card name; printed reports say Fontaine Specialized. */
+/* 2.23 (11/19): exact per-trailer quantities from the MRP's "MRP Sub Report Data" sheet (soSplit) in trailer allocation and schedule re-dating; Needs column in part details. */
 /* 2.22 (11/19): Sage vs Schedule tab, 📅 Date mismatch tags, Overview count, Date shortages by Sage | Schedule. 2.21: local today, shortage rounds up, logo + header. */
 /* 2.20 Overview layout: both rows use the same two columns, panels in a row are the same height,
    and the content fills each panel (footnotes sit at the bottom) */
@@ -933,6 +950,9 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
     <div class="tab" id="tab-late-po" onclick="switchTab('late-po')">
       Expedite <span class="tab-badge" id="late-po-badge" style="background:var(--expedite-bg);color:var(--expedite);border-color:var(--expedite-border)">0</span>
     </div>
+    <div class="tab" id="tab-pushout" onclick="switchTab('pushout')">
+      Push Out / Cancel <span class="tab-badge" id="pushout-badge" style="background:#EFF6FF;color:#2563EB;border-color:#BFDBFE">0</span>
+    </div>
   </div>
 
   <div class="main"><div id="workspace-context"><div><h2 id="workspace-title">Overview</h2><p id="workspace-sub">Purchasing priorities and production exposure</p></div><span style="display:flex;gap:10px;align-items:center"><span id="date-mode-chip" class="mm-chip" onclick="v2Data()" title="Change in Data &amp; Settings" style="display:none"></span><span id="saved-status" class="saved-status" onclick="v2Data()"></span></span></div>
@@ -990,14 +1010,14 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
           <div class="panel-hdr">
             <div>
               <div class="panel-title">Vendor Priority</div>
-              <div class="panel-sub" id="vendor-panel-sub">Click a vendor to view their parts →</div>
+              <div class="panel-sub" id="vendor-panel-sub">Most Critical + Expedite parts first · click a vendor to view their parts</div>
             </div>
             <span style="font-size:10px;color:var(--muted2)" id="vendor-ct-lbl"></span>
           </div>
           <div class="panel-body ov-vendor-body">
             <div class="ov-vendor-scroll">
               <div class="vendor-hdr">
-                <span>Vendor</span><span>Earliest</span><span>Crit</span><span>High</span><span>No PO</span><span>Total</span>
+                <span>Vendor</span><span title="Earliest week a part from this vendor goes short">Earliest</span><span title="Critical parts">Crit</span><span title="Expedite: a PO arrives after the part goes short">Exp</span><span title="High parts">High</span><span title="Parts with no open PO">No PO</span><span>Total</span>
               </div>
               <div id="vendor-list"></div>
             </div>
@@ -1008,7 +1028,7 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
           <div class="panel-hdr">
             <div>
               <div class="panel-title">Order Deadline Timeline</div>
-              <div class="panel-sub">Parts per week · 8 weeks back through 16 weeks forward</div>
+              <div class="panel-sub" id="chart-sub">Flagged parts by the week they go short</div>
             </div>
           </div>
           <div class="panel-body ov-chart-body">
@@ -1017,10 +1037,12 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
               <div class="chart-tt" id="chart-tt"></div>
             </div>
             <div class="chart-legend">
-              <div class="legend-item"><div class="legend-dot" style="background:var(--critical)"></div>Critical</div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--high)"></div>High</div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--medium)"></div>Medium</div>
-              <div class="legend-item"><div class="legend-dot" style="background:var(--low)"></div>Low</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#DC2626"></div>Critical</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#7C3AED"></div>Expedite</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#EA580C"></div>High</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#CA8A04"></div>Medium</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#16A34A"></div>Low</div>
+              <div class="legend-item" style="margin-left:auto;color:var(--muted2)">Hover a bar for counts</div>
             </div>
           </div>
         </div>
@@ -1194,6 +1216,7 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
 
     <!-- SAGE VS SCHEDULE TAB (2.22) -->
     <div id="view-mismatch" style="display:none"><div class="sched-card" id="mm-root"></div></div>
+    <div id="view-pushout" style="display:none"><div class="sched-card" id="pu-root"></div></div>
 
     <!-- LATE PO TAB -->
     <div id="view-late-po" style="display:none">
@@ -1414,7 +1437,7 @@ const ALL_KNOWN_PL = ['0003','0004','0012','0015','0016','0017','0018','0019','0
 
 // 2.22: excluded product lines are remembered in this browser and can be changed in Data & Settings
 const PL_GUESS={"0003": "Steel flat bar stock", "0004": "Steel beams (wide flange / M-beams)", "0012": "Kingpins", "0015": "Cut steel plates, stiffeners and gussets", "0016": "Formed brackets, winch track, XTP parts", "0017": "Floor, crossmember and frame parts", "0018": "Fabricated deck, ramp and bogie parts (largest line)", "0019": "Steel beams, flanges, webs and side rails", "0021": "ABS electronics (ECU/valves, power cables)", "0022": "Complete axles", "0028": "ABS sensors, cables and hubodometer brackets", "0030": "Complete sub-assemblies (jeeps, flipboxes, spreaders)", "0031": "Slider hardware (nuts, washers, rails)", "0033": "Suspensions and axle kits", "0038": "Suspension height-control kits", "0041": "Tires", "0045": "Wheels", "0048": "Wheel separators", "0051": "Wood deck flooring", "0061": "Topcoat paint colors", "0069": "Primer, catalyst and paint additives", "0071": "Air brake valves and reservoirs", "0072": "Lighting, wiring harnesses and air cylinders", "0073": "Hydraulic hoses, fittings and cylinders", "0081": "Landing gear", "0082": "Mud flaps", "0084": "Decals, logos and graphics", "0085": "Winch binders", "0088": "Accessories and castings (GPS, scales, brackets)", "0089": "Chain", "0098": "Shop supplies and military (CARC) primer", "FAST": "Fasteners and fittings (bolts, nuts, air fittings)", "FTSR": "Fabricated plates, ramps and deck parts; United Rentals decals", "NP": "Non-production and customer-furnished items", "TARM": "TRV trailer parts (plates, deck, hydraulic cylinders)"};   // 2.22: best guess from each line's part descriptions and suppliers (11/18/26 MRP); Sage has the official names
-const PL_KEY='mrp_excl_pl_v1';
+const PL_KEY='mrp_excl_pl_v2';   // 2.26: new key, so every browser starts on the default excluded lines once
 function plSaved(){ try{ const a=JSON.parse(localStorage.getItem(PL_KEY)||'null'); return Array.isArray(a)?new Set(a):null; }catch(e){ return null; } }
 function plSave(){ try{ localStorage.setItem(PL_KEY, JSON.stringify([...getExcludedPL()])); }catch(e){} }
 function initPLFilter(plList) {
@@ -1495,6 +1518,45 @@ function fk(keys,...names) {
   return -1;
 }
 function toNum(v){ const n=parseFloat(String(v||0).replace(/[^0-9.\-]/g,'')); return isNaN(n)?0:n; }
+
+// 2.23: exact quantity each trailer needs of each part, from the MRP workbook's "MRP Sub Report Data" sheet
+// (SalesOrderNo · Item · Quantity). Sage covers only some trailers there, so the rest keep the even split.
+window.__soQty=null;
+function mrpReadSoQty(wb){
+  try{
+    const name=(wb&&wb.SheetNames||[]).find(n=>/sub\s*report\s*data/i.test(n)); if(!name) return null;
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:''}); if(rows.length<2) return null;
+    const keys=(rows[0]||[]).map(k=>String(k||'').trim());
+    const cSO=fk(keys,'SalesOrderNo','SalesOrder'), cIt=fk(keys,'Item'), cQ=fk(keys,'Quantity','Qty');
+    if(cSO<0||cIt<0||cQ<0) return null;
+    const map={}; let n=0;
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i], so=String(r[cSO]||'').trim(), it=String(r[cIt]||'').trim(), q=toNum(r[cQ]);
+      if(!so||!it||!(q>0)) continue;
+      const m=map[it]||(map[it]={}); m[so]=(m[so]||0)+q; n++;
+    }
+    return n?map:null;
+  }catch(e){ console.error('Sub Report Data', e); return null; }
+}
+// Split a demand total across the trailers listed with it. Returns [{q, exact}] in list order.
+//  all trailers known: their quantities, scaled so they add up to the MRP total (Sage's total always wins)
+//  some known: known trailers get their quantity, the rest share what is left evenly
+//  none known, a trailer listed twice, or known quantities above the total: even split (as before 2.23)
+// Part details: the quantity a trailer needs, with "est." when it comes from the even split
+function pnNeed(d,t){ const q=d.trailer_need&&d.trailer_need[t]; if(!(q>0)) return ''; const ex=d.trailer_exact&&d.trailer_exact[t];
+  const v=ex?(Math.round(q*100)/100).toLocaleString():(Math.round(q*10)/10).toLocaleString(); return ex?v:`${v} <span class="pn-est">est.</span>`; }
+function soSplit(code, list, total){
+  const n=list.length; if(!n) return [];
+  const even=()=>list.map(()=>({q:total/n, exact:false}));
+  const m=window.__soQty&&window.__soQty[String(code).trim()]; if(!m || new Set(list).size!==n) return even();
+  const k=list.map(t=>{ const v=m[t]; return v>0?v:null; });
+  const known=k.filter(v=>v!=null); if(!known.length) return even();
+  const sumK=known.reduce((a,b)=>a+b,0), nU=n-known.length;
+  if(!nU){ const f=total/sumK; return k.map(v=>({q:v*f, exact:Math.abs(f-1)<1e-6})); }
+  if(sumK>total+1e-9) return even();
+  const rest=(total-sumK)/nU;
+  return k.map(v=>v!=null?{q:v, exact:true}:{q:rest, exact:false});
+}
 function hasPO(d){ return d.PurchaseOrders && d.PurchaseOrders.trim() && d.PurchaseOrders.trim().length>0; }
 function dlClass(d){ const n=d.days_to_order; return n<0?'neg':n<=7?'warn':'ok'; }
 function getStatus(code){ return statusStore[code]||'none'; }
@@ -1697,8 +1759,9 @@ function urgMatch(d,f){
 //  mmBuild() compares that with the schedule. redateRaw() can move each trailer's demand to the week the
 //  schedule implies ("Date shortages by: Schedule" in Data & Settings).
 // ═══════════════════════════════════════════════════════
-const MM_DAY=86400000, MM_WEEK=7*MM_DAY, MM_MODE_KEY='mrp_datemode_v1';
-let dateMode=(()=>{ try{ return localStorage.getItem(MM_MODE_KEY)==='schedule'?'schedule':'sage'; }catch(e){ return 'sage'; } })();
+// 2.26: Schedule is the default. The key changed from v1 so every browser starts on Schedule once; a later choice of Sage is kept.
+const MM_DAY=86400000, MM_WEEK=7*MM_DAY, MM_MODE_KEY='mrp_datemode_v2';
+let dateMode=(()=>{ try{ return localStorage.getItem(MM_MODE_KEY)==='sage'?'sage':'schedule'; }catch(e){ return 'schedule'; } })();
 function mrpWeekMs(v){
   if(v===''||v==null) return null;
   const d=typeof v==='number'?new Date(Date.UTC(1899,11,30)+v*MM_DAY):new Date(v);
@@ -1766,10 +1829,10 @@ function redateRaw(raw, schedBase){
       const w=snapWeek(g); alloc.set(w,alloc.get(w)+q); sos.get(w).push(t);
     };
     const pT=c.tn>=0?mmSplit(r0[c.tn]):[], pS=c.pso>=0?toNum(r0[c.pso]):0;
-    if(pT.length){ const q=pS/pT.length; pT.forEach(t=>place(t,q,null)); } else pso+=pS;
+    if(pT.length){ soSplit(code, pT, pS).forEach((x,j)=>place(pT[j],x.q,null)); } else pso+=pS;   // 2.23: exact per-trailer quantities
     for(const [w,i] of rows){
       const r=raw[i]; const a=toNum(r[c.alloc]); const s=c.so>=0?mmSplit(r[c.so]):[];
-      if(s.length && a>0){ const q=a/s.length; s.forEach(t=>place(t,q,w)); }
+      if(s.length && a>0){ soSplit(code, s, a).forEach((x,j)=>place(s[j],x.q,w)); }
       else { alloc.set(w,alloc.get(w)+a); s.forEach(t=>sos.get(w).push(t)); }
     }
     let bal=toNum(r0[c.qoh])+(c.ppo>=0?toNum(r0[c.ppo]):0)-pso;
@@ -1980,6 +2043,8 @@ function processRaw(raw, filename) {
   try{ window.__sageInfo=mmSageInfo(raw); }catch(e){ console.error(e); window.__sageInfo=null; }
   window.__datedBy='sage'; window.__redatedRaw=null;
   if(dateMode==='schedule' && (window.scheduleBase||[]).length){ try{ raw=redateRaw(raw, window.scheduleBase); window.__redatedRaw=raw; window.__datedBy='schedule'; }catch(e){ console.error(e); } }
+  try{ window.__pu=puBuild(raw); }catch(e){ console.error(e); window.__pu=null; }   // 2.25 Push Out / Cancel
+  try{ puRefresh(); }catch(e){}
   try {
     const today=new Date(TODAY_STR);
     const todayMs=today.getTime();
@@ -2167,7 +2232,7 @@ function processRaw(raw, filename) {
       weekMap[w][d.urgency]=(weekMap[w][d.urgency]||0)+1;
       if(d.urgency==='CRITICAL'&&!hasPO(d)) weekMap[w].fire++;
     });
-    timelineData=Object.values(weekMap).sort((a,b)=>a.week.localeCompare(b.week)).slice(0,26);
+    timelineData=Object.values(weekMap).sort((a,b)=>a.week.localeCompare(b.week));   // 2.24: buildChart picks the weeks it shows
 
     // Build vendors
     const vm={};
@@ -2187,7 +2252,8 @@ function processRaw(raw, filename) {
 // ═══════════════════════════════════════════════════════
 //  TRAILER ALLOCATION (2.17): which trailers each short part actually hits
 //  1. Every trailer that needs the part: past-due ones (TrailerNumbers / PriorSO) and each week's SalesOrders.
-//     A week's demand is split evenly across the trailers listed that week (the MRP gives only the week total).
+//     Each trailer's quantity comes from the MRP's "MRP Sub Report Data" sheet when Sage lists it there (2.23);
+//     otherwise a week's demand is split evenly across the trailers listed that week (the MRP gives only the week total).
 //  2. Soonest schedule due date first (trailers not on the schedule use their MRP week).
 //  3. Stock = on hand + prior POs + POs arrived by the week the trailer needs the part.
 //     Each trailer claims its quantity in turn; a trailer whose claim isn't covered by stock arrived by its need
@@ -2198,15 +2264,17 @@ function allocTrailers(d, sched){
   const a=d._alloc; if(!a) return;
   const iso=ms=>new Date(ms).toISOString().slice(0,10);
   const dem=[]; let start=a.start;
-  if(a.prior.length){ const q=a.priorSO/a.prior.length; a.prior.forEach(t=>dem.push({t, q, w:a.first, past:true})); }
+  // 2.23: each trailer's own quantity when Sage's sub report has it; otherwise the week's demand is split evenly
+  if(a.prior.length){ soSplit(d.ItemCode, a.prior, a.priorSO).forEach((x,j)=>dem.push({t:a.prior[j], q:x.q, ex:x.exact, w:a.first, past:true})); }
   else start-=a.priorSO;   // past-due demand with no trailer listed
-  a.weeks.forEach(([w, alloc, inc, sos])=>{ if(sos.length && alloc>0){ const q=alloc/sos.length; sos.forEach(t=>dem.push({t, q, w})); } });
+  a.weeks.forEach(([w, alloc, inc, sos])=>{ if(sos.length && alloc>0){ soSplit(d.ItemCode, sos, alloc).forEach((x,j)=>dem.push({t:sos[j], q:x.q, ex:x.exact, w})); } });
   const incs=a.weeks.filter(x=>x[2]>0);
   const key=x=>{ const m=sched[x.t]; return (m&&m.due_date)||iso(x.w); };
   dem.sort((x,y)=>key(x).localeCompare(key(y)) || x.w-y.w || (x.t<y.t?-1:x.t>y.t?1:0));
-  let used=0; const risk=new Set(), short={};
+  let used=0; const risk=new Set(), short={}, need={}, exact={};
   for(const x of dem){
     const m=sched[x.t]; if(m && schedDone(m)) continue;   // completed: skip
+    need[x.t]=(need[x.t]||0)+x.q; exact[x.t]=(exact[x.t]!==false)&&!!x.ex;
     let supply=start; for(const [w,,inc] of incs) if(w<=x.w) supply+=inc;
     const avail=supply-used;
     // a short trailer keeps its place in line: its full quantity stays claimed, so stock arriving later
@@ -2214,7 +2282,7 @@ function allocTrailers(d, sched){
     if(avail<x.q-1e-9){ risk.add(x.t); short[x.t]=(short[x.t]||0)+(x.q-Math.max(0,avail)); }
     used+=x.q;
   }
-  d.at_risk_trailers=[...risk].sort(); d.trailer_short=short;
+  d.at_risk_trailers=[...risk].sort(); d.trailer_short=short; d.trailer_need=need; d.trailer_exact=exact;
 }
 function allocAll(data, schedBase){
   const sched={}; (schedBase||[]).forEach(m=>{ sched[m.trailer]=m; });
@@ -2243,13 +2311,13 @@ function handleFile(e){
   reader.onload=async evt=>{
     try{
       // Same file as last time? Reuse the rows read then (saves ~10 s on every open)
-      let raw=null, cacheKey=null;
+      let raw=null, cacheKey=null, soq, exs;
       try{
         if(window.crypto && crypto.subtle && typeof fsGet==='function'){
           const h=new Uint8Array(await crypto.subtle.digest('SHA-256', evt.target.result));
           cacheKey=evt.target.result.byteLength+':'+[...h.slice(0,16)].map(x=>x.toString(16).padStart(2,'0')).join('');
           const c=await fsGet('mrp_rows');
-          if(c && c.key===cacheKey && Array.isArray(c.raw) && c.raw.length>1) raw=c.raw;
+          if(c && c.key===cacheKey && Array.isArray(c.raw) && c.raw.length>1 && c.soq!==undefined && c.exs!==undefined){ raw=c.raw; soq=c.soq; exs=c.exs; }   // 2.23: older copies lack per-trailer quantities, so read those again
         }
       }catch(e){ raw=null; }
       if(!raw){
@@ -2257,8 +2325,10 @@ function handleFile(e){
         const ws=wb.Sheets[wb.SheetNames[0]];
         raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
         mrpSafeRows(raw);
-        if(cacheKey && typeof fsPut==='function'){ const k=cacheKey, rr=raw; setTimeout(()=>{ fsPut('mrp_rows',{key:k, raw:rr}).catch(()=>{}); }, 2500); }
+        soq=mrpReadSoQty(wb); exs=mrpReadExcess(wb);
+        if(cacheKey && typeof fsPut==='function'){ const k=cacheKey, rr=raw, sq=soq, xs=exs; setTimeout(()=>{ fsPut('mrp_rows',{key:k, raw:rr, soq:sq, exs:xs}).catch(()=>{}); }, 2500); }
       }
+      window.__soQty=soq||null; window.__mrpExcess=exs||null;
       document.getElementById('loading-overlay').style.display='flex';
       setDialPct(5,'Reading '+raw.length.toLocaleString()+' rows…');
       function processChunk(){
@@ -2427,14 +2497,17 @@ function buildVendorList(){
   const el=document.getElementById('vendor-list'); if(!el) return;
   const vm={};
   allData.forEach(function(d){
-    if(!vm[d.VendorName]) vm[d.VendorName]={vendor:d.VendorName,earliest:'9999-99-99',critical:0,high:0,nopo:0,total:0};
+    if(!vm[d.VendorName]) vm[d.VendorName]={vendor:d.VendorName,earliest:'9999-99-99',critical:0,expedite:0,high:0,nopo:0,total:0};
     const v=vm[d.VendorName]; v.total++;
     if(d.first_negative_week&&d.first_negative_week<v.earliest) v.earliest=d.first_negative_week;
     if(d.urgency==='CRITICAL') v.critical++;
+    if(d.urgency==='EXPEDITE') v.expedite++;
     if(d.urgency==='HIGH') v.high++;
     if(!hasPO(d)) v.nopo++;
   });
-  const vendors=Object.values(vm).sort(function(a,b){return a.vendor.localeCompare(b.vendor);});
+  const vendors=Object.values(vm).sort(function(a,b){return a.vendor.localeCompare(b.vendor);});   // A–Z for the supplier menu
+  // 2.24: Vendor Priority lists the vendors to call first: most Critical + Expedite parts, then earliest short week, then most parts
+  const ranked=vendors.slice().sort(function(a,b){ return (b.critical+b.expedite)-(a.critical+a.expedite) || a.earliest.localeCompare(b.earliest) || b.total-a.total; });
   const gsel=document.getElementById('global-supplier-select');
   if(gsel){
     const saved=gsel.value;
@@ -2452,10 +2525,10 @@ function buildVendorList(){
         +'padding:1px 7px;border:1px solid var(--critical-border);border-radius:3px;'
         +'background:var(--critical-bg)">&times; All vendors</a>';
     } else {
-      sub.textContent='Click a vendor to view their parts →';
+      sub.textContent='Most Critical + Expedite parts first · click a vendor to view their parts';
     }
   }
-  el.innerHTML=vendors.map(function(v){
+  el.innerHTML=ranked.map(function(v){
     const isActive=activeSupplier===v.vendor;
     const rs=isActive?'background:var(--accent-bg);border-left:3px solid var(--accent);':'border-left:3px solid transparent;';
     const ns=isActive?'color:var(--accent);font-weight:700;':'';
@@ -2465,6 +2538,7 @@ function buildVendorList(){
       +'<span class="vendor-name" style="'+ns+'">'+v.vendor+'</span>'
       +'<span style="font-size:10px;text-align:center;color:var(--muted)">'+earliest+'</span>'
       +'<span style="text-align:center;font-weight:600;color:var(--critical)">'+(v.critical||'&mdash;')+'</span>'
+      +'<span style="text-align:center;font-weight:600;color:var(--expedite)">'+(v.expedite||'&mdash;')+'</span>'
       +'<span style="text-align:center;font-weight:600;color:var(--high)">'+(v.high||'&mdash;')+'</span>'
       +'<span style="text-align:center;font-weight:600;color:var(--accent)">'+(v.nopo||'&mdash;')+'</span>'
       +'<span style="text-align:center;color:var(--muted)">'+v.total+'</span>'
@@ -2554,9 +2628,212 @@ function setupDashboard(){
 // ═══════════════════════════════════════════════════════
 //  TAB SWITCHING
 // ═══════════════════════════════════════════════════════
-const TAB_TITLES={overview:['Overview','Purchasing priorities and production exposure'],actions:['Purchasing Queue','Order, expedite and track follow-up'],parts:['All Flagged Parts','Search, filter and investigate'],schedule:['Production Risk','Affected trailers and blocking parts'],'late-po':['Expedite','Existing purchase orders arriving late'],changes:['What Changed','Changes inside lead time since an earlier MRP'],mismatch:['Sage vs Schedule','Trailers where Sage’s parts dates and the production schedule disagree']};
+const TAB_TITLES={overview:['Overview','Purchasing priorities and production exposure'],actions:['Purchasing Queue','Order, expedite and track follow-up'],parts:['All Flagged Parts','Search, filter and investigate'],schedule:['Trailers at Risk','Trailers that will be short of parts, and the parts blocking them'],'late-po':['Expedite','Open POs that arrive after the part goes short — call to pull them in'],changes:['What Changed','Changes inside lead time since an earlier MRP'],pushout:['Push Out / Cancel','Open POs arriving before they’re needed, or not needed at all'],mismatch:['Sage vs Schedule','Trailers where Sage’s parts dates and the production schedule disagree']};
+// ═══════════════════════════════════════════════════════
+//  2.25 PUSH OUT / CANCEL: open POs that arrive before they are needed, or are not needed at all
+// ═══════════════════════════════════════════════════════
+// Every part's supply (on hand first, then past-due POs, then each PO delivery in arrival order) is used up
+// first-in first-out by its demand (past-due demand first, then each week's Allocated). Demand that stock can't
+// cover waits for the next delivery. So each PO delivery gets:
+//   first needed = the week its first unit is used;  needed qty = how much of it is used by the end of the MRP.
+// Cancel: none of it is needed by the end of the MRP.  Reduce: only part of it is.
+// Push out: its first unit isn't needed until PU minimum weeks or more after it arrives.
+const PU_ACTIONS=[
+  {k:'cancel', label:'Cancel', sub:'None of the PO quantity is needed before the MRP ends', c:'cc-red', chip:'c-red'},
+  {k:'reduce', label:'Reduce qty', sub:'Only part of the PO quantity is needed before the MRP ends', c:'cc-orange', chip:'c-orange'},
+  {k:'push', label:'Push out', sub:'Arrives weeks before its first unit is needed', c:'cc-blue', chip:'c-blue'},
+];
+const PU_MIN_KEY='mrp_pu_minwk_v1';
+let puMinWeeks=(()=>{ try{ const v=parseInt(localStorage.getItem(PU_MIN_KEY)); return v>0?v:4; }catch(e){ return 4; } })();
+let puState={act:'', buyer:'', vendor:'', q:'', soon:'', hideEdge:false, sort:'arrive', dir:1};
+window.__mrpExcess=null;
+function puSerialIso(v){
+  if(v==null||v==='') return '';
+  if(v instanceof Date) return isNaN(v)?'':mmIso(Date.UTC(v.getFullYear(),v.getMonth(),v.getDate()));
+  if(typeof v==='number') return mmIso(Date.UTC(1899,11,30)+Math.round(v)*MM_DAY);
+  const d=new Date(v); return isNaN(d)?'':mmIso(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+}
+// The MRP workbook's "Excess Obsolete" sheet: Sage's own excess quantity and the last receipt and usage dates per part
+function mrpReadExcess(wb){
+  try{
+    const name=(wb&&wb.SheetNames||[]).find(n=>/excess/i.test(n)); if(!name) return null;
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:''}); if(rows.length<2) return null;
+    const keys=(rows[0]||[]).map(k=>String(k||'').trim());
+    const cI=fk(keys,'ItemCode'), cX=fk(keys,'Excess'), cR=fk(keys,'LastReceipt'), cU=fk(keys,'LastUsage');
+    if(cI<0) return null;
+    const map={}; let n=0;
+    for(let i=1;i<rows.length;i++){ const r=rows[i], it=String(r[cI]||'').trim(); if(!it) continue;
+      map[it]={ex:cX>=0?toNum(r[cX]):null, rec:cR>=0?puSerialIso(r[cR]):'', use:cU>=0?puSerialIso(r[cU]):''}; n++; }
+    return n?map:null;
+  }catch(e){ console.error('Excess Obsolete', e); return null; }
+}
+function puBuild(raw){
+  const c=mmCols(raw); if(c.code<0||c.week<0||c.alloc<0||c.inc<0||c.qoh<0) return null;
+  const keys=(raw[0]||[]).map(k=>String(k||'').trim());
+  const cPO=fk(keys,'PurchaseOrders','purchaseorder','po'), cDesc=fk(keys,'ItemCodeDesc','description','desc'),
+        cVend=fk(keys,'VendorName','vendor'), cBuyer=fk(keys,'BuyerCode','buyer');
+  const excl=getExcludedPL(), by={}, weeksAll=new Set();
+  for(let i=1;i<raw.length;i++){ const r=raw[i], code=r[c.code]; if(!code) continue; const w=mrpWeekMs(r[c.week]); if(w==null) continue;
+    weeksAll.add(w); if(c.pl>=0 && excl.has(String(r[c.pl]||''))) continue; (by[code]||(by[code]=[])).push([w,i]); }
+  const wk=[...weeksAll].sort((a,b)=>a-b); if(!wk.length) return null;
+  const hEnd=wk[wk.length-1], edgeFrom=hEnd-(leadWeeks-1)*MM_WEEK, buf=arrivalBuffer*MM_WEEK;
+  const ex=window.__mrpExcess||{}, rows=[];
+  for(const code in by){
+    const list=by[code].sort((a,b)=>a[0]-b[0]); const r0=raw[list[0][1]], w0=list[0][0];
+    const lots=[];
+    const ppo=c.ppo>=0?toNum(r0[c.ppo]):0;
+    if(ppo>0) lots.push({po:'', past:true, w:w0, qty:ppo});
+    for(const [w,i] of list){ const r=raw[i], q=toNum(r[c.inc]); if(q>0) lots.push({po:cPO>=0?String(r[cPO]||'').trim():'', past:false, w, qty:q}); }
+    if(!lots.length) continue;
+    const qoh=toNum(r0[c.qoh]);
+    let backlog=(c.pso>=0?toNum(r0[c.pso]):0)+Math.max(0,-qoh);
+    const queue=qoh>0?[{onhand:true, left:qoh}]:[];
+    lots.forEach(l=>{ l.left=l.qty; l.first=null; });
+    let li=0;
+    for(const [w,i] of list){
+      while(li<lots.length && lots[li].w<=w) queue.push(lots[li++]);
+      let need=backlog+Math.max(0,toNum(raw[i][c.alloc])); backlog=0;
+      for(const l of queue){ if(need<=1e-9) break; if(l.left<=1e-9) continue; const t=Math.min(l.left,need); l.left-=t; need-=t; if(!l.onhand && l.first==null) l.first=w; }
+      backlog=need;
+    }
+    const meta={code:String(code), desc:cDesc>=0?String(r0[cDesc]||''):'', vendor:cVend>=0?String(r0[cVend]||''):'', buyer:cBuyer>=0?String(r0[cBuyer]||''):'',
+      pl:c.pl>=0?String(r0[c.pl]||''):'', ex:ex[String(code).trim()]||null};
+    // Sage's Excess (Excess Obsolete sheet) counts all open demand, including weeks after the MRP ends. Never call more
+    // excess than Sage does: its excess sits in the latest deliveries, so it is given out from the last PO back.
+    const sx=meta.ex&&meta.ex.ex!=null?Math.max(0,meta.ex.ex):null;
+    if(sx!=null){ let b=sx; for(let j=lots.length-1;j>=0;j--){ const nn=Math.min(lots[j].left,b); b-=nn; lots[j].nn=nn; } } else lots.forEach(l=>{ l.nn=l.left; });
+    lots.forEach(l=>{
+      const hUnused=Math.round(l.left*1000)/1000, unused=Math.round(l.nn*1000)/1000, used=Math.round((l.qty-l.nn)*1000)/1000;
+      const wkEarly=l.first!=null?Math.round((l.first-l.w)/MM_WEEK):null;
+      const acts=[];
+      if(used<=1e-9) acts.push('cancel');
+      else{ if(unused>=1-1e-9) acts.push('reduce'); if(wkEarly!=null && wkEarly>=puMinWeeks) acts.push('push'); }
+      if(!acts.length) return;
+      const newW=acts.includes('push')?Math.max(l.w, l.first-buf):null;
+      rows.push({...meta, po:l.po, past:l.past, arrive:mmIso(l.w), qty:l.qty, used, unused, hUnused, capped:sx!=null&&hUnused-unused>1e-6, first:l.first!=null?mmIso(l.first):'', wkEarly,
+        acts, act:acts[0], newDate:newW!=null&&newW>l.w?mmIso(newW):'', newQty:acts.includes('reduce')?Math.ceil(used-1e-9):(acts.includes('cancel')?0:null),
+        edge:acts.includes('cancel')||acts.includes('reduce')?l.w>=edgeFrom:false, lastuse:meta.ex&&meta.ex.use||'', key:'PU|'+code+'|'+(l.po||'past')+'|'+mmIso(l.w)});
+    });
+  }
+  const counts={}; PU_ACTIONS.forEach(a=>{ const rs=rows.filter(r=>r.acts.includes(a.k)); counts[a.k]={n:rs.length, qty:rs.reduce((s,r)=>s+(a.k==='push'?r.qty:r.unused),0)}; });
+  return {rows, counts, hEnd:mmIso(hEnd), first:mmIso(wk[0])};
+}
+function puRefresh(){
+  const b=document.getElementById('pushout-badge'); if(b) b.textContent=window.__pu?window.__pu.rows.length.toLocaleString():0;
+  if(document.getElementById('view-pushout')?.style.display==='block') puRender();
+}
+function puSetSort(k){ if(puState.sort===k) puState.dir*=-1; else { puState.sort=k; puState.dir=(k==='wkEarly'||k==='unused'||k==='qty')?-1:1; } puRender(); }
+function puFiltered(){
+  const pu=window.__pu; if(!pu) return [];
+  const q=puState.q.trim().toLowerCase();
+  const soon=puState.soon?mmIso(new Date(TODAY_STR+'T00:00:00Z').getTime()+parseInt(puState.soon)*MM_WEEK):'';
+  let rows=pu.rows.filter(r=>(!puState.act||r.acts.includes(puState.act))
+    &&(!puState.buyer||(puState.buyer==='__none'?!r.buyer:r.buyer===puState.buyer))
+    &&(!puState.vendor||r.vendor===puState.vendor)&&(!activeSupplier||r.vendor===activeSupplier)
+    &&(!soon||r.arrive<=soon)&&(!puState.hideEdge||!r.edge)
+    &&(!q||[r.code,r.desc,r.vendor,r.po].join(' ').toLowerCase().includes(q)));
+  const k=puState.sort, dir=puState.dir, ao={cancel:0,reduce:1,push:2};
+  const val=r=>k==='act'?ao[r.act]:['qty','used','unused','wkEarly'].includes(k)?(r[k]==null?-1:r[k]):k==='first'?(r.first||'9999'):String(r[k]||'');
+  rows.sort((a,b)=>{ const x=val(a), y=val(b); return (x<y?-1:x>y?1:0)*dir || a.arrive.localeCompare(b.arrive) || a.code.localeCompare(b.code); });
+  return rows;
+}
+function puStatusChange(key, sel){
+  statusStore[key]=sel.value; sel.className='status-select st-'+sel.value; saveStatusStore();
+  if(!TC.user) return;
+  TC.myLog[key]={s:sel.value, at:Date.now()};
+  if(sel.value==='none') delete TC.statusBy[key]; else TC.statusBy[key]={u:TC.user.u, name:TC.user.name, at:Date.now()};
+  tcSaveLog(); tcMarkDirty(true);
+  const cell=sel.parentElement; if(cell){ cell.querySelector('.st-who')?.remove(); cell.insertAdjacentHTML('beforeend', statusWhoTag(key)); }
+  tcSchedulePush(90000);
+}
+function puD(iso){ if(!iso) return ''; const [y,m,d]=String(iso).split('-'); return `${+m}/${+d}/${String(y).slice(2)}`; }
+function puNum(v){ return v==null?'':(Math.round(v*100)/100).toLocaleString(); }
+function puActChips(r){
+  const m={}; PU_ACTIONS.forEach(a=>{ m[a.k]=a; });
+  return r.acts.map(k=>`<span class="cchip ${m[k].chip}">${m[k].label}</span>`).join(' ')+(r.edge?' <span class="cchip pu-edge" title="Arrives in the last weeks of the MRP. Trailers due after the MRP ends (or not in Sage yet) could still need it.">Near MRP end</span>':'');
+}
+function puSuggest(r){
+  const s=[];
+  if(r.acts.includes('cancel')) s.push('<b>Cancel</b>');
+  if(r.acts.includes('reduce')) s.push(`Cut to <b>${r.newQty.toLocaleString()}</b>`);
+  if(r.acts.includes('push') && r.newDate) s.push(`Move to <b>${puD(r.newDate)}</b>`);
+  return s.join(' · ');
+}
+function puPOCell(r){
+  if(r.past) return '<span title="The MRP shows past-due PO quantity (PriorPO) without PO numbers">Past-due PO</span>';
+  return r.po.split(',').map(p=>p.trim()).filter(Boolean).map(p=>`<a href="#" onclick="event.preventDefault();event.stopPropagation();v2PO('${lrEsc(p)}')">${lrEsc(p)}</a>`).join(', ');
+}
+function puRender(){
+  const root=document.getElementById('pu-root'); if(!root) return;
+  const pu=window.__pu;
+  if(!pu){ root.innerHTML=`<div class="empty-state" style="padding:40px"><div style="font-size:28px">📦</div><p>Load an MRP to see POs that can be pushed out or cancelled.</p></div>`; return; }
+  const cards=PU_ACTIONS.map(a=>`<button class="chg-card ${a.c}${puState.act===a.k?' active':''}" onclick="puState.act=puState.act==='${a.k}'?'':'${a.k}';puRender()" title="${lrEsc(a.sub)}">
+    <span class="chg-card-l">${a.label}</span><span class="chg-card-n">${pu.counts[a.k].n.toLocaleString()}</span>
+    <span class="chg-card-s">${a.k==='push'?'PO lines arriving '+puMinWeeks+'+ weeks before needed':Math.round(pu.counts[a.k].qty).toLocaleString()+' units not needed before '+mmShort(pu.hEnd)}</span></button>`).join('');
+  const buyers=[...new Set(pu.rows.map(r=>r.buyer).filter(Boolean))].sort();
+  const vendors=[...new Set(pu.rows.map(r=>r.vendor).filter(Boolean))].sort();
+  const rows=puFiltered(), lim=500;
+  const arrow=k=>puState.sort===k?(puState.dir>0?' ▲':' ▼'):'';
+  const th=(k,l,cls='',tip='')=>`<th class="${cls}" onclick="puSetSort('${k}')" style="cursor:pointer"${tip?` title="${lrEsc(tip)}"`:''}>${l}${arrow(k)}</th>`;
+  const shortSet=new Set((allData||[]).map(d=>d.ItemCode));
+  const body=rows.slice(0,lim).map(r=>{ const st=statusStore[r.key]||'none';
+    return `<tr onclick="puPart('${lrEsc(r.code)}')" style="cursor:pointer">
+    <td>${puActChips(r)}${shortSet.has(r.code)?' <span class="cchip pu-short" title="This part also goes short in this MRP. Check part details before cutting its supply.">Also short</span>':''}</td>
+    <td><b style="color:var(--accent)">${lrEsc(r.code)}</b><div class="pu-desc" title="${lrEsc(r.desc)}">${lrEsc(r.desc)}</div></td>
+    <td><div class="pu-vend" title="${lrEsc(r.vendor)}">${lrEsc(r.vendor)}</div></td><td><span class="buyer-tag">${lrEsc(r.buyer||'—')}</span></td>
+    <td class="nw" onclick="event.stopPropagation()">${puPOCell(r)}</td><td class="nw">${r.past?'Past due':puD(r.arrive)}</td>
+    <td class="num">${puNum(r.qty)}</td><td class="num"${r.capped?` title="${lrEsc(puNum(r.hUnused))} isn’t used before the MRP ends, but Sage’s excess is only ${lrEsc(puNum(r.ex.ex))}, so later demand needs the rest"`:''}>${r.used?puNum(r.used)+(r.capped?'<sup style="color:var(--muted2)">*</sup>':''):'<span style="color:var(--critical)">0</span>'}</td>
+    <td class="nw">${r.first?puD(r.first):'<span style="color:var(--muted2)">After MRP</span>'}</td>
+    <td class="num">${r.wkEarly!=null?r.wkEarly:'—'}</td><td class="nw">${puSuggest(r)}</td>
+    <td class="nw">${r.ex&&r.ex.use?puD(r.ex.use):'—'}</td>
+    <td onclick="event.stopPropagation()"><select class="status-select st-${st}" onchange="puStatusChange('${lrEsc(r.key)}',this)">${statusOptions(st)}</select>${statusWhoTag(r.key)}</td></tr>`; }).join('');
+  root.innerHTML=`<div class="sched-toolbar">
+      <p class="mm-desc">Open POs that bring stock in before it’s needed. Stock is used first in, first out: on hand first, then POs in the order they arrive, by the demand in this MRP (${mmShort(pu.first)} – ${mmShort(pu.hEnd)}). <b>Needed</b> = how much of the delivery is used before the MRP ends, or by later demand Sage counts in its excess (<sup>*</sup>); <b>Wks early</b> = weeks between arrival and the first unit being used. Call the supplier before it ships, then change the PO in Sage.</p>
+      <div class="chg-cards" style="grid-template-columns:repeat(3,minmax(0,1fr))">${cards}</div>
+      <div class="tb-row">
+        <select class="ctrl-sel" onchange="puState.buyer=this.value;puRender()"><option value="">All buyers</option>${buyers.map(b=>`<option${puState.buyer===b?' selected':''}>${lrEsc(b)}</option>`).join('')}<option value="__none"${puState.buyer==='__none'?' selected':''}>No buyer</option></select>
+        <select class="ctrl-sel" onchange="puState.vendor=this.value;puRender()" style="max-width:220px"><option value="">All suppliers</option>${vendors.map(v=>`<option${puState.vendor===v?' selected':''}>${lrEsc(v)}</option>`).join('')}</select>
+        <select class="ctrl-sel" onchange="puState.soon=this.value;puRender()"><option value="">Arriving any time</option>${[4,8,12].map(n=>`<option value="${n}"${puState.soon==String(n)?' selected':''}>Arriving in the next ${n} weeks</option>`).join('')}</select>
+        <input type="text" class="search-box" id="pu-search" placeholder="Search part #, description, supplier, PO…" style="max-width:280px" value="${lrEsc(puState.q)}" oninput="puState.q=this.value;clearTimeout(window.__puT);window.__puT=setTimeout(()=>{puRender();const s=document.getElementById('pu-search');if(s){s.focus();s.setSelectionRange(s.value.length,s.value.length);}},250)">
+        <label class="pu-opt"><input type="checkbox"${puState.hideEdge?' checked':''} onchange="puState.hideEdge=this.checked;puRender()"> Hide “Near MRP end”</label>
+        <label class="pu-opt" title="A PO line counts as Push out when its first unit isn't needed until this many weeks after it arrives">Push out if ≥ <input type="number" min="1" max="26" value="${puMinWeeks}" style="width:44px" onchange="puSetMin(this.value)"> wks early</label>
+        <span class="result-ct">${rows.length.toLocaleString()} PO line${rows.length===1?'':'s'}${activeSupplier?' · '+lrEsc(activeSupplier):''}${rows.length>lim?` · showing the first ${lim} (narrow it down or export)`:''}</span>
+        <div class="tb-right"><button class="export-btn" onclick="puExport()">⬇ Export Excel</button></div></div>
+    </div>
+    <div class="tbl-wrap"><table class="chg-week pu-tbl"><thead><tr>${th('act','Action')}${th('code','Part')}${th('vendor','Supplier')}${th('buyer','Buyer')}${th('po','PO')}${th('arrive','Arrives','','Week of')}${th('qty','PO qty','num')}${th('used','Needed','num','How much of this delivery is used before the MRP ends, plus later demand Sage counts (*)')}${th('first','First need','','Week the first unit of this delivery is used')}${th('wkEarly','Wks early','num')}<th>Suggested</th>${th('lastuse','Last used','','Last usage date from Sage’s Excess Obsolete sheet')}<th>Status</th></tr></thead>
+    <tbody>${body||'<tr><td colspan="13" style="padding:24px;text-align:center;color:var(--muted2)">No PO lines match.</td></tr>'}</tbody></table></div>
+    <p class="tc-small" style="padding:8px 16px">Click a row to see every PO and the week-by-week use for that part. Demand only goes to ${mmShort(pu.hEnd)}, and trailers not in Sage yet have no demand, so check upcoming builds before cancelling. When two POs arrive the same week, the MRP gives one total for both.${dateMode==='schedule'?' Demand is dated by the schedule.':''}</p>`;
+}
+function puSetMin(v){ const n=parseInt(v); if(!(n>0)) return; puMinWeeks=n; try{ localStorage.setItem(PU_MIN_KEY,String(n)); }catch(e){} window.__pu=puBuild(window.__redatedRaw||window.lastRawData); puRefresh(); puRender(); }
+function puPart(code){
+  const pu=window.__pu; if(!pu) return;
+  const raw=window.__redatedRaw||window.lastRawData; const c=mmCols(raw);
+  const rs=pu.rows.filter(r=>r.code===code);
+  const keys=(raw[0]||[]).map(k=>String(k||'').trim()), cPO=fk(keys,'PurchaseOrders','purchaseorder','po');
+  const wrows=[]; let r0=null;
+  for(let i=1;i<raw.length;i++){ const r=raw[i]; if(String(r[c.code])!==code) continue; if(!r0) r0=r; wrows.push(r); }
+  if(!r0) return;
+  const d=(allData||[]).find(x=>x.ItemCode===code), ex=rs[0]&&rs[0].ex;
+  const wk=wrows.filter(r=>toNum(r[c.inc])>0||toNum(r[c.alloc])>0).map(r=>`<tr><td>${mmShort(mmIso(mrpWeekMs(r[c.week])))}</td><td class="num">${toNum(r[c.alloc])?puNum(toNum(r[c.alloc])):''}</td><td class="num">${toNum(r[c.inc])?puNum(toNum(r[c.inc])):''}</td><td>${cPO>=0?lrEsc(r[cPO]||''):''}</td><td class="num${toNum(r[c.avail])<0?' neg':''}">${puNum(toNum(r[c.avail]))}</td></tr>`).join('');
+  v2Panel(code+' | Push out / cancel', `<p class="pn-desc">${lrEsc(rs[0]?rs[0].desc:'')} · ${lrEsc(rs[0]?rs[0].vendor:'')} · Buyer ${lrEsc(rs[0]&&rs[0].buyer||'none')}</p>
+    ${d?`<p><span class="cchip c-red">Also flagged short</span> This part goes short ${lrEsc(d.first_negative_week||'')}. Don’t cut supply before fixing that. <a href="#" onclick="event.preventDefault();v2Part('${lrEsc(code)}')">Open part details</a></p>`:''}
+    <div class="v2-kv pn-kv"><div><small>On hand</small><b>${puNum(toNum(r0[c.qoh]))}</b></div><div><small>Past-due POs</small><b>${puNum(c.ppo>=0?toNum(r0[c.ppo]):0)}</b></div>
+    <div><small>Past-due demand</small><b>${puNum(c.pso>=0?toNum(r0[c.pso]):0)}</b></div><div><small>Sage excess</small><b>${ex&&ex.ex!=null?puNum(ex.ex):'—'}</b></div>
+    <div><small>Last received</small><b>${ex&&ex.rec?mmShort(ex.rec):'—'}</b></div><div><small>Last used</small><b>${ex&&ex.use?mmShort(ex.use):'—'}</b></div></div>
+    <h3>PO deliveries to change (${rs.length})</h3><table class="chg-week"><thead><tr><th>Action</th><th>PO</th><th>Arrives</th><th class="num">Qty</th><th class="num">Needed</th><th>First needed</th><th>Suggested</th></tr></thead><tbody>
+    ${rs.map(r=>`<tr><td>${puActChips(r)}</td><td>${puPOCell(r)}</td><td>${r.past?'Past due':mmShort(r.arrive)}</td><td class="num">${puNum(r.qty)}</td><td class="num">${puNum(r.used)}</td><td>${r.first?mmShort(r.first):'Not before MRP end'}</td><td>${puSuggest(r)}</td></tr>`).join('')}</tbody></table>
+    <h3>Week by week</h3><table class="chg-week"><thead><tr><th>Week of</th><th class="num">Demand</th><th class="num">Incoming</th><th>PO</th><th class="num">Available</th></tr></thead><tbody>${wk||'<tr><td colspan="5">No demand or deliveries in this MRP.</td></tr>'}</tbody></table>
+    <p class="tc-small">Available is Sage’s projected balance. Weeks with no demand and no deliveries are left out.</p>`);
+}
+function puExport(){
+  const rows=puFiltered(), m={}; PU_ACTIONS.forEach(a=>{ m[a.k]=a.label; });
+  const hdr=['Action','Part #','Description','Product line','Supplier','Buyer','PO','Arrives (week of)','PO qty','Needed','Not needed','Not used before MRP end','First needed (week of)','Weeks early','Suggested qty','Suggested arrival (week of)','Near MRP end','Sage excess','Last received','Last used','Status'];
+  downloadXLSX([{name:'Push Out - Cancel', rows:[hdr, ...rows.map(r=>[r.acts.map(k=>m[k]).join(' + '), r.code, r.desc, r.pl, r.vendor, r.buyer, r.past?'Past-due PO':r.po, r.past?'Past due':r.arrive, r.qty, r.used, r.unused, r.hUnused, r.first||'Not before MRP end', r.wkEarly==null?'':r.wkEarly,
+    r.newQty==null?'':r.newQty, r.newDate||'', r.edge?'Yes':'', r.ex&&r.ex.ex!=null?r.ex.ex:'', r.ex?r.ex.rec:'', r.ex?r.ex.use:'', STATUS_LABELS[statusStore[r.key]||'none']||''])]}], 'Push_Out_Cancel.xlsx');
+}
+
 function switchTab(t){
-  ['overview','actions','parts','late-po','schedule','changes','mismatch'].forEach(n=>{
+  ['overview','actions','parts','late-po','schedule','changes','mismatch','pushout'].forEach(n=>{
     const v=document.getElementById('view-'+n); if(v) v.style.display=n===t?'block':'none';
     document.getElementById('tab-'+n)?.classList.toggle('active',n===t);
   });
@@ -2570,6 +2847,7 @@ function switchTab(t){
   if(t==='overview'){ try{ renderOverviewProduction(); }catch(e){ console.error(e); } requestAnimationFrame(()=>{ try{ buildChart(); }catch(e){} }); }
   if(t==='changes') chgRender();
   if(t==='mismatch') mmRender();
+  if(t==='pushout') puRender();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2619,49 +2897,73 @@ function updateStats(){ renderUrgCards(); }   // cards: see URGENCY CARDS
 //  TIMELINE CHART
 // ═══════════════════════════════════════════════════════
 window.addEventListener('resize', ()=>{ clearTimeout(window.__chartRs); window.__chartRs=setTimeout(()=>{ try{ if(document.getElementById('view-overview')?.style.display!=='none') buildChart(); }catch(e){} }, 150); });
+// 2.24: stacked bars by urgency, one bar per calendar week (empty weeks included), with a hover breakdown
+const CHART_URG=[['CRITICAL','Critical','#DC2626'],['EXPEDITE','Expedite','#7C3AED'],['HIGH','High','#EA580C'],['MEDIUM','Medium','#CA8A04'],['LOW','Low','#16A34A']];
+const CHART_WEEKS=26;
+function chartWeeks(){
+  const src=timelineData||[]; if(!src.length) return [];
+  const by={}; src.forEach(d=>{ by[d.week]=d; });
+  const add7=w=>{ const t=new Date(w+'T12:00:00'); t.setDate(t.getDate()+7); return t.toISOString().slice(0,10); };
+  const out=[]; let w=src[0].week;
+  for(let i=0;i<CHART_WEEKS;i++){ out.push(by[w]||{week:w,count:0}); w=add7(w); }
+  return out;
+}
 function buildChart(){
   const canvas=document.getElementById('chart-canvas'); if(!canvas) return;
-  const data=timelineData; if(!data||!data.length) return;
+  const data=chartWeeks(); if(!data.length) return;
+  const all=timelineData||[], last=data[data.length-1].week, shown=data.reduce((a,d)=>a+d.count,0), total=all.reduce((a,d)=>a+d.count,0);
+  const sub=document.getElementById('chart-sub');
+  if(sub) sub.textContent='Flagged parts by the week they go short · '+CHART_WEEKS+' weeks from '+data[0].week+(total>shown?' · '+(total-shown).toLocaleString()+' more parts go short after '+last:'');
   const dpr=window.devicePixelRatio||1;
   const box=canvas.parentElement;
   const W=box.clientWidth||800, H=Math.max(160, box.clientHeight||190);   // fills the panel (Overview rows are equal height)
   if(W===0) return;
   canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
-  const pad={l:44,r:16,t:16,b:36};
-  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const pad={l:40,r:12,t:10,b:24};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b, n=data.length;
   const maxCount=Math.max(...data.map(d=>d.count),1);
-  const n=data.length;
-  const barW=Math.max(3,Math.floor((cw/(n||1))*0.7));
-  const spacing=cw/(n||1);
+  const spacing=cw/n, barW=Math.max(3,Math.floor(spacing*0.7));
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#f8fafc'; ctx.fillRect(0,0,W,H);
-  // Gridlines
+  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,W,H);
   [0,.25,.5,.75,1].forEach(f=>{
     const y=pad.t+ch*(1-f);
-    ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=.5;
+    ctx.strokeStyle='#E2E4E8'; ctx.lineWidth=.5;
     ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
-    if(f>0){ ctx.fillStyle='#94a3b8'; ctx.font='9px Inter,sans-serif'; ctx.textAlign='right'; ctx.fillText(Math.round(maxCount*f),pad.l-4,y+3); }
+    if(f>0){ ctx.fillStyle='#6B7280'; ctx.font='9px Inter,sans-serif'; ctx.textAlign='right'; ctx.fillText(Math.round(maxCount*f),pad.l-4,y+3); }
   });
-  // Color priority: CRITICAL=red, HIGH=orange, EXPEDITE=purple, MEDIUM=yellow, LOW=green
-  const urgColor={'CRITICAL':'#dc2626','HIGH':'#ea580c','EXPEDITE':'#7c3aed','MEDIUM':'#ca8a04','LOW':'#16a34a'};
+  const hit=[];
   data.forEach((d,i)=>{
     const x=pad.l+i*spacing+(spacing-barW)/2;
-    const bh=Math.max(2,(d.count/maxCount)*ch);
-    const y=pad.t+ch-bh;
-    // Pick dominant urgency color
-    const dominant=['CRITICAL','HIGH','EXPEDITE','MEDIUM','LOW'].find(u=>(d[u]||0)>0)||'LOW';
-    ctx.fillStyle=urgColor[dominant];
-    if(ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x,y,barW,bh,2); ctx.fill(); }
-    else { ctx.fillRect(x,y,barW,bh); }
-    // X label every ~4 bars
-    if(i===0||i===n-1||i%Math.max(1,Math.floor(n/6))===0){
-      ctx.fillStyle='#64748b'; ctx.font='8px Inter,sans-serif'; ctx.textAlign='center';
-      ctx.fillText(typeof d.week==='string'?d.week.slice(5):'',x+barW/2,H-pad.b+14);
+    let y=pad.t+ch;
+    CHART_URG.forEach(([k,,col])=>{
+      const v=d[k]||0; if(!v) return;
+      const h=(v/maxCount)*ch; y-=h;
+      ctx.fillStyle=col; ctx.fillRect(x,y,barW,Math.max(1,h));
+    });
+    hit.push({x0:pad.l+i*spacing, x1:pad.l+(i+1)*spacing, d});
+    const step=Math.max(1,Math.ceil(n/(cw/46)));   // a label about every 46px
+    if(i%step===0){
+      ctx.fillStyle='#6B7280'; ctx.font='9px Inter,sans-serif'; ctx.textAlign='center';
+      ctx.fillText(i===0&&d.week<=TODAY_STR?'This wk':d.week.slice(5),x+barW/2,H-pad.b+13);
     }
   });
-  ctx.fillStyle='#1e3a5f'; ctx.font='bold 10px Inter,sans-serif'; ctx.textAlign='left';
-  ctx.fillText('Parts going negative by week — '+data.length+' weeks shown',pad.l,12);
+  canvas.__hit=hit;
+  if(!canvas.__tt){
+    canvas.__tt=true;
+    const tt=document.getElementById('chart-tt');
+    canvas.addEventListener('mousemove',e=>{
+      const r=canvas.getBoundingClientRect(), mx=e.clientX-r.left;
+      const h=(canvas.__hit||[]).find(b=>mx>=b.x0&&mx<b.x1);
+      if(!h||!tt){ if(tt) tt.classList.remove('show'); return; }
+      const d=h.d;
+      tt.innerHTML='<div class="tt-week">Week of '+d.week+'</div><div class="tt-row"><b>Parts going short</b><b>'+d.count+'</b></div>'
+        +CHART_URG.filter(([k])=>d[k]).map(([k,lbl,col])=>'<div class="tt-row"><span style="color:'+col+'">'+lbl+'</span><span>'+d[k]+'</span></div>').join('');
+      tt.classList.add('show');
+      const left=Math.min(mx+12, r.width-150); tt.style.left=left+'px'; tt.style.top='10px';
+    });
+    canvas.addEventListener('mouseleave',()=>{ if(tt) tt.classList.remove('show'); });
+  }
 }
 let _resizeTimer; window.addEventListener('resize',()=>{ clearTimeout(_resizeTimer); _resizeTimer=setTimeout(buildChart,150); });
 
@@ -3463,7 +3765,7 @@ function printTrailersAtRisk(){
   const lineLabel = scheduleLineFilter?` — ${scheduleLineFilter}`:'';
   const win=window.open('','_blank','width=900,height=700');
   win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Trailers at Risk — Fontaine Trailer</title>
+    <title>Trailers at Risk — Fontaine Specialized</title>
     <style>
       @media print { @page { margin: 0.5in; } }
       body { font-family: -apple-system, 'Segoe UI', sans-serif; color: #111827; margin: 20px; font-size: 12px; }
@@ -3474,7 +3776,7 @@ function printTrailersAtRisk(){
     </style>
   </head><body>
     <h1>🚛 Trailers at Risk${filterLabel}${lineLabel}</h1>
-    <div class="meta">Fontaine Trailer · Printed ${new Date().toLocaleDateString()} · ${data.length} trailers · Sorted by due date</div>
+    <div class="meta">Fontaine Specialized · Printed ${new Date().toLocaleDateString()} · ${data.length} trailers · Sorted by due date</div>
     <button class="print-btn" onclick="window.print()">🖨 Print / Save as PDF</button>
     ${rows}
   </body></html>`);
@@ -3515,7 +3817,7 @@ function exportScheduleCSV(){
 //  STATUS PERSISTENCE HELPERS
 // ═══════════════════════════════════════════════════════
 function updateStatusBanner(){
-  const keys=Object.keys(statusStore).filter(function(k){return statusStore[k]&&statusStore[k]!=='none';});
+  const keys=Object.keys(statusStore).filter(function(k){return statusStore[k]&&statusStore[k]!=='none'&&k.indexOf('PU|')!==0;});   // 2.25: Push Out statuses aren't parts
   const banner=document.getElementById('status-banner');
   const clearBtn=document.getElementById('clear-status-btn');
   if(!banner) return;
@@ -3539,7 +3841,7 @@ function updateStatusBanner(){
 }
 
 function showStatusSummary(){
-  const keys=Object.keys(statusStore).filter(k=>statusStore[k]&&statusStore[k]!=='none');
+  const keys=Object.keys(statusStore).filter(k=>statusStore[k]&&statusStore[k]!=='none'&&!k.startsWith('PU|'));
   if(!keys.length){ uiNotice('No statuses set yet.'); return; }
   const by={}; keys.forEach(k=>{ (by[statusStore[k]]||(by[statusStore[k]]=[])).push(k); });
   const stale=allData.filter(d=>typeof statusStale==='function' && statusStale(d).length).map(d=>d.ItemCode);
@@ -3649,7 +3951,8 @@ function v2Help(){ v2Panel('Help', ''
   +'<h3>Start here</h3><p>Choose your MRP report, optionally add a production schedule, then select Analyze to open the dashboard.</p>'
   +'<h3>Signing in (team files and shared statuses)</h3><p>On the team website, sign in with the username and password the admin gave you. The first time, you choose your own password. After that the dashboard remembers you on this computer and opens the team’s latest MRP and schedule by itself. You don’t need to connect a folder or upload anything.</p><p><b>Statuses are shared.</b> When you set Contacted supplier, PO / date set or Confirmed, everyone sees it, with your name and the date under the status. Changes are saved within about a minute and a half, and when you leave the page. Other people’s changes show up within about 10 minutes, or when you come back to the tab.</p><p><b>Publishing team files</b> (people allowed to publish): connect the team folder in <b>Data &amp; Settings</b>. Whenever you open the dashboard and the folder has a newer MRP or schedule, it is published to everyone automatically. You can also choose a file and select <b>Publish to team</b>, or use <b>Publish the MRP I have open</b> in <b>Data &amp; Settings</b>. The line under the page title shows <b>👥 Team files · MRP published …</b> with who published it.</p><p><b>Admins</b>: select <b>👤 your name → Team members</b> to add a person (you get a temporary password to send them), reset a password, allow publishing, or turn someone off.</p><p><b>Privacy.</b> Files and statuses are encrypted in your browser before they are uploaded, so the website’s storage only holds scrambled data. Your password never leaves your computer.</p>'
   +'<h3>FAQ: signing in</h3><p><b>I forgot my password.</b> Ask the admin to select <b>Reset password</b>. You get a new temporary password.<br><b>It says the team server could not be reached.</b> The dashboard falls back to the team folder or your saved copy. Try again later.<br><b>It says team storage is paused.</b> The free storage plan’s monthly limit was reached. The dashboard keeps working with the team folder or your own files until it resets.<br><b>A newer MRP was published while I had the dashboard open.</b> A notice offers <b>Open it now</b>. You can also select <b>👤 your name → Check for newer team files</b>.<br><b>I opened the dashboard file from my computer.</b> Sign-in only works on the team website. A file opened from a folder works the old way (your own files and the team folder).</p>'
-  +'<h3>Choose a workspace</h3><p><b>Overview:</b> urgency totals, production line health and the parts blocking the most trailers (choose the time window at the top), then Vendor Priority and the order deadline timeline. Click a line to open its trailers, or a part for its details. On every other tab the urgency totals shrink to one slim row; click any of them to filter All Parts.<br><b>Purchasing Queue:</b> urgent unordered parts and expedite items.<br><b>All Parts:</b> search and filter flagged parts.<br><b>Trailers at Risk:</b> investigate affected trailers.<br><b>Expedite:</b> review late purchase orders.</p>'
+  +'<h3>Choose a workspace</h3><p><b>Overview:</b> urgency totals, production line health and the parts blocking the most trailers (choose the time window at the top), then <b>Vendor Priority</b> (vendors with the most Critical + Expedite parts first, so the top rows are the calls to make) and the <b>order deadline timeline</b> (flagged parts by the week they go short, stacked by urgency; hover a bar for the counts). Click a line to open its trailers, or a part for its details. On every other tab the urgency totals shrink to one slim row; click any of them to filter All Parts.<br><b>Purchasing Queue:</b> urgent unordered parts and expedite items.<br><b>All Parts:</b> search and filter flagged parts.<br><b>Trailers at Risk:</b> investigate affected trailers.<br><b>Expedite:</b> review late purchase orders.<br><b>Push Out / Cancel:</b> open POs that bring stock in before it’s needed, or that aren’t needed at all.</p>'
+  +'<h3>Push Out / Cancel</h3><p>This tab looks at <b>every open PO</b> in the MRP, not only flagged parts. For each part, stock is used first in, first out: on hand first, then past-due POs, then each PO delivery in the order it arrives, against the part’s demand (past-due demand first, then each week). Demand that stock can’t cover waits for the next delivery. Each PO delivery then gets <b>Needed</b> (how much of it is used before the MRP ends) and <b>First needed</b> (the week its first unit is used). Sage’s <b>Excess</b> on the MRP workbook’s Excess Obsolete sheet counts all open demand, including weeks after the MRP ends, so Cancel and Reduce never cut more than Sage’s excess: it is taken from the last delivery back. A <sup>*</sup> on Needed means later demand needs part of the delivery; hover over it for the numbers.</p><ul class="chg-ul"><li><b>Cancel:</b> none of the delivery is needed before the MRP ends.</li><li><b>Reduce qty:</b> only part of it is needed; <b>Suggested</b> gives the quantity to cut it to.</li><li><b>Push out:</b> its first unit isn’t needed until 4 or more weeks after it arrives (change the number of weeks on the tab; saved in this browser). <b>Suggested</b> gives the week to move it to: the week it’s first needed minus the Arrive early weeks.</li></ul><p><b>Before you cancel, check:</b> the MRP only has demand up to its last week, and trailers whose bill of materials isn’t in Sage yet have no demand at all (see Sage vs Schedule → Not in Sage). Lines tagged <b>Near MRP end</b> arrive in the last weeks of the MRP, so later trailers may still need them; tick <b>Hide “Near MRP end”</b> to leave them out. Parts tagged <b>Also short</b> go short at some point in this MRP: moving a delivery to its suggested week still covers the demand shown, but open part details before cutting anything. Stock parts bought in bulk will show as Reduce qty; use judgment. When two POs arrive the same week, the MRP gives one total for both, so they show on one line. Past-due PO quantity has no PO number in the MRP, so it shows as <b>Past-due PO</b>.</p><p><b>Last used</b> and the part panel’s Sage excess and last received come from the MRP workbook’s <b>Excess Obsolete</b> sheet. Click a row for the part’s POs and week-by-week demand, or a PO number for the PO. Statuses on this tab are separate from the part statuses and are shared with the team the same way. Arriving soon matters most: once the supplier ships, it’s too late to push out.</p>'
   +'<h3>Investigate and follow up</h3><p>Click a part number for details. Click an Open PO badge for the delivery breakdown. Work statuses do not change MRP urgency. When you are signed in they are shared with the team and show who set them and when; otherwise they are saved in this browser only.</p>'
   +'<h3>Team shared folder (same files for everyone)</h3><p>Connect the dashboard to one folder the whole team syncs from SharePoint. Every time anyone opens the dashboard, it loads the <b>newest MRP (.xlsm)</b> and the <b>newest schedule (.xlsx with “Schedule” in the name)</b> in that folder. “Newest” means the latest <b>report date in the file name</b> (for example MRP_REPORT_10.29.26, or the export number at the end of a Monday schedule file), not when the file was last saved. Date modified is only used when the names have the same date or no date. To update everyone, save the new file into the folder, or choose it in the dashboard and select <b>Save to team folder</b> when asked.</p><p><b>One-time setup for each person</b><br>1. In SharePoint, open the team folder that holds the MRP and schedule and select <b>Sync</b> (or <b>Add shortcut to My files</b>), so it appears in File Explorer.<br>2. In the dashboard, open <b>Data &amp; Settings</b> and select <b>Connect team folder…</b>.<br>3. Pick that folder and select <b>View files</b>, then <b>Allow</b>. If Chrome or Edge offers <b>Allow on every visit</b>, choose it so the team files open with no clicks.<br>Otherwise, when you open the dashboard, select <b>Open team files</b> in the notice in the bottom-right corner.</p><p>The line under the page title shows <b>👥 Team files</b> with the <b>report date</b> of the MRP and the schedule (from the file names), and who published them and when. It turns orange when the MRP’s report date is more than 7 days old. If it shows <b>💾 My saved files</b>, you are looking at your own copy, not the team folder.</p>'
   +'<h3>My saved copy</h3><p>Your latest files are also kept in this browser, so the dashboard still opens when the team folder is not connected or not available. Choosing a new file replaces this copy. To remove it, open <b>Data &amp; Settings</b> and select <b>Forget my saved copy</b>.</p>'
@@ -3658,7 +3961,7 @@ function v2Help(){ v2Panel('Help', ''
   +'<h3>Line Reports (PDF)</h3><p>On <b>Trailers at Risk</b>, select <b>📄 Line Reports</b>. Pick the lines, a time window and the sections, then select <b>Generate PDF report</b>. A report window opens with the print dialog; choose <b>Save as PDF</b>. The summary page compares the lines and lists the parts blocking the most trailers across all selected lines. Each line then gets its own page: at-risk trailers with their blocking parts, the parts to chase (supplier, buyer, PO) and the trailers that look good. Line Reports need the production schedule loaded. If the report window does not open, allow pop-ups for this file.</p>'
   +'<h3>Part details and notes</h3><p>Click any part number to open its details: the work status, key numbers, a <b>projected balance</b> chart for the coming weeks (blue line, red where it goes below zero, purple triangles where POs arrive, orange line at the need-by date), the week-by-week numbers, its <b>open POs</b> (any arriving after the need-by date are marked), and the <b>trailers at risk</b> with their line, due date, customer and WIP.</p><p><b>Notes.</b> Type a note at the bottom of the part details and select <b>Add note</b>, for example “Supplier says ships 3/12”. When you are signed in, notes are shared with the team and show who wrote them. Yours are saved within a few seconds; others see them the next time their dashboard checks (about every 10 minutes, or when they come back to the tab). You can delete your own notes. Parts with notes show a 📝 badge next to the part number; hover over it for the latest note, or click it to open the part. Excel exports include a <b>Latest note</b> column.</p>'
   +'<h3>File date warnings</h3><p>A yellow notice under the page title appears when the MRP is more than a week old, or when the MRP and schedule are more than 2 working days apart. The dates come from the file names (for example <b>MRP_REPORT_10.29.26</b>, and the number at the end of a Monday export), or from when the file was saved. Select ✕ to hide the notice until the next file is loaded.</p>'
-  +'<h3>How a part is flagged</h3><p>The dashboard reads the projected <b>Available</b> balance the MRP gives for each part and week (on hand, plus POs, minus trailer demand). A part is flagged when that balance goes <b>below zero in any week</b>; POs that arrive in time are already counted in it. <b>Goes negative</b> is the first short week, <b>Lowest balance</b> (and the recommended quantity) is the most negative week, the <b>order-by date</b> is the goes-negative week minus the steel lead time, and the <b>need-by date</b> is the goes-negative week minus the arrival buffer. If a PO arrives after the part goes short, it is <b>Expedite</b>. Otherwise it needs ordering (no PO, or <b>PO too small</b>) and its urgency comes from the order-by date: passed = Critical, within 14 days = High, within 28 days = Medium, later = Low.</p><p><b>Trailers at risk.</b> For each short part, the dashboard lists every trailer that needs it: past-due trailers (the MRP’s TrailerNumbers, whose demand is in PriorSO) and the trailers in each week’s SalesOrders. It sorts them by <b>schedule due date, soonest first</b> (trailers not on the schedule use their MRP week) and hands out the stock in that order: on hand plus POs that have arrived by the week the trailer needs the part. A trailer that can’t get its full quantity by the week it needs the part is <b>at risk</b>, and it stays first in line for the next stock that arrives, so the trailers after it are at risk too until enough stock has come in. So if a part is 1 short in a week with 10 trailers, only the last-due trailer is flagged. The MRP only gives each week’s total, so each trailer’s quantity is estimated by splitting that week’s demand evenly. Trailers in <b>Completions</b> are skipped (they get no stock), and the Trailers at Risk header links to a list of completed trailers that Sage still has parts demand for, so they can be cleaned up. Line, due date, customer and WIP come from the schedule; trailers in Completions or without a due date are left out of the trailer views.</p><h3>Urgency cards</h3><p>The cards at the top answer two questions, and each group adds up to all flagged parts. <b>When short:</b> <b>⏱ Short now</b> (already short this week), <b>Within lead time</b> (goes short in the next steel lead time) and <b>Later</b>. <b>What to do:</b> <b>Order more</b> (no PO, or the POs arrive in time but are too small — the parts tagged <b>PO too small</b>) and <b>▲ Expedite — PO late</b> (a PO arrives after the part goes short; call to pull it in). Click a card to list those parts in All Parts. Cards with no parts are hidden. In the tables, <b>Order now</b> means the order-by date has passed; hover over it to see by how many days.</p>'
+  +'<h3>How a part is flagged</h3><p>The dashboard reads the projected <b>Available</b> balance the MRP gives for each part and week (on hand, plus POs, minus trailer demand). A part is flagged when that balance goes <b>below zero in any week</b>; POs that arrive in time are already counted in it. <b>Goes negative</b> is the first short week, <b>Lowest balance</b> (and the recommended quantity) is the most negative week, the <b>order-by date</b> is the goes-negative week minus the steel lead time, and the <b>need-by date</b> is the goes-negative week minus the arrival buffer. If a PO arrives after the part goes short, it is <b>Expedite</b>. Otherwise it needs ordering (no PO, or <b>PO too small</b>) and its urgency comes from the order-by date: passed = Critical, within 14 days = High, within 28 days = Medium, later = Low.</p><p><b>Trailers at risk.</b> For each short part, the dashboard lists every trailer that needs it: past-due trailers (the MRP’s TrailerNumbers, whose demand is in PriorSO) and the trailers in each week’s SalesOrders. It sorts them by <b>schedule due date, soonest first</b> (trailers not on the schedule use their MRP week) and hands out the stock in that order: on hand plus POs that have arrived by the week the trailer needs the part. A trailer that can’t get its full quantity by the week it needs the part is <b>at risk</b>, and it stays first in line for the next stock that arrives, so the trailers after it are at risk too until enough stock has come in. So if a part is 1 short in a week with 10 trailers, only the last-due trailer is flagged. Each trailer’s quantity comes from the MRP workbook’s <b>MRP Sub Report Data</b> sheet (sales order, item, quantity) when Sage lists that trailer there. Sage’s week total always wins: if the listed quantities don’t add up to it, they are scaled to match. Trailers Sage doesn’t list share what is left of the week’s demand evenly, and their quantities show <i>est.</i> in part details. If the sheet is missing from the MRP file, every week’s demand is split evenly. Trailers in <b>Completions</b> are skipped (they get no stock), and the Trailers at Risk header links to a list of completed trailers that Sage still has parts demand for, so they can be cleaned up. Line, due date, customer and WIP come from the schedule; trailers in Completions or without a due date are left out of the trailer views.</p><h3>Urgency cards</h3><p>The cards at the top answer two questions, and each group adds up to all flagged parts. <b>When short:</b> <b>⏱ Short now</b> (already short this week), <b>Within lead time</b> (goes short in the next steel lead time) and <b>Later</b>. <b>What to do:</b> <b>Order more</b> (no PO, or the POs arrive in time but are too small — the parts tagged <b>PO too small</b>) and <b>▲ Expedite</b> (a PO arrives after the part goes short; call to pull it in). Click a card to list those parts in All Parts. Cards with no parts are hidden. In the tables, <b>Order now</b> means the order-by date has passed; hover over it to see by how many days.</p>'
   +'<h3>Work statuses</h3><p>Every tab uses the same four statuses: <b>— Not started</b>, <b>📞 Contacted supplier</b>, <b>📋 PO / date set</b> and <b>✅ Confirmed</b>.</p><p><b>⚠ Changed since set</b> appears under a status when the part changed after the status was chosen: it now goes short sooner, the shortage got bigger, or its PO changed (new, gone, or different). Hover over the tag to see what changed. After you have checked it, click the tag to mark the status current. To list them all, open <b>All Parts</b> and choose <b>Work Status → ⚠ Changed since set</b>. The count also shows in the green status summary in the header.</p>'
   +'<h3>Urgency filters</h3><p><b>⏱ Short now</b> (Purchasing Queue and All Parts) shows parts that are already short this week: their balance goes negative this week or earlier. These are the ones holding up builds today. A red <b>Short now</b> tag also appears under the Goes Negative date. <b>No buyer</b> (buyer filters) shows flagged parts that have no buyer code in the MRP, so they don’t get missed.</p><p>The <b>Status</b> column stays pinned to the right edge of wide tables, so you can set a status without scrolling sideways.</p>'
   +'<h3>How the schedule is read</h3><p>Trailers in the <b>Completions</b> group, or with <b>Inspected &amp; Completed</b> set to <b>Done</b>, are done (Ship Hold is still open). Trailers in a <b>Line</b> group (and Military) are open. Trailers without a due date are left out of the trailer views (Overview, Trailers at Risk, By Week, Line Reports) until they get one; parts are still flagged from the MRP. Columns are found by their header names (Name, Due Date, Customer, Model, WIP Progress), so moving columns on the Monday board does not break anything. Only Name and Due Date are required; if either is missing, a notice says so.</p><p><b>Product lines.</b> Consignment product lines (0003, 0019, 0041, 0045, FAST, 0069) are left out by default. Your choices under <b>Advanced: individual product line control</b> on the start screen are kept every time you load an MRP or select Recalculate.</p><p><b>Clearing statuses.</b> Open <b>Data &amp; Settings</b> and select <b>Clear all statuses…</b>. When signed in, only an admin can do this, because it clears them for the whole team.</p>'
@@ -3667,7 +3970,7 @@ function v2Help(){ v2Panel('Help', ''
   +'<h3>Excluded product lines</h3><p>Consignment lines (0003, 0019, 0041, 0045) plus FAST and 0069 are left out by default. To change which lines are left out, open <b>Data &amp; Settings</b>, check or uncheck lines under <b>Excluded product lines</b>, then select <b>Apply and recalculate</b>. Your choice is remembered in this browser, and the header shows the excluded lines.</p>'
   +'<h3>📅 Sage vs Schedule</h3><p>Sage should need a trailer’s parts in the MRP week 2 weeks before the trailer’s schedule due date (the schedule’s Parts Delivery Date). This tab lists every open trailer where it doesn’t: <b>Sage later</b> (the riskiest: parts may be needed sooner than the dashboard shows), <b>Sage earlier</b> (parts may look more urgent than they are), <b>Past due in Sage</b> but due later on the schedule, <b>Past due in both</b> but not in Completions, <b>Not in Sage</b> (open trailers at 0% WIP with no parts demand in the MRP, so their shortages can’t be seen), and trailers <b>Listed twice</b> on the schedule. <b>Gap</b> is Sage’s week minus the week it should be. Click a card to filter, a column heading to sort, or a trailer to see its short parts. Fix the dates in Sage or on the schedule and the list shrinks with the next files.</p>'
   +'<p>A <span class="mm-tag mm-red">📅 Date mismatch</span> tag next to a due date (part details and Trailers at Risk) means Sage and the schedule disagree for that trailer; red means Sage is later. Point at it to see both dates, or click it to open the trailer on the Sage vs Schedule tab. The Overview shows how many trailers are later in Sage.</p>'
-  +'<h3>Date shortages by Sage or the schedule</h3><p>In <b>Data &amp; Settings</b>, <b>Date shortages by</b> is <b>Sage</b> by default. Choose <b>Schedule</b> to move each trailer’s parts demand to 2 weeks before its schedule due date and recalculate every shortage, urgency and trailer at risk from that. The header then shows <b>📅 Shortages dated by schedule</b>. Trailers not on the schedule, without a due date, or completed keep Sage’s week. The setting is per browser. What Changed and work statuses always use Sage’s dates, so switching doesn’t mark statuses as changed.</p>'
+  +'<h3>Date shortages by Sage or the schedule</h3><p>In <b>Data &amp; Settings</b>, <b>Date shortages by</b> is <b>Schedule</b> by default: each trailer’s parts demand moves to 2 weeks before its schedule due date, and every shortage, urgency and trailer at risk is recalculated from that. Choose <b>Sage</b> to use the MRP’s weeks as they are. If no schedule is loaded, shortages stay dated by Sage. The header then shows <b>📅 Shortages dated by schedule</b>. Trailers not on the schedule, without a due date, or completed keep Sage’s week. The setting is per browser. What Changed and work statuses always use Sage’s dates, so switching doesn’t mark statuses as changed.</p>'
   +'<h3>Exports and refresh</h3><p>All Parts and Purchasing Queue exports use the current filtered list, including an empty result. Reload Last File reuses the parsed MRP data in this session. Opening the same MRP again takes about a second, because the dashboard keeps the rows it read last time. Choose a file again to load changes made outside the dashboard.</p>'); }
 document.addEventListener('click',e=>{const a=e.target.closest('a');if(a&&a.closest('#action-body,#table-body,#late-po-body')){e.preventDefault();v2Part(a.textContent.trim());}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('v2-modal')?.remove();});
@@ -3806,7 +4109,7 @@ function buildLineReportHTML(lines,horizonWeeks,sec){
 
   const metaLine=`MRP: ${lrEsc(window.lastRawFileName||window.lastRawFile||'—')} &nbsp;·&nbsp; Schedule: ${lrEsc(window.lastSchedFileName||'—')} &nbsp;·&nbsp; Steel lead ${leadWeeks} wk · Arrive ${arrivalBuffer} wk early`;
   const generated=new Date().toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
-  const band=(title,sub)=>`<div class="band"><div><div class="band-title">${title}</div><div class="band-sub">${sub}</div></div><div class="band-meta">Fontaine Trailer · Purchasing<br>Generated ${lrEsc(generated)}</div></div>`;
+  const band=(title,sub)=>`<div class="band"><div><div class="band-title">${title}</div><div class="band-sub">${sub}</div></div><div class="band-meta">Fontaine Specialized · Purchasing<br>Generated ${lrEsc(generated)}</div></div>`;
 
   let pages=[];
 
@@ -4200,7 +4503,7 @@ async function loadFilesIntoDashboard(mrpFile, schedFile, bannerText){
 
 function restoreFailed(err){
   console.error('Load failed',err);
-  allData=[]; window.lastRawBytes=null; window.lastRawFileName=null; window.lastRawData=null;
+  allData=[]; window.lastRawBytes=null; window.lastRawFileName=null; window.lastRawData=null; window.__soQty=null; window.__mrpExcess=null; window.__pu=null;
   try{ updateReloadBtn(); }catch(e){}
   const hm=document.getElementById('hdr-meta'); if(hm) hm.textContent='';
   document.getElementById('loading-overlay').style.display='none';
@@ -4473,8 +4776,8 @@ function v2Data(){
     +'<button class="export-btn" onclick="forgetSavedFiles()">Forget my saved copy</button> <span id="fs-forget-msg" style="font-size:12px;color:var(--low)"></span>'
     +'<h3>Calculation settings</h3><p>Use the steel lead time and arrival buffer controls above the dashboard. Your values are remembered in this browser.</p>'
     +plSettingsHtml()
-    +'<h3>Date shortages by</h3><div class="mm-switch"><label><input type="radio" name="mm-mode" value="sage"'+(dateMode!=='schedule'?' checked':'')+' onchange="setDateMode(\'sage\')"> <span><b>Sage</b> (default): use the weeks in the MRP report as they are.</span></label>'
-    +'<label><input type="radio" name="mm-mode" value="schedule"'+(dateMode==='schedule'?' checked':'')+' onchange="setDateMode(\'schedule\')"> <span><b>Schedule</b>: move each trailer’s parts demand to 2 weeks before its schedule due date, then recalculate shortages, urgency and trailers at risk.</span></label></div>'
+    +'<h3>Date shortages by</h3><div class="mm-switch"><label><input type="radio" name="mm-mode" value="schedule"'+(dateMode==='schedule'?' checked':'')+' onchange="setDateMode(\'schedule\')"> <span><b>Schedule</b> (default): move each trailer’s parts demand to 2 weeks before its schedule due date, then recalculate shortages, urgency and trailers at risk.</span></label>'
+    +'<label><input type="radio" name="mm-mode" value="sage"'+(dateMode!=='schedule'?' checked':'')+' onchange="setDateMode(\'sage\')"> <span><b>Sage</b>: use the weeks in the MRP report as they are.</span></label></div>'
     +'<p class="tc-small">This setting is for this browser only. Trailers that aren’t on the schedule, have no due date, or are completed keep Sage’s week. What Changed and work statuses always use Sage’s dates. See the 📅 Sage vs Schedule tab for every trailer where the two disagree.</p>'
     +erSectionHtml()
     +'<h3>Work statuses</h3><p>'+(TC.user?'You are signed in, so statuses are shared with the team. Each one shows who set it and when.':'Statuses are saved in this browser only. Sign in to share them with the team.')+'</p>'
@@ -4526,7 +4829,7 @@ const URG_CARDS=[
   {k:'leadtime', grp:'When short', label:'Within lead time', sub:()=>`Goes short in the next ${leadWeeks} weeks`, c:'var(--high)'},
   {k:'later', grp:'When short', label:'Later', sub:()=>`Goes short after ${leadWeeks} weeks`, c:'var(--low)'},
   {k:'nopo', grp:'What to do', label:'Order more', sub:'No PO, or its POs are too small', c:'var(--accent)'},
-  {k:'haspo', grp:'What to do', label:'▲ Expedite — PO late', sub:'A PO arrives after it goes short — call supplier', c:'var(--expedite)'},
+  {k:'haspo', grp:'What to do', label:'▲ Expedite', sub:'PO arrives after it goes short — call supplier', c:'var(--expedite)'},
 ];
 function renderUrgCards(){
   const row=document.querySelector('.stats-row'); if(!row) return;
@@ -5753,7 +6056,8 @@ function v2Part(code){
     return `<tr><td><b>${poLink(p.po)}</b></td><td>${lrEsc(p.week)}</td><td class="num">${(p.qty||0).toLocaleString()}</td><td>${late?'<span class="sn-tag">After need-by</span>':'<span class="pn-ok">On time</span>'}</td></tr>`; }).join('');
   const sb={}; (window.scheduleBase||[]).forEach(m=>{ sb[m.trailer]=m; });
   const trs=(d.at_risk_trailers||[]).map(t=>({t, m:sb[t]})).sort((a,b)=>((a.m&&a.m.due_date)||'9999').localeCompare((b.m&&b.m.due_date)||'9999'))
-    .map(({t,m})=>`<tr class="${m&&m.due_date?'':'pn-dim'}"><td><b>${lrEsc(t)}</b></td><td>${lrEsc(m?(m.line||'—'):'Not on schedule')}</td><td style="white-space:nowrap">${lrEsc(m&&m.due_date||'No due date')}${mmTag(t)}</td><td>${lrEsc(m?[m.customer,m.model].filter(Boolean).join(' · '):'')}</td><td>${lrEsc(m&&m.wip||'')}</td><td class="num">${(d.trailer_short&&d.trailer_short[t])?Math.ceil(d.trailer_short[t]-1e-6).toLocaleString():''}</td></tr>`).join('');
+    .map(({t,m})=>`<tr class="${m&&m.due_date?'':'pn-dim'}"><td><b>${lrEsc(t)}</b></td><td>${lrEsc(m?(m.line||'—'):'Not on schedule')}</td><td style="white-space:nowrap">${lrEsc(m&&m.due_date||'No due date')}${mmTag(t)}</td><td>${lrEsc(m?[m.customer,m.model].filter(Boolean).join(' · '):'')}</td><td>${lrEsc(m&&m.wip||'')}</td><td class="num">${pnNeed(d,t)}</td><td class="num">${(d.trailer_short&&d.trailer_short[t])?Math.ceil(d.trailer_short[t]-1e-6).toLocaleString():''}</td></tr>`).join('');
+  const trsExact=(d.at_risk_trailers||[]).filter(t=>d.trailer_exact&&d.trailer_exact[t]).length;
   const notes=partNotes(code);
   const me=TC.user?TC.user.u:null;
   const noteHtml=notes.map(n=>`<div class="pn-note"><div class="pn-note-h"><b>${lrEsc(TC.user?(n.u===me?'You':n.name):'You')}</b> · ${lrEsc(new Date(n.at).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}))}${(!TC.user||n.u===me)?` <button type="button" class="pn-del" onclick="deleteNote('${lrEsc(code)}','${n.id}')">Delete</button>`:''}</div><div class="pn-note-t">${lrEsc(n.t)}</div></div>`).join('');
@@ -5767,7 +6071,7 @@ function v2Part(code){
     <h3>Projected balance</h3>${it?partChart(d,it,cur.snap):'<p>Week-by-week data is not available for this part.</p>'}
     ${it?`<details class="pn-det"><summary>Week by week</summary>${partWeekTable(it,cur.snap)}</details>`:''}
     <h3>Open purchase orders</h3>${pos?`<table class="chg-week"><thead><tr><th>PO</th><th>Arrives (week of)</th><th class="num">Qty</th><th></th></tr></thead><tbody>${pos}</tbody></table>`:'<p>No open PO.</p>'}
-    <h3>Trailers at risk (${(d.at_risk_trailers||[]).length})</h3>${trs?`<table class="chg-week"><thead><tr><th>Trailer</th><th>Line</th><th>Due</th><th>Customer · model</th><th>WIP</th><th class="num">Short (est.)</th></tr></thead><tbody>${trs}</tbody></table><p class="tc-small">Stock goes to trailers in due-date order, so these are the trailers it runs out on. Quantities per trailer are estimated by splitting each week’s demand evenly across the trailers listed that week.</p>`:'<p>None: the stock covers every open trailer in due-date order.</p>'}
+    <h3>Trailers at risk (${(d.at_risk_trailers||[]).length})</h3>${trs?`<table class="chg-week"><thead><tr><th>Trailer</th><th>Line</th><th>Due</th><th>Customer · model</th><th>WIP</th><th class="num">Needs</th><th class="num">Short</th></tr></thead><tbody>${trs}</tbody></table><p class="tc-small">Stock goes to trailers in due-date order, so these are the trailers it runs out on. ${trsExact===(d.at_risk_trailers||[]).length?'Each trailer’s quantity comes from Sage’s sub report (the MRP’s “MRP Sub Report Data” sheet).':trsExact?`${trsExact} of ${(d.at_risk_trailers||[]).length} trailers use their own quantity from Sage’s sub report; quantities marked <i>est.</i> split the week’s demand evenly across the trailers listed that week.`:'Sage’s sub report doesn’t list these trailers, so quantities marked <i>est.</i> split each week’s demand evenly across the trailers listed that week.'}</p>`:'<p>None: the stock covers every open trailer in due-date order.</p>'}
     <h3>Notes${notes.length?' ('+notes.length+')':''}</h3>
     <div class="pn-notes">${noteHtml||'<p class="pn-empty">No notes yet.</p>'}</div>
     <div class="pn-add"><textarea id="pn-text" maxlength="1000" rows="2" placeholder="Add a note, e.g. Supplier says ships 3/12"></textarea>

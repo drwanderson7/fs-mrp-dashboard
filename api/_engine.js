@@ -63,8 +63,9 @@ export function makeEngine(todayIso, opts = {}) {
                         readAsBinaryString(f) { Promise.resolve().then(() => this.onload && this.onload({ target: { result: f.__buf } })); } },
   };
   // the excluded product lines come from the report settings, not checkboxes
-  if (opts.excluded) store.mrp_excl_pl_v1 = JSON.stringify(opts.excluded);
-  store.mrp_datemode_v1 = opts.dateMode === 'schedule' ? 'schedule' : 'sage';
+  if (opts.excluded) store.mrp_excl_pl_v1 = store.mrp_excl_pl_v2 = JSON.stringify(opts.excluded);
+  // 2.26: index.html reads the v2 keys; v1 kept so an older index.html still works
+  store.mrp_datemode_v1 = store.mrp_datemode_v2 = opts.dateMode === 'sage' ? 'sage' : 'schedule';
   ctx.window = ctx; ctx.self = ctx; ctx.globalThis = ctx;
   vm.createContext(ctx);
   vm.runInContext(code, ctx, { filename: 'index.html' });
@@ -92,6 +93,8 @@ export function makeEngine(todayIso, opts = {}) {
       const wb = ctx.XLSX.read(mrpBuf, { type: 'buffer' });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const raw = ctx.XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      // 2.23: each trailer's own part quantities (MRP Sub Report Data sheet), the same as the dashboard
+      ctx.__soQty = typeof ctx.mrpReadSoQty === 'function' ? ctx.mrpReadSoQty(wb) : null;
       ctx.lastRawFileName = mrpName; ctx.lastSchedFileName = schedName;
       ctx.lastRawData = raw;
       vm.runInContext('allData=processRaw(lastRawData, lastRawFileName);', ctx);
