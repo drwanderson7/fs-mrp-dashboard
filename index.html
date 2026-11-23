@@ -612,6 +612,30 @@ td{line-height:1.4}
 .chg-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;border:1px solid #86efac;background:#f0fdf4;border-radius:10px;font-size:13px;color:var(--text)}
 .chg-strip.alert{border-color:#fed7aa;background:#fff7ed}
 .pn-est{font-size:10px;color:var(--muted2);font-weight:400}   /* 2.23 */
+/* 2.27 Trends */
+.tr-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:12px 16px}
+.tr-kpi{background:#FFFFFF;border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.tr-kl{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.tr-kn{font-size:30px;font-weight:800;line-height:1.15;margin:2px 0}
+.tr-ks{font-size:11.5px;color:var(--muted);margin-bottom:6px}
+.tr-kd{font-size:12px;color:var(--muted)}
+.tr-d{font-weight:700;white-space:nowrap}.tr-good{color:#16A34A}.tr-bad{color:#DC2626}.tr-flat{color:var(--muted2);font-weight:500}
+.tr-since{color:var(--muted2);font-size:11px}
+.tr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0 16px 12px}
+.tr-card{background:#FFFFFF;border:1px solid var(--border);border-radius:10px;padding:12px 14px;position:relative}
+.tr-ct{font-weight:700;font-size:14px}.tr-cs{font-size:11.5px;color:var(--muted);margin-bottom:6px}
+.tr-legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+.tr-legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.tr-legend i.dash{height:0;border-top:2px dashed;background:none}
+.tr-plot{position:relative}.tr-svg{width:100%;height:auto;display:block}
+.tr-ax{font-size:10px;fill:#6B7280;font-family:Inter,sans-serif}
+.tr-tip{position:absolute;display:none;background:#FFFFFF;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.08);pointer-events:none;min-width:160px;z-index:5}
+.tr-tip.show{display:block}.tr-tip .tt-row{display:flex;justify-content:space-between;gap:12px}
+.tr-empty{padding:40px;text-align:center;color:var(--muted2)}
+.tr-mrp{max-width:260px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+.tr-tbl .nw{white-space:nowrap}
+.tbl-wrap table.tr-tbl{min-width:900px}
+@media (max-width:1100px){.tr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tr-grid{grid-template-columns:1fr}}
 /* 2.25 Push Out / Cancel */
 .pu-tbl td{vertical-align:top}
 .pu-desc{font-size:11px;color:var(--muted);max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -762,6 +786,7 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
 .fw-x{background:none;border:none;color:#92400E;cursor:pointer;font-size:14px;padding:0 2px}
 .ss-sub{color:var(--muted2);font-weight:400}
 
+/* 2.27 (11/23): 📈 Trends tab: parts short now / Critical / Expedite and trailers at risk (overall and per line) over time, recorded every weekday by the server cron (api/reports.js op=cron → reports/history.json, sealed with the team key); trendSnapshot(); admin Record today now; Excel export. */
 /* 2.26 (11/20): defaults: shortages dated by the schedule; excluded lines 0003, 0019, 0041, 0045, FAST, 0069. Both settings reset once in every browser (new localStorage keys); scheduled emails default to Schedule. */
 /* 2.25 (11/20): Push Out / Cancel tab (puBuild): open PO deliveries matched first-in first-out to demand; Cancel / Reduce qty / Push out with suggested qty and date, statuses, Excel export, part panel; reads the MRP's Excess Obsolete sheet for last receipt/usage. */
 /* 2.24 (11/20): Vendor Priority ranked by Critical + Expedite with an Exp column; deadline chart stacked by urgency with Expedite in the legend, every week shown, hover counts and an accurate subtitle; Trailers at Risk page title; Expedite card name; printed reports say Fontaine Specialized. */
@@ -941,6 +966,7 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
     </div>
     <div class="tab" id="tab-changes" onclick="switchTab('changes')">What Changed <span class="tab-badge" id="changes-badge" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa">0</span></div>
     <div class="tab" id="tab-parts" onclick="switchTab('parts')">All Parts</div>
+    <div class="tab" id="tab-trends" onclick="switchTab('trends')">📈 Trends</div>
     <div class="tab" id="tab-schedule" onclick="switchTab('schedule')">
       🚛 Trailers at Risk <span class="tab-badge" id="schedule-badge" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa">0</span>
     </div>
@@ -1217,6 +1243,7 @@ table:has(#table-body) td:last-child .status-select, table:has(#late-po-body) td
     <!-- SAGE VS SCHEDULE TAB (2.22) -->
     <div id="view-mismatch" style="display:none"><div class="sched-card" id="mm-root"></div></div>
     <div id="view-pushout" style="display:none"><div class="sched-card" id="pu-root"></div></div>
+    <div id="view-trends" style="display:none"><div class="sched-card" id="tr-root"></div></div>
 
     <!-- LATE PO TAB -->
     <div id="view-late-po" style="display:none">
@@ -2628,7 +2655,7 @@ function setupDashboard(){
 // ═══════════════════════════════════════════════════════
 //  TAB SWITCHING
 // ═══════════════════════════════════════════════════════
-const TAB_TITLES={overview:['Overview','Purchasing priorities and production exposure'],actions:['Purchasing Queue','Order, expedite and track follow-up'],parts:['All Flagged Parts','Search, filter and investigate'],schedule:['Trailers at Risk','Trailers that will be short of parts, and the parts blocking them'],'late-po':['Expedite','Open POs that arrive after the part goes short — call to pull them in'],changes:['What Changed','Changes inside lead time since an earlier MRP'],pushout:['Push Out / Cancel','Open POs arriving before they’re needed, or not needed at all'],mismatch:['Sage vs Schedule','Trailers where Sage’s parts dates and the production schedule disagree']};
+const TAB_TITLES={overview:['Overview','Purchasing priorities and production exposure'],actions:['Purchasing Queue','Order, expedite and track follow-up'],parts:['All Flagged Parts','Search, filter and investigate'],schedule:['Trailers at Risk','Trailers that will be short of parts, and the parts blocking them'],'late-po':['Expedite','Open POs that arrive after the part goes short — call to pull them in'],changes:['What Changed','Changes inside lead time since an earlier MRP'],trends:['Trends','Parts short now and trailers at risk over time, recorded every weekday morning'],pushout:['Push Out / Cancel','Open POs arriving before they’re needed, or not needed at all'],mismatch:['Sage vs Schedule','Trailers where Sage’s parts dates and the production schedule disagree']};
 // ═══════════════════════════════════════════════════════
 //  2.25 PUSH OUT / CANCEL: open POs that arrive before they are needed, or are not needed at all
 // ═══════════════════════════════════════════════════════
@@ -2832,8 +2859,178 @@ function puExport(){
     r.newQty==null?'':r.newQty, r.newDate||'', r.edge?'Yes':'', r.ex&&r.ex.ex!=null?r.ex.ex:'', r.ex?r.ex.rec:'', r.ex?r.ex.use:'', STATUS_LABELS[statusStore[r.key]||'none']||''])]}], 'Push_Out_Cancel.xlsx');
 }
 
+// ═══════════════════════════════════════════════════════
+//  2.27 TRENDS: parts short now and trailers at risk over time
+//  The server records trendSnapshot() every weekday morning from the published files (api/reports.js),
+//  using the scheduled-email settings, so every day is worked out the same way.
+// ═══════════════════════════════════════════════════════
+const TREND_URG=['CRITICAL','EXPEDITE','HIGH','MEDIUM','LOW'];
+// Today's numbers from what is loaded. horizonWeeks: trailers due within that many weeks, plus overdue (Overview's window).
+function trendSnapshot(horizonWeeks){
+  const parts=allData||[];
+  const cnt=k=>parts.filter(d=>urgMatch(d,k)).length;
+  const urg={}; TREND_URG.forEach(u=>{ urg[u]=parts.filter(d=>d.urgency===u).length; });
+  let lines=[];
+  try{ const c={}; lrAllTrailers().forEach(t=>{ c[t.line||'']=1; }); lines=Object.keys(c).filter(l=>/^Line\s+\d+$/i.test(l)).sort(lrLineSort); }catch(e){}
+  const byLine={}; let open=0, risk=0, crit=0, overdue=0; const blockAll=new Set();
+  if(lines.length){
+    lrComputeStats(lines, horizonWeeks).stats.forEach(s=>{
+      byLine[s.line]={open:s.ts.length, risk:s.risk.length, crit:s.crit, overdue:s.overdueRisk, parts:s.parts.length};
+      open+=s.ts.length; risk+=s.risk.length; crit+=s.crit; overdue+=s.overdueRisk; s.parts.forEach(p=>blockAll.add(p.ItemCode));
+    });
+  }
+  return {v:1, flagged:parts.length, shortNow:cnt('shortnow'), leadtime:cnt('leadtime'), later:cnt('later'),
+    orderMore:cnt('nopo'), expedite:cnt('haspo'), urg,
+    trailers:{weeks:horizonWeeks, open, risk, crit, overdue, parts:blockAll.size, byLine},
+    settings:{lead:leadWeeks, buf:arrivalBuffer, datedBy:window.__datedBy||dateMode, excl:[...getExcludedPL()]}};
+}
+
+function trD(iso){ const [y,m,d]=String(iso).split('-').map(Number); return new Date(Date.UTC(y,m-1,d)).toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'}); }
+let trState={range:90, line:'', loaded:false, days:[], meta:null, err:''};
+async function trLoad(force){
+  if(!TC.user){ trState.err='signin'; trRender(); return; }
+  try{
+    const d=await tcFetch('/reports?op=history'+(force?'&fresh=1':''));
+    const w=d.history; trState.meta=w||null;
+    trState.days=w&&w.enc?((await tcOpenText(w.enc)).days||[]):[];
+    trState.err=''; trState.loaded=true;
+  }catch(e){ trState.err=e.message||String(e); trState.loaded=true; }
+  trRender();
+}
+async function trRecordNow(){
+  const m=document.getElementById('tr-msg'); if(m){ m.textContent='Recording today’s numbers from the published files… (about 20 seconds)'; m.className='tc-msg ok'; }
+  try{ await tcFetch('/reports?op=record', {json:{}, timeout:90000}); await trLoad(true); const m2=document.getElementById('tr-msg'); if(m2){ m2.textContent='Recorded.'; m2.className='tc-msg ok'; } }
+  catch(e){ const m2=document.getElementById('tr-msg'); if(m2){ m2.textContent='Could not record: '+e.message; m2.className='tc-msg'; } }
+}
+function trDays(){
+  const all=trState.days||[]; if(!all.length) return [];
+  if(!trState.range) return all;
+  const last=new Date(all[all.length-1].date+'T12:00:00'); last.setDate(last.getDate()-trState.range);
+  const from=last.toISOString().slice(0,10);
+  return all.filter(d=>d.date>=from);
+}
+// the value a chart shows for one day
+function trVal(d,k){
+  const L=trState.line, t=d.trailers||{}, bl=L?((t.byLine||{})[L]||null):null;
+  if(k==='risk') return L?(bl?bl.risk:null):t.risk;
+  if(k==='open') return L?(bl?bl.open:null):t.open;
+  if(k==='crit') return L?(bl?bl.crit:null):t.crit;
+  if(k==='overdue') return L?(bl?bl.overdue:null):t.overdue;
+  if(k==='blockers') return L?(bl&&bl.parts!=null?bl.parts:null):(t.parts!=null?t.parts:null);
+  if(k==='CRITICAL'||k==='EXPEDITE') return (d.urg||{})[k];
+  return d[k];
+}
+// the entry closest to n days before the latest (and at least 1 day before)
+function trBack(all, n){
+  if(all.length<2) return null;
+  const last=all[all.length-1]; const t=new Date(last.date+'T12:00:00'); t.setDate(t.getDate()-n); const target=t.toISOString().slice(0,10);
+  let best=null; for(const d of all){ if(d.date<=target) best=d; }
+  return best||null;
+}
+function trDelta(now, then, k){
+  if(!then) return '<span class="tr-d tr-flat">no earlier day yet</span>';
+  const a=trVal(now,k), b=trVal(then,k); if(a==null||b==null) return '';
+  const x=a-b, cls=x<0?'tr-good':x>0?'tr-bad':'tr-flat';
+  return `<span class="tr-d ${cls}">${x<0?'▼':x>0?'▲':'■'} ${Math.abs(x).toLocaleString()}</span> <span class="tr-since">since ${mmShort(then.date)}</span>`;
+}
+// Small SVG line chart. series: [{k, label, color, dash, bold}]
+function trChart(id, days, series, opts={}){
+  const W=560, H=230, pad={l:40,r:14,t:12,b:30};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  if(!days.length) return `<div class="tr-empty">No days recorded yet.</div>`;
+  const vals=[]; days.forEach(d=>series.forEach(s=>{ const v=trVal(d,s.k); if(v!=null) vals.push(v); }));
+  const max=Math.max(1,...vals);
+  const rough=max/4, mag=Math.pow(10,Math.floor(Math.log10(rough))), st=[1,2,2.5,5,10].map(m=>m*mag).find(m=>m>=rough)||rough;
+  const top=st*4;
+  const n=days.length, x=i=>pad.l+(n===1?cw/2:i*cw/(n-1)), y=v=>pad.t+ch-(v/top)*ch;
+  let g='';
+  [0,.25,.5,.75,1].forEach(f=>{ const yy=pad.t+ch*(1-f); g+=`<line x1="${pad.l}" x2="${W-pad.r}" y1="${yy}" y2="${yy}" stroke="#E2E4E8" stroke-width="1"/><text x="${pad.l-6}" y="${yy+3}" text-anchor="end" class="tr-ax">${(Math.round(top*f*10)/10).toLocaleString()}</text>`; });
+  const step=Math.max(1,Math.ceil(n/7));
+  days.forEach((d,i)=>{ if((i%step===0 && (n-1-i>=step*0.6||i===0))||i===n-1) g+=`<text x="${x(i)}" y="${H-10}" text-anchor="${n>1&&i===n-1?'end':n>1&&i===0?'start':'middle'}" class="tr-ax">${trD(d.date)}</text>`; });
+  series.forEach(s=>{
+    let path='', pen=false;
+    days.forEach((d,i)=>{ const v=trVal(d,s.k); if(v==null){ pen=false; return; } path+=(pen?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1); pen=true; });
+    g+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="${s.bold?2.5:(s.w||1.6)}"${s.dash?' stroke-dasharray="5 4"':''} stroke-linejoin="round"/>`;
+    days.forEach((d,i)=>{ const v=trVal(d,s.k); if(v==null) return;
+      const same=i>0 && days[i-1].mrp && d.mrp && days[i-1].mrp.id===d.mrp.id;   // no new MRP that day: hollow dot
+      if(s.bold) g+=`<circle cx="${x(i)}" cy="${y(v)}" r="3.2" fill="${same?'#FFFFFF':s.color}" stroke="${s.color}" stroke-width="1.6"/>`; });
+  });
+  // hover columns
+  days.forEach((d,i)=>{ const x0=n===1?pad.l:x(i)-(cw/(n-1||1))/2; g+=`<rect class="tr-hit" x="${Math.max(pad.l,x0)}" y="${pad.t}" width="${n===1?cw:cw/(n-1)}" height="${ch}" data-i="${i}" fill="transparent" onmousemove="trTip(event,'${id}',${i})" onmouseleave="trTipHide('${id}')"/>`; });
+  window.__trSeries=window.__trSeries||{}; window.__trSeries[id]={days, series};
+  return `<svg viewBox="0 0 ${W} ${H}" class="tr-svg" preserveAspectRatio="xMidYMid meet">${g}</svg><div class="tr-tip" id="${id}-tip"></div>`;
+}
+function trTip(ev, id, i){
+  const c=window.__trSeries&&window.__trSeries[id]; const tip=document.getElementById(id+'-tip'); if(!c||!tip) return;
+  const d=c.days[i];
+  tip.innerHTML=`<div class="tt-week">${mmShort(d.date)}${d.mrp?` · ${lrEsc(d.mrp.name)}`:''}</div>`+c.series.map(s=>{ const v=trVal(d,s.k); return v==null?'':`<div class="tt-row"><span style="color:${s.color}">${s.label}</span><b>${v.toLocaleString()}</b></div>`; }).join('')
+    +(i>0&&c.days[i-1].mrp&&d.mrp&&c.days[i-1].mrp.id===d.mrp.id?'<div class="tt-row" style="color:var(--muted2)">Same MRP as the day before</div>':'');
+  const box=tip.parentElement.getBoundingClientRect(); let left=ev.clientX-box.left+12; if(left>box.width-170) left=ev.clientX-box.left-180;
+  tip.style.left=left+'px'; tip.style.top='8px'; tip.classList.add('show');
+}
+function trTipHide(id){ const t=document.getElementById(id+'-tip'); if(t) t.classList.remove('show'); }
+function trRender(){
+  const root=document.getElementById('tr-root'); if(!root) return;
+  if(trState.err==='signin'){ root.innerHTML=`<div class="empty-state" style="padding:40px"><div style="font-size:28px">📈</div><p>Trends are recorded by the team server. Sign in on the team website to see them.</p></div>`; return; }
+  if(!trState.loaded){ root.innerHTML='<p style="padding:24px">Loading the history…</p>'; trLoad(false); return; }
+  if(trState.err){ root.innerHTML=`<p style="padding:24px;color:var(--critical)">Could not load the history: ${lrEsc(trState.err)}. Make sure the latest api files are deployed.</p>`; return; }
+  const all=trState.days, days=trDays(), admin=TC.user&&TC.user.role==='admin', meta=trState.meta;
+  const lastRun=meta&&meta.lastRun;
+  const runLine=lastRun?(lastRun.ok?`Last recorded ${lrEsc(fsWhen(lastRun.at))}.`:`<span style="color:var(--critical)">The last recording failed ${lrEsc(fsWhen(lastRun.at))}: ${lrEsc(lastRun.error||'')}</span>`):'Nothing recorded yet.';
+  const adminBtn=admin?`<button class="export-btn" onclick="trRecordNow()" title="Records today’s numbers from the published MRP and schedule now (replaces today’s entry if there is one)">● Record today now</button>`:'';
+  if(!all.length){
+    root.innerHTML=`<div class="sched-toolbar"><p class="mm-desc">Every weekday morning (about 5–6 AM Central) the team server records how many parts are short and how many trailers are at risk, from the published MRP and schedule. The first point appears after the next morning run${admin?', or select Record today now':''}.</p>
+      <p class="tc-small">${runLine} The server needs its copy of the team key: an admin turns it on under Data &amp; Settings → Scheduled emails (emails themselves can stay off).</p><p>${adminBtn}</p><div id="tr-msg" class="tc-msg"></div></div>`;
+    return;
+  }
+  const now=all[all.length-1], wk=trBack(all,7), mo=trBack(all,28);
+  const lines=[...new Set(all.flatMap(d=>Object.keys((d.trailers&&d.trailers.byLine)||{})))].sort(lrLineSort);
+  const L=trState.line, tw=(now.trailers&&now.trailers.weeks)||4;
+  const kpi=(label, k, sub, color)=>{ const v=trVal(now,k); return `<div class="tr-kpi"><div class="tr-kl" style="color:${color}">${label}</div><div class="tr-kn" style="color:${color}">${v==null?'—':v.toLocaleString()}</div>
+    <div class="tr-ks">${sub}</div><div class="tr-kd">vs 1 week ago: ${trDelta(now,wk,k)}</div><div class="tr-kd">vs 4 weeks ago: ${trDelta(now,mo,k)}</div></div>`; };
+  const openNow=trVal(now,'open');
+  root.innerHTML=`<div class="sched-toolbar">
+    <p class="mm-desc">Recorded every weekday morning from the published MRP and schedule, with the team settings (shortages dated by ${now.settings&&now.settings.datedBy==='sage'?'Sage':'the schedule'}, steel lead ${now.settings?now.settings.lead:8} wk). <b>Down is better</b> on every number here. A hollow dot means no new MRP was published that day, so the numbers can only move because of the date.</p>
+    <div class="tb-row">
+      <select class="ctrl-sel" onchange="trState.range=+this.value;trRender()">${[[30,'Last 30 days'],[90,'Last 90 days'],[365,'Last 12 months'],[0,'All history']].map(([v,l])=>`<option value="${v}"${trState.range===v?' selected':''}>${l}</option>`).join('')}</select>
+      <select class="ctrl-sel" onchange="trState.line=this.value;trRender()" title="Trailers at risk chart"><option value="">All lines</option>${lines.map(l=>`<option${L===l?' selected':''}>${lrEsc(l)}</option>`).join('')}</select>
+      <span class="result-ct">${all.length} day${all.length===1?'':'s'} recorded · ${runLine}</span>
+      <div class="tb-right">${adminBtn}<button class="export-btn" onclick="trExport()">⬇ Export Excel</button></div>
+    </div><div id="tr-msg" class="tc-msg"></div></div>
+  <div class="tr-kpis">
+    ${kpi('⏱ Parts short now','shortNow','Already short this week, as of '+mmShort(now.date),'#DC2626')}
+    ${kpi('Critical parts','CRITICAL','Order-by date has passed','#B91C1C')}
+    ${kpi('🚛 Trailers at risk'+(L?' · '+lrEsc(L):''),'risk',`${openNow!=null?trVal(now,'risk')+' of '+openNow+' open trailers':''} due in the next ${tw} weeks or overdue`,'#EA580C')}
+    ${kpi('Parts blocking trailers'+(L?' · '+lrEsc(L):''),'blockers','Different short parts holding up those trailers','#CA8A04')}
+  </div>
+  <div class="tr-grid">
+    <div class="tr-card"><div class="tr-ct">Parts short now</div><div class="tr-cs">Parts short this week, with the Critical and Expedite counts</div>
+      <div class="tr-legend"><span><i style="background:#DC2626"></i>Short now</span><span><i class="dash" style="border-color:#B91C1C"></i>Critical</span><span><i class="dash" style="border-color:#7C3AED"></i>Expedite</span></div>
+      <div class="tr-plot">${trChart('trA', days, [{k:'shortNow',label:'Short now',color:'#DC2626',bold:true},{k:'CRITICAL',label:'Critical',color:'#B91C1C',dash:true},{k:'EXPEDITE',label:'Expedite',color:'#7C3AED',dash:true,w:2.2}])}</div></div>
+    <div class="tr-card"><div class="tr-ct">Trailers at risk${L?' · '+lrEsc(L):''}</div><div class="tr-cs">Open trailers due in the next ${tw} weeks or overdue: how many have a short part, how many of those are overdue, and how many different parts block them</div>
+      <div class="tr-legend"><span><i style="background:#EA580C"></i>At risk</span><span><i class="dash" style="border-color:#6B7280"></i>Open trailers</span><span><i class="dash" style="border-color:#DC2626"></i>Overdue at risk</span><span><i class="dash" style="border-color:#CA8A04"></i>Parts blocking</span></div>
+      <div class="tr-plot">${trChart('trB', days, [{k:'risk',label:'At risk',color:'#EA580C',bold:true},{k:'open',label:'Open trailers',color:'#6B7280',dash:true},{k:'overdue',label:'Overdue at risk',color:'#DC2626',dash:true},{k:'blockers',label:'Parts blocking',color:'#CA8A04',dash:true}])}</div></div>
+  </div>
+  <div class="tbl-wrap"><table class="chg-week tr-tbl"><thead><tr><th>Date</th><th>MRP</th><th class="num">Short now</th><th class="num">Critical</th><th class="num">Expedite</th><th class="num">Flagged parts</th><th class="num">Trailers at risk${L?' ('+lrEsc(L)+')':''}</th><th class="num">Open trailers</th><th class="num">Overdue at risk</th><th class="num">Parts blocking</th></tr></thead><tbody>
+  ${days.slice().reverse().map((d,i,arr)=>{ const prev=arr[i+1]; const c=(k)=>{ const v=trVal(d,k), p=prev?trVal(prev,k):null; if(v==null) return '—'; const x=p==null?0:v-p; return v.toLocaleString()+(x?` <span class="tr-d ${x<0?'tr-good':'tr-bad'}">${x<0?'▼':'▲'}${Math.abs(x)}</span>`:''); };
+    const same=prev&&prev.mrp&&d.mrp&&prev.mrp.id===d.mrp.id;
+    return `<tr><td class="nw">${mmShort(d.date)}</td><td><span class="tr-mrp" title="${lrEsc(d.mrp?d.mrp.name:'')}">${lrEsc(d.mrp?d.mrp.name:'')}</span>${same?' <span class="cchip pu-edge" title="No new MRP was published since the day before">same MRP</span>':''}</td>
+      <td class="num">${c('shortNow')}</td><td class="num">${c('CRITICAL')}</td><td class="num">${c('EXPEDITE')}</td><td class="num">${c('flagged')}</td><td class="num">${c('risk')}</td><td class="num">${c('open')}</td><td class="num">${c('overdue')}</td><td class="num">${c('blockers')}</td></tr>`; }).join('')}
+  </tbody></table></div>
+  <p class="tc-small" style="padding:8px 16px">▼ green = fewer than the day before (better). Trailers count Line 1, Line 2 and so on, the same lines as the Line Reports.</p>`;
+}
+function trExport(){
+  const days=trDays(), lines=[...new Set(days.flatMap(d=>Object.keys((d.trailers&&d.trailers.byLine)||{})))].sort(lrLineSort);
+  const hdr=['Date','MRP file','Schedule file','Parts short now','Within lead time','Later','Flagged parts','Order more','Expedite (PO late)', ...TREND_URG.map(u=>u[0]+u.slice(1).toLowerCase()),
+    'Trailers open','Trailers at risk','Held by a critical part','Overdue at risk','Parts blocking trailers', ...lines.flatMap(l=>[l+' open', l+' at risk', l+' parts blocking']), 'Dated by','Steel lead (wk)'];
+  const rows=days.map(d=>{ const t=d.trailers||{}, bl=t.byLine||{};
+    return [d.date, d.mrp?d.mrp.name:'', d.sched?d.sched.name:'', d.shortNow, d.leadtime, d.later, d.flagged, d.orderMore, d.expedite, ...TREND_URG.map(u=>(d.urg||{})[u]??''),
+      t.open, t.risk, t.crit, t.overdue, t.parts??'', ...lines.flatMap(l=>[bl[l]?bl[l].open:'', bl[l]?bl[l].risk:'', bl[l]&&bl[l].parts!=null?bl[l].parts:'']), d.settings?d.settings.datedBy:'', d.settings?d.settings.lead:'']; });
+  downloadXLSX([{name:'Trends', rows:[hdr, ...rows]}], 'MRP_Trends.xlsx');
+}
+
 function switchTab(t){
-  ['overview','actions','parts','late-po','schedule','changes','mismatch','pushout'].forEach(n=>{
+  ['overview','actions','parts','late-po','schedule','changes','mismatch','pushout','trends'].forEach(n=>{
     const v=document.getElementById('view-'+n); if(v) v.style.display=n===t?'block':'none';
     document.getElementById('tab-'+n)?.classList.toggle('active',n===t);
   });
@@ -2848,6 +3045,7 @@ function switchTab(t){
   if(t==='changes') chgRender();
   if(t==='mismatch') mmRender();
   if(t==='pushout') puRender();
+  if(t==='trends'){ trState.loaded=false; trRender(); }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -3951,7 +4149,8 @@ function v2Help(){ v2Panel('Help', ''
   +'<h3>Start here</h3><p>Choose your MRP report, optionally add a production schedule, then select Analyze to open the dashboard.</p>'
   +'<h3>Signing in (team files and shared statuses)</h3><p>On the team website, sign in with the username and password the admin gave you. The first time, you choose your own password. After that the dashboard remembers you on this computer and opens the team’s latest MRP and schedule by itself. You don’t need to connect a folder or upload anything.</p><p><b>Statuses are shared.</b> When you set Contacted supplier, PO / date set or Confirmed, everyone sees it, with your name and the date under the status. Changes are saved within about a minute and a half, and when you leave the page. Other people’s changes show up within about 10 minutes, or when you come back to the tab.</p><p><b>Publishing team files</b> (people allowed to publish): connect the team folder in <b>Data &amp; Settings</b>. Whenever you open the dashboard and the folder has a newer MRP or schedule, it is published to everyone automatically. You can also choose a file and select <b>Publish to team</b>, or use <b>Publish the MRP I have open</b> in <b>Data &amp; Settings</b>. The line under the page title shows <b>👥 Team files · MRP published …</b> with who published it.</p><p><b>Admins</b>: select <b>👤 your name → Team members</b> to add a person (you get a temporary password to send them), reset a password, allow publishing, or turn someone off.</p><p><b>Privacy.</b> Files and statuses are encrypted in your browser before they are uploaded, so the website’s storage only holds scrambled data. Your password never leaves your computer.</p>'
   +'<h3>FAQ: signing in</h3><p><b>I forgot my password.</b> Ask the admin to select <b>Reset password</b>. You get a new temporary password.<br><b>It says the team server could not be reached.</b> The dashboard falls back to the team folder or your saved copy. Try again later.<br><b>It says team storage is paused.</b> The free storage plan’s monthly limit was reached. The dashboard keeps working with the team folder or your own files until it resets.<br><b>A newer MRP was published while I had the dashboard open.</b> A notice offers <b>Open it now</b>. You can also select <b>👤 your name → Check for newer team files</b>.<br><b>I opened the dashboard file from my computer.</b> Sign-in only works on the team website. A file opened from a folder works the old way (your own files and the team folder).</p>'
-  +'<h3>Choose a workspace</h3><p><b>Overview:</b> urgency totals, production line health and the parts blocking the most trailers (choose the time window at the top), then <b>Vendor Priority</b> (vendors with the most Critical + Expedite parts first, so the top rows are the calls to make) and the <b>order deadline timeline</b> (flagged parts by the week they go short, stacked by urgency; hover a bar for the counts). Click a line to open its trailers, or a part for its details. On every other tab the urgency totals shrink to one slim row; click any of them to filter All Parts.<br><b>Purchasing Queue:</b> urgent unordered parts and expedite items.<br><b>All Parts:</b> search and filter flagged parts.<br><b>Trailers at Risk:</b> investigate affected trailers.<br><b>Expedite:</b> review late purchase orders.<br><b>Push Out / Cancel:</b> open POs that bring stock in before it’s needed, or that aren’t needed at all.</p>'
+  +'<h3>Choose a workspace</h3><p><b>Overview:</b> urgency totals, production line health and the parts blocking the most trailers (choose the time window at the top), then <b>Vendor Priority</b> (vendors with the most Critical + Expedite parts first, so the top rows are the calls to make) and the <b>order deadline timeline</b> (flagged parts by the week they go short, stacked by urgency; hover a bar for the counts). Click a line to open its trailers, or a part for its details. On every other tab the urgency totals shrink to one slim row; click any of them to filter All Parts.<br><b>Purchasing Queue:</b> urgent unordered parts and expedite items.<br><b>All Parts:</b> search and filter flagged parts.<br><b>Trailers at Risk:</b> investigate affected trailers.<br><b>Expedite:</b> review late purchase orders.<br><b>Push Out / Cancel:</b> open POs that bring stock in before it’s needed, or that aren’t needed at all.<br><b>📈 Trends:</b> whether parts short now and trailers at risk are going down over time.</p>'
+  +'<h3>📈 Trends</h3><p>Every weekday morning (about 5–6 AM Central) the team server opens the published MRP and schedule and records the day’s numbers: <b>parts short now</b>, Critical and Expedite parts, all flagged parts, and <b>trailers at risk</b> (open trailers on Line 1, Line 2 and so on due in the next 4 weeks or overdue, the same window as Overview), with how many of those are overdue and how many different parts block them, overall and per line. While nearly every trailer is at risk, the at-risk line stays flat; <b>Parts blocking</b> and <b>Overdue at risk</b> show progress sooner. It uses the team settings saved under Data &amp; Settings → Scheduled emails (shortages dated by, steel lead, excluded lines), so every day is worked out the same way and your own browser settings don’t change the history. Down is better on every number.</p><ul class="chg-ul"><li>The four cards show today’s number and the change against about 1 week and 4 weeks ago (▼ green = better).</li><li>Choose the range and a line at the top; the line choice changes the trailer chart and cards.</li><li>Hover over a chart to see that day’s numbers and MRP file. A <b>hollow dot</b> or <b>same MRP</b> means no new MRP was published that day, so only the date moved.</li><li><b>Export Excel</b> gives every recorded day with all the counts, per line too.</li></ul><p><b>Requirements:</b> the server needs its copy of the team key (an admin turns it on under Data &amp; Settings → Scheduled emails; the emails themselves can stay off). Admins can select <b>● Record today now</b> to add today’s point right away, for example just after publishing a new MRP; it replaces today’s point. History is kept for about 3 years and is encrypted with the team key like everything else.</p>'
   +'<h3>Push Out / Cancel</h3><p>This tab looks at <b>every open PO</b> in the MRP, not only flagged parts. For each part, stock is used first in, first out: on hand first, then past-due POs, then each PO delivery in the order it arrives, against the part’s demand (past-due demand first, then each week). Demand that stock can’t cover waits for the next delivery. Each PO delivery then gets <b>Needed</b> (how much of it is used before the MRP ends) and <b>First needed</b> (the week its first unit is used). Sage’s <b>Excess</b> on the MRP workbook’s Excess Obsolete sheet counts all open demand, including weeks after the MRP ends, so Cancel and Reduce never cut more than Sage’s excess: it is taken from the last delivery back. A <sup>*</sup> on Needed means later demand needs part of the delivery; hover over it for the numbers.</p><ul class="chg-ul"><li><b>Cancel:</b> none of the delivery is needed before the MRP ends.</li><li><b>Reduce qty:</b> only part of it is needed; <b>Suggested</b> gives the quantity to cut it to.</li><li><b>Push out:</b> its first unit isn’t needed until 4 or more weeks after it arrives (change the number of weeks on the tab; saved in this browser). <b>Suggested</b> gives the week to move it to: the week it’s first needed minus the Arrive early weeks.</li></ul><p><b>Before you cancel, check:</b> the MRP only has demand up to its last week, and trailers whose bill of materials isn’t in Sage yet have no demand at all (see Sage vs Schedule → Not in Sage). Lines tagged <b>Near MRP end</b> arrive in the last weeks of the MRP, so later trailers may still need them; tick <b>Hide “Near MRP end”</b> to leave them out. Parts tagged <b>Also short</b> go short at some point in this MRP: moving a delivery to its suggested week still covers the demand shown, but open part details before cutting anything. Stock parts bought in bulk will show as Reduce qty; use judgment. When two POs arrive the same week, the MRP gives one total for both, so they show on one line. Past-due PO quantity has no PO number in the MRP, so it shows as <b>Past-due PO</b>.</p><p><b>Last used</b> and the part panel’s Sage excess and last received come from the MRP workbook’s <b>Excess Obsolete</b> sheet. Click a row for the part’s POs and week-by-week demand, or a PO number for the PO. Statuses on this tab are separate from the part statuses and are shared with the team the same way. Arriving soon matters most: once the supplier ships, it’s too late to push out.</p>'
   +'<h3>Investigate and follow up</h3><p>Click a part number for details. Click an Open PO badge for the delivery breakdown. Work statuses do not change MRP urgency. When you are signed in they are shared with the team and show who set them and when; otherwise they are saved in this browser only.</p>'
   +'<h3>Team shared folder (same files for everyone)</h3><p>Connect the dashboard to one folder the whole team syncs from SharePoint. Every time anyone opens the dashboard, it loads the <b>newest MRP (.xlsm)</b> and the <b>newest schedule (.xlsx with “Schedule” in the name)</b> in that folder. “Newest” means the latest <b>report date in the file name</b> (for example MRP_REPORT_10.29.26, or the export number at the end of a Monday schedule file), not when the file was last saved. Date modified is only used when the names have the same date or no date. To update everyone, save the new file into the folder, or choose it in the dashboard and select <b>Save to team folder</b> when asked.</p><p><b>One-time setup for each person</b><br>1. In SharePoint, open the team folder that holds the MRP and schedule and select <b>Sync</b> (or <b>Add shortcut to My files</b>), so it appears in File Explorer.<br>2. In the dashboard, open <b>Data &amp; Settings</b> and select <b>Connect team folder…</b>.<br>3. Pick that folder and select <b>View files</b>, then <b>Allow</b>. If Chrome or Edge offers <b>Allow on every visit</b>, choose it so the team files open with no clicks.<br>Otherwise, when you open the dashboard, select <b>Open team files</b> in the notice in the bottom-right corner.</p><p>The line under the page title shows <b>👥 Team files</b> with the <b>report date</b> of the MRP and the schedule (from the file names), and who published them and when. It turns orange when the MRP’s report date is more than 7 days old. If it shows <b>💾 My saved files</b>, you are looking at your own copy, not the team folder.</p>'
@@ -4693,7 +4892,7 @@ async function erLoad(){
   const ok=(b,t,f)=>`<span class="cchip ${b?'c-green':'c-red'}">${b?'✓ '+t:'✗ '+f}</span>`;
   const last=st?(st.ok?`Last sent ${v2Escape(fsWhen(st.at))}: ${v2Escape(st.kind)} report to ${st.to} people${st.pdf?' with PDF':''}${st.pdfError?' (PDF failed: '+v2Escape(st.pdfError)+')':''}.${st.note?' '+v2Escape(st.note):''}`:`<span style="color:var(--critical)">Last try ${v2Escape(fsWhen(st.at))} failed: ${v2Escape(st.error)}</span>`):'Nothing sent yet.';
   box.innerHTML=`
-    <p>Every weekday morning (about 5–6 AM Central) the server builds the Line Report from the published team files and emails it. On the weekly day the full weekly report goes out instead of the daily one.</p>
+    <p>Every weekday morning (about 5–6 AM Central) the server builds the Line Report from the published team files and emails it. On the weekly day the full weekly report goes out instead of the daily one. Each morning it also records the day’s numbers for <b>📈 Trends</b>; that keeps running while emails are turned off, as long as the server has its key.</p>
     <div class="er-checks">${ok(d.keyStored,'Server can read the team files','Not turned on')} ${ok(d.env.resend,'Resend key set','RESEND_API_KEY missing in Vercel')} ${ok(d.env.cron,'Schedule secret set','CRON_SECRET missing in Vercel')} ${ok(s.enabled,'Emails on','Emails off')}</div>
     <p class="tc-small">Sending from: <b>${v2Escape(d.env.from)}</b>${/resend\.dev/.test(d.env.from)?' — Resend’s test address: it can only email the address you signed up to Resend with, until your company domain is set up.':''}</p>
     <p class="tc-small">${last}</p>
@@ -4741,7 +4940,7 @@ async function erSave(enabled){
   }catch(e){ erMsg('Could not save: '+e.message); }
 }
 async function erForget(){
-  if(!(await uiConfirm('Remove the server’s copy of the team key? Scheduled emails stop until an admin turns them on again.','Remove'))) return;
+  if(!(await uiConfirm('Remove the server’s copy of the team key? Scheduled emails and the daily Trends recording stop until an admin turns them on again.','Remove'))) return;
   try{ await tcFetch('/reports?op=key', {json:{remove:true}}); await erLoad(); erMsg('Removed. The server can no longer read the team files.', true); }catch(e){ erMsg('Could not remove: '+e.message); }
 }
 async function erPreview(kind){

@@ -10,6 +10,9 @@ import { buildEmail } from './_mail.js';
 const SETTINGS = 'reports/settings.json';
 const KEYFILE = 'reports/key.json';
 const STATUS = 'reports/status.json';
+const HISTORY = 'reports/history.json';   // 2.27: daily numbers for the Trends tab, sealed with the team key
+const HISTORY_KEEP = 800;                 // about 3 years of weekdays
+const TREND_WEEKS = 4;                    // trailers due in the next 4 weeks + overdue, the same as Overview
 const DEFAULTS = {
   enabled: false, recipients: [], testTo: '', lines: [],
   daily: { on: true, weeks: 4, urgentOnly: true }, weekly: { on: true, day: 1, weeks: 8 },
@@ -38,6 +41,16 @@ function openFile(teamKey, ivB64, buf) {
   const d = crypto.createDecipheriv('aes-256-gcm', teamKey, Buffer.from(ivB64, 'base64'));
   d.setAuthTag(buf.subarray(buf.length - 16));
   return Buffer.concat([d.update(buf.subarray(0, buf.length - 16)), d.final()]);
+}
+// sealed the way the browser does it (tcSealText): base64 of 12-byte IV + ciphertext + 16-byte tag
+function sealJSON(teamKey, obj) {
+  const iv = crypto.randomBytes(12), c = crypto.createCipheriv('aes-256-gcm', teamKey, iv);
+  const ct = Buffer.concat([c.update(Buffer.from(JSON.stringify(obj), 'utf8')), c.final()]);
+  return Buffer.concat([iv, ct, c.getAuthTag()]).toString('base64');
+}
+function openJSON(teamKey, b64) {
+  const b = Buffer.from(b64, 'base64');
+  return JSON.parse(openFile(teamKey, b.subarray(0, 12).toString('base64'), b.subarray(12)).toString('utf8'));
 }
 async function readTeamFile(teamKey, e, kind) {
   const parts = [];
@@ -74,17 +87,42 @@ function centralNow() {
   return { iso: `${p.year}-${p.month}-${p.day}`, dow: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday) };
 }
 
-// Build one report. Returns {subject, html, pdf, info}
-export async function buildReport(kind, s, opts = {}) {
+// Open the published team files and run the dashboard's numbers on them (done once per run)
+async function loadTeam(s, today) {
   const { data: k } = await getJSON(KEYFILE, true);
   if (!k || !k.locked) throw new Error('Scheduled emails are not turned on yet: an admin needs to select “Turn on” in Data & Settings.');
   const teamKey = unlock(k.locked);
   const { data: m } = await getJSON('data/manifest.json', true);
   if (!m || !m.mrp || !m.sched) throw new Error('Publish both an MRP and a schedule to the team first.');
   const [mrpBuf, schedBuf] = await Promise.all([readTeamFile(teamKey, m.mrp, 'mrp'), readTeamFile(teamKey, m.sched, 'sched')]);
-  const today = opts.today || centralNow().iso;
   const eng = makeEngine(today, s);
   await eng.load(mrpBuf, m.mrp.name, schedBuf, m.sched.name);
+  return { eng, m, teamKey, today };
+}
+
+// 2.27: save today's numbers (one entry per Central date; a second run the same day replaces it)
+async function recordHistory(t, s) {
+  if (!t.eng.eval("typeof trendSnapshot==='function'")) throw new Error('index.html is older than 2.27; deploy the latest index.html.');
+  const snap = JSON.parse(t.eng.eval(`JSON.stringify(trendSnapshot(${TREND_WEEKS}))`));
+  const pub = (e) => ({ id: e.id, name: e.name, publishedAt: e.publishedAt || 0, by: e.byName || e.by || '' });
+  const entry = { date: t.today, at: Date.now(), mrp: pub(t.m.mrp), sched: pub(t.m.sched), ...snap };
+  const { data: w } = await getJSON(HISTORY, true);
+  let days = [];
+  if (w && w.enc) { try { days = openJSON(t.teamKey, w.enc).days || []; } catch (e) { console.warn('history could not be opened; starting a new one', e); } }
+  days = days.filter((d) => d.date !== entry.date);
+  days.push(entry); days.sort((a, b) => a.date.localeCompare(b.date));
+  days = days.slice(-HISTORY_KEEP);
+  await putJSON(HISTORY, { enc: sealJSON(t.teamKey, { v: 1, days }), at: Date.now(), n: days.length, last: entry.date, lastRun: { at: Date.now(), ok: true, date: entry.date } });
+  return entry;
+}
+async function historyFailed(err) {
+  try { const { data: w } = await getJSON(HISTORY, true); await putJSON(HISTORY, { ...(w || {}), lastRun: { at: Date.now(), ok: false, error: String(err && err.message || err) } }); } catch (e) { console.warn('history status not saved', e); }
+}
+
+// Build one report. Returns {subject, html, pdf, info}
+export async function buildReport(kind, s, opts = {}) {
+  const t = opts.loaded || await loadTeam(s, opts.today || centralNow().iso);
+  const { eng, m, today } = t;
   let lines = eng.lines();
   lines = s.lines && s.lines.length ? lines.filter((l) => s.lines.includes(l)) : lines.filter((l) => /^Line\s+\d+$/i.test(l));
   if (!lines.length) throw new Error('None of the chosen lines are on the schedule.');
@@ -129,26 +167,40 @@ export const GET = handle(async (request, url) => {
     if (!want || (request.headers.get('authorization') || '') !== 'Bearer ' + want) throw httpError(401, 'Not allowed');
     const s = await loadSettings();
     const now = centralNow();
-    if (!s.enabled) return json({ skipped: 'turned off' });
+    if (now.dow === 0 || now.dow === 6) return json({ skipped: 'weekend' });
+    // 2.27: record today's numbers for the Trends tab first. It only needs the server's key, not emails turned on,
+    // and a failure here never stops the email.
+    let loaded = null, history = 'no key';
+    const { data: k } = await getJSON(KEYFILE, true);
+    if (k && k.locked) {
+      try { loaded = await loadTeam(s, now.iso); await recordHistory(loaded, s); history = 'recorded'; }
+      catch (e) { console.error('trend history failed', e); history = 'failed: ' + (e.message || e); await historyFailed(e); }
+    }
+    if (!s.enabled) return json({ skipped: 'emails turned off', history });
     const kind = s.weekly.on && now.dow === s.weekly.day ? 'weekly' : s.daily.on ? 'daily' : null;
-    if (!kind || now.dow === 0 || now.dow === 6) return json({ skipped: 'nothing scheduled today' });
-    if (!s.recipients.length) return json({ skipped: 'no recipients' });
+    if (!kind) return json({ skipped: 'nothing scheduled today', history });
+    if (!s.recipients.length) return json({ skipped: 'no recipients', history });
     const { data: last } = await getJSON(STATUS, true);
-    if (last && last.date === now.iso && last.ok && !url.searchParams.get('force')) return json({ skipped: 'already sent today' });
+    if (last && last.date === now.iso && last.ok && !url.searchParams.get('force')) return json({ skipped: 'already sent today', history });
     try {
       if (s.onlyIfNew && last && last.ok) {
         const { data: m } = await getJSON('data/manifest.json', true);
-        if (m && m.mrp && m.sched && m.mrp.id === last.mrpId && m.sched.id === last.schedId) { await saveStatus({ ...last, checkedAt: Date.now(), note: 'No new files; nothing sent.' }); return json({ skipped: 'no new files' }); }
+        if (m && m.mrp && m.sched && m.mrp.id === last.mrpId && m.sched.id === last.schedId) { await saveStatus({ ...last, checkedAt: Date.now(), note: 'No new files; nothing sent.' }); return json({ skipped: 'no new files', history }); }
       }
-      const rep = await buildReport(kind, s);
+      const rep = await buildReport(kind, s, loaded && !loaded.used ? { loaded } : {});
       const id = await sendEmail(s.recipients, rep, kind);
       await saveStatus({ ok: true, at: Date.now(), date: now.iso, kind, to: s.recipients.length, id, pdf: !!rep.pdf, pdfError: rep.pdfError, mrpId: rep.manifest.mrp.id, schedId: rep.manifest.sched.id, subject: rep.subject });
-      return json({ sent: true, kind });
+      return json({ sent: true, kind, history });
     } catch (e) {
       console.error('scheduled report failed', e);
       await saveStatus({ ok: false, at: Date.now(), date: now.iso, kind, error: String(e.message || e) });
       throw e;
     }
+  }
+  if (op === 'history') {   // 2.27: daily numbers for the Trends tab (sealed; the browser opens them with the team key)
+    await requireUser(request);
+    const { data } = await getJSON(HISTORY, url.searchParams.get('fresh') === '1');
+    return json({ history: data || null });
   }
   if (op === 'settings') {
     await requireUser(request, 'admin');
@@ -187,6 +239,11 @@ export const POST = handle(async (request, url) => {
     if (m && m.sched) { try { await readTeamFile(raw, m.sched, 'sched'); } catch (e) { throw httpError(400, 'That key does not open the team files.'); } }
     await putJSON(KEYFILE, { locked: lock(raw), at: Date.now(), by: me.u, byName: me.name });
     return json({ keyStored: true });
+  }
+  if (op === 'record') {   // 2.27: record today's numbers now (admin), e.g. right after publishing a new MRP
+    const s = await loadSettings();
+    try { const t = await loadTeam(s, centralNow().iso); const e = await recordHistory(t, s); return json({ recorded: true, date: e.date }); }
+    catch (e) { if (e.status) throw e; await historyFailed(e); throw httpError(400, e.message); }
   }
   if (op === 'test') {   // build and send one now
     const s = await loadSettings();
