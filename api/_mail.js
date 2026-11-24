@@ -1,6 +1,6 @@
 // The Line Report email: a short summary that reads well in Outlook and on a phone
 // (plain tables and inline styles only), with the full printable report attached as a PDF.
-const C = { navy: '#1E2A3A', bg: '#F5F6F8', border: '#E2E4E8', text: '#1A1A2E', muted: '#6B7280', blue: '#2563EB',
+const C = { navy: '#1E2A3A', bg: '#F5F6F8', border: '#E2E4E8', text: '#1A1A2E', muted: '#5F6673', blue: '#2563EB',
   green: '#16A34A', yellow: '#CA8A04', orange: '#EA580C', red: '#DC2626', purple: '#7C3AED' };
 const URG = { CRITICAL: [C.red, '#FEF2F2'], EXPEDITE: [C.purple, '#F5F3FF'], HIGH: [C.orange, '#FFF7ED'], MEDIUM: [C.yellow, '#FEFCE8'], LOW: [C.green, '#F0FDF4'], NONE: [C.green, '#F0FDF4'] };
 const ORDER = { EXPEDITE: 0, CRITICAL: 1, HIGH: 2, MEDIUM: 3, LOW: 4, NONE: 5 };
